@@ -291,7 +291,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       </section>
 
       {/* ---- evolution ---- */}
-      {view.evolution_members.length > 1 && (
+      {(!form || view.evolution_members.length > 1) && (
         <section className="shell" style={{ marginTop: 20 }}>
           <div className="panel d-panel">
             <h2 className="d-panel__title font-mono">EVOLUTION</h2>
