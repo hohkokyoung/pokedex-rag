@@ -146,6 +146,10 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
     abilities: form
       ? form.abilities.map((a) => ({ key: a.identifier, name: a.name, is_hidden: a.is_hidden, effect: a.effect }))
       : data.abilities.map((a) => ({ key: `${a.id}-${a.is_hidden}`, name: a.name, is_hidden: a.is_hidden, effect: a.effect })),
+    evolution_members: form ? form.evolution_members : data.evolution_members,
+    evolution_stages: form ? form.evolution_stages : data.evolution_stages,
+    flavor_texts: form ? form.flavor_texts : data.flavor_texts,
+    currentId: form ? form.id : data.id,
   };
 
   const color = primaryColor(view.types);
@@ -287,20 +291,26 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       </section>
 
       {/* ---- evolution ---- */}
-      <section className="shell" style={{ marginTop: 20 }}>
-        <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">EVOLUTION</h2>
-          <EvolutionChain members={data.evolution_members} stages={data.evolution_stages} currentId={data.id} />
-        </div>
-      </section>
+      {view.evolution_members.length > 1 && (
+        <section className="shell" style={{ marginTop: 20 }}>
+          <div className="panel d-panel">
+            <h2 className="d-panel__title font-mono">EVOLUTION</h2>
+            <EvolutionChain
+              members={view.evolution_members}
+              stages={view.evolution_stages}
+              currentId={view.currentId}
+            />
+          </div>
+        </section>
+      )}
 
       {/* ---- dex entries ---- */}
-      {data.flavor_texts.length > 0 && (
+      {view.flavor_texts.length > 0 && (
         <section className="shell" style={{ marginTop: 20, marginBottom: 100 }}>
           <div className="panel d-panel">
-            <h2 className="d-panel__title font-mono">DEX ENTRIES · {data.flavor_texts.length}</h2>
+            <h2 className="d-panel__title font-mono">DEX ENTRIES · {view.flavor_texts.length}</h2>
             <div className="d-entries">
-              {data.flavor_texts.slice(0, 6).map((t, i) => (
+              {view.flavor_texts.slice(0, 6).map((t, i) => (
                 <p key={i} className="d-entry">{t}</p>
               ))}
             </div>
