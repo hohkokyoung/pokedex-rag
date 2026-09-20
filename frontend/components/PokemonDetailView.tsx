@@ -29,7 +29,11 @@ function JumpSearch() {
     }, 180);
     return () => clearTimeout(id);
   }, [q]);
-  const go = (dex: number) => { setQ(""); setRes([]); router.push(`/pokedex/${dex}`); };
+  const go = (p: PokemonSummary) => {
+    setQ("");
+    setRes([]);
+    router.push(p.form_id ? `/pokedex/${p.dex_number}?form=${p.form_id}` : `/pokedex/${p.dex_number}`);
+  };
   return (
     <div className="d-jump">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
@@ -37,14 +41,14 @@ function JumpSearch() {
         placeholder="Jump to any Pokémon…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && res[0]) go(res[0].dex_number); }}
+        onKeyDown={(e) => { if (e.key === "Enter" && res[0]) go(res[0]); }}
       />
       {res.length > 0 && (
         <div className="ac">
           {res.map((p) => (
-            <button key={p.id} onClick={() => go(p.dex_number)}>
+            <button key={p.id} onClick={() => go(p)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={assetUrl(`/sprites/official-artwork/${p.dex_number}.png`)} alt="" />
+              <img src={assetUrl(p.sprite_url)} alt="" />
               <span style={{ flex: 1, fontWeight: 600 }}>{titleCase(p.name)}</span>
               <span className="font-mono" style={{ fontSize: 11, color: "var(--faint)" }}>{dexLabel(p.dex_number)}</span>
             </button>

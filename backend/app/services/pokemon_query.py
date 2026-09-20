@@ -104,11 +104,32 @@ async def list_pokemon(
         q=q, types=types, generation=generation, legendary=legendary, mythical=mythical
     )
 
-    count_stmt = _apply_filters(select(func.count(Pokemon.id)), **filters)
-    total = (await session.execute(count_stmt)).scalar_one()
-
     sort_col = SORT_COLUMNS.get(sort, Pokemon.dex_number)
     sort_col = sort_col.desc() if order == "desc" else sort_col.asc()
+
+    # A by-name search also surfaces alternate forms (e.g. "Hisuian Growlithe"),
+    # which live in `pokemon_forms`, not the default-species `pokemon` table. The
+    # default browse grid (and dex-number search) stays default-species only, so
+    # counts/teams/RAG keep their default-form invariant. Because a name search
+    # returns a small set, we gather species + forms and paginate in memory.
+    q_name = q.strip() if q else None
+    if q_name and not q_name.isdigit():
+        species_rows = (
+            await session.execute(
+                _apply_filters(select(Pokemon), **filters)
+                .options(selectinload(Pokemon.types).selectinload(PokemonType.type))
+                .order_by(sort_col, Pokemon.dex_number)
+            )
+        ).scalars().all()
+        combined = [_species_summary(p) for p in species_rows]
+        combined += await _form_search_summaries(
+            session, q_name, types, generation, legendary, mythical
+        )
+        total = len(combined)
+        return combined[offset : offset + limit], total
+
+    count_stmt = _apply_filters(select(func.count(Pokemon.id)), **filters)
+    total = (await session.execute(count_stmt)).scalar_one()
 
     stmt = (
         _apply_filters(select(Pokemon), **filters)
@@ -118,23 +139,83 @@ async def list_pokemon(
         .offset(offset)
     )
     rows = (await session.execute(stmt)).scalars().all()
-
-    items = [
-        PokemonSummary(
-            id=p.id,
-            dex_number=p.dex_number,
-            name=p.name,
-            genus=p.genus,
-            types=_type_names(p),
-            sprite_url=sprite_url(p),
-            base_stat_total=p.base_stat_total,
-            generation_id=p.generation_id,
-            is_legendary=p.is_legendary,
-            is_mythical=p.is_mythical,
-        )
-        for p in rows
-    ]
+    items = [_species_summary(p) for p in rows]
     return items, total
+
+
+def _species_summary(p: Pokemon) -> PokemonSummary:
+    return PokemonSummary(
+        id=p.id,
+        dex_number=p.dex_number,
+        name=p.name,
+        genus=p.genus,
+        types=_type_names(p),
+        sprite_url=sprite_url(p),
+        base_stat_total=p.base_stat_total,
+        generation_id=p.generation_id,
+        is_legendary=p.is_legendary,
+        is_mythical=p.is_mythical,
+    )
+
+
+async def _form_search_summaries(
+    session: AsyncSession,
+    q_name: str,
+    types: list[str] | None,
+    generation: int | None,
+    legendary: bool | None,
+    mythical: bool | None,
+) -> list[PokemonSummary]:
+    """Alternate forms whose name matches, as summaries that link back to the base
+    species' page (``dex_number`` = base dex, ``form_id`` set). Type filters apply to
+    the form's own types; generation/legendary/mythical apply to the base species."""
+    form_rows = (
+        await session.execute(
+            select(PokemonForm)
+            .where(PokemonForm.name.ilike(f"%{q_name}%"))
+            .order_by(PokemonForm.base_pokemon_id, PokemonForm.sort_order, PokemonForm.id)
+        )
+    ).scalars().all()
+    if not form_rows:
+        return []
+
+    base_ids = {f.base_pokemon_id for f in form_rows}
+    bases = {
+        p.id: p
+        for p in (
+            await session.execute(select(Pokemon).where(Pokemon.id.in_(base_ids)))
+        ).scalars().all()
+    }
+    wanted_types = set(types or [])
+    out: list[PokemonSummary] = []
+    for f in form_rows:
+        base = bases.get(f.base_pokemon_id)
+        if base is None:
+            continue
+        if wanted_types and not wanted_types.issubset(set(f.types or [])):
+            continue
+        if generation is not None and base.generation_id != generation:
+            continue
+        if legendary is not None and base.is_legendary is not legendary:
+            continue
+        if mythical is not None and base.is_mythical is not mythical:
+            continue
+        out.append(
+            PokemonSummary(
+                id=f.id,
+                dex_number=base.dex_number,
+                name=f.name,
+                genus=base.genus,
+                types=f.types or [],
+                sprite_url=f"/sprites/{f.sprite_path}" if f.sprite_path else "",
+                base_stat_total=f.base_stat_total,
+                generation_id=base.generation_id,
+                is_legendary=base.is_legendary,
+                is_mythical=base.is_mythical,
+                form_id=f.id,
+            )
+        )
+    return out
 
 
 async def get_pokemon(session: AsyncSession, id_or_name: str) -> PokemonDetail | None:

@@ -11,6 +11,8 @@ export type PokemonSummary = {
   generation_id: number | null;
   is_legendary: boolean;
   is_mythical: boolean;
+  /** Set when this result is an alternate form; link to /pokedex/{dex_number}?form={form_id}. */
+  form_id?: number | null;
 };
 
 export type PokemonListResponse = {

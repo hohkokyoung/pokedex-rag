@@ -50,6 +50,9 @@ class PokemonSummary(BaseModel):
     generation_id: int | None = None
     is_legendary: bool = False
     is_mythical: bool = False
+    # Set when this result is an alternate form; the UI links to
+    # /pokedex/{dex_number}?form={form_id}. None for a default-species result.
+    form_id: int | None = None
 
 
 class EvolutionStage(BaseModel):
