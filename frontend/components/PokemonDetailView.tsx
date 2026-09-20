@@ -286,7 +286,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       <section className="shell" style={{ marginTop: 20 }}>
         <div className="panel d-panel">
           <h2 className="d-panel__title font-mono">MOVESET</h2>
-          <MovesetPanel pokemonId={data.id} />
+          <MovesetPanel pokemonId={data.id} formId={formId} />
         </div>
       </section>
 
