@@ -562,7 +562,8 @@ async def learnset_tool(
     groups = [
         LearnGroup(ref=ref, method=method, label=label, moves=[
             LearnMove(name=m.name, type=t, damage_class=m.damage_class, power=m.power,
-                      level=lv if method == "level-up" else None)
+                      level=lv if method == "level-up" else None,
+                      level_note=d["varies"].get(m.id) if method == "level-up" else None)
             for m, t, lv in moves
         ])
         for ref, method, label, moves in d["groups"]

@@ -91,7 +91,8 @@ class LearnMove(BaseModel):
     type: str
     damage_class: str | None = None
     power: int | None = None
-    level: int | None = None
+    level: int | None = None  # any game: the newest game's level
+    level_note: str | None = None  # "Lv 1 in SwSh/BDSP; Lv 51–52 in other games" when it varies
 
 
 class LearnGroup(BaseModel):

@@ -1295,7 +1295,8 @@ function DamageCalcTile() {
                     answering={t.answer.length > 0}
                   />
                   {/* Same light Markdown as the Ask answers and the team coach. */}
-                  {t.answer ? <div className="coach">{renderAnswer(t.answer)}</div>
+                  {/* No sources list in this box, so the [n] markers would point nowhere. */}
+                  {t.answer ? <div className="coach">{renderAnswer(t.answer.replace(/ ?\[\d+(?:,\s*\d+)*\]/g, ""))}</div>
                     : t.status === "streaming" ? <p className="coach wait">Coach is thinking…</p> : null}
                   {t.status === "error" && <p className="coach err">{t.error}</p>}
                   {t.views.map((v, k) => {

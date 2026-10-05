@@ -140,7 +140,13 @@ function LearnGroup({ group, link }: { group: LearnsetView["groups"][number]; li
             style={{ "--tc": typeColor(m.type) } as React.CSSProperties}
             title={`${titleCase(m.type)} · ${titleCase(m.damage_class ?? "status")}${m.power ? ` · ${m.power} power` : ""}`}
           >
-            {m.level !== null && <span className="ax-ls__lv">Lv {m.level}</span>}
+            {m.level !== null && (
+              // Varies by game: the newest game's level, the rest on hover.
+              <span className={`ax-ls__lv${m.level_note ? " is-varies" : ""}`} title={m.level_note ?? undefined}>
+                Lv {m.level}
+                {m.level_note && <sup aria-hidden>*</sup>}
+              </span>
+            )}
             <span className="ax-ls__name">{m.name}</span>
             {m.power !== null && <span className="ax-ls__pow">{m.power}</span>}
           </li>

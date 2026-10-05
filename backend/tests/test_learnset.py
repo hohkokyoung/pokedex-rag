@@ -174,3 +174,15 @@ async def test_method_filter(session) -> None:
     seismitoad = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Seismitoad"))
     pair = await retrieve_typed(session, LearnsetPlan(seismitoad, eq, [], None, method="level-up"))
     assert not pair.data["ok"] and "doesn't learn Earthquake by level-up" in pair.chunks[0].content
+
+
+async def test_pokemon_learnset_levels_name_their_games(session) -> None:
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    swampert = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Swampert"))
+    eq = await session.scalar(select(Move.id).where(Move.name == "Earthquake"))
+    out = await retrieve_typed(session, LearnsetPlan(swampert, None, [], None))
+    assert out.data["varies"][eq] == "Lv 1 in SwSh/BDSP; Lv 51–52 in other games"
+    text = next(c.content for c in out.chunks if "by level-up" in c.content)
+    assert "Earthquake (Ground, physical, 100 power) at Lv 1 in SwSh/BDSP (Lv 51–52 in other " \
+        "games)" in text

@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.models import Pokemon
-from app.rag.build_suggest import BuildSuggestion, CoachTurn, SuggestError, suggest_build
 from app.schemas.builder import (
     AbilityHolderOut,
     ItemOut,
@@ -135,31 +133,3 @@ async def search_items(
 @router.get("/natures", response_model=list[NatureOut])
 async def list_natures(session: AsyncSession = Depends(get_session)) -> list[NatureOut]:
     return await builder.all_natures(session)
-
-
-class SuggestBuildIn(BaseModel):
-    pokemon_id: int
-    form_id: int | None = None
-    # Follow-up: the set being discussed, the user's new request, and earlier turns.
-    current: BuildSuggestion | None = None
-    request: str | None = None
-    history: list[CoachTurn] = []
-
-
-@router.post("/builds/suggest", response_model=BuildSuggestion)
-async def suggest_build_endpoint(
-    payload: SuggestBuildIn,
-    session: AsyncSession = Depends(get_session),
-) -> BuildSuggestion:
-    """A coach-picked set (moves, ability, nature, item, EVs), validated against real data."""
-    try:
-        return await suggest_build(
-            session,
-            payload.pokemon_id,
-            payload.form_id,
-            request=payload.request,
-            current=payload.current,
-            history=payload.history,
-        )
-    except SuggestError as e:
-        raise HTTPException(status_code=503, detail=str(e)) from e

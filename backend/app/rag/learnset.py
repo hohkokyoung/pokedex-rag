@@ -269,25 +269,43 @@ _SHORT_GAME = {
 }
 
 
-async def _level_history(
-    session: AsyncSession, move_id: int, pokemon_ids: list[int]
-) -> dict[int, list[tuple[int, str, int]]]:
-    """Per Pokémon: (level, game, release order) for every game it learns the move by level-up."""
-    if not pokemon_ids:
+async def _histories(
+    session: AsyncSession, pokemon_ids: list[int], move_ids: list[int]
+) -> dict[tuple[int, int], list[tuple[int, str, int]]]:
+    """(pokemon, move) → (level, game, release order) for every game it's learned by level-up."""
+    if not pokemon_ids or not move_ids:
         return {}
     L = PokemonMoveLearn
     rows = (
         await session.execute(
-            select(L.pokemon_id, L.level, VersionGroup.identifier, VersionGroup.sort_order)
+            select(L.pokemon_id, L.move_id, L.level, VersionGroup.identifier,
+                   VersionGroup.sort_order)
             .join(VersionGroup, VersionGroup.id == L.version_group_id)
-            .where(L.move_id == move_id, L.pokemon_id.in_(pokemon_ids),
+            .where(L.move_id.in_(move_ids), L.pokemon_id.in_(pokemon_ids),
                    L.learn_method == "level-up", L.level > 0)
         )
     ).all()
-    out: dict[int, list[tuple[int, str, int]]] = {}
-    for pid, level, game, order in rows:
-        out.setdefault(pid, []).append((level, game, order))
+    out: dict[tuple[int, int], list[tuple[int, str, int]]] = {}
+    for pid, mid, level, game, order in rows:
+        out.setdefault((pid, mid), []).append((level, game, order))
     return out
+
+
+async def _level_history(
+    session: AsyncSession, move_id: int, pokemon_ids: list[int]
+) -> dict[int, list[tuple[int, str, int]]]:
+    """Per Pokémon: the move's level-up history (see ``_histories``)."""
+    return {pid: h for (pid, _m), h in (await _histories(session, pokemon_ids, [move_id])).items()}
+
+
+def _newest_level(history: list[tuple[int, str, int]] | None) -> int | None:
+    return max(history, key=lambda r: r[2])[0] if history else None
+
+
+def _levels_by_game(history: list[tuple[int, str, int]] | None) -> str | None:
+    """'Lv 1 in SwSh/BDSP; Lv 51–52 in other games', or None if one level fits every game."""
+    how = _how_by_game(history)
+    return how.removeprefix("by level-up (").removesuffix(")") if how else None
 
 
 def _how_by_game(history: list[tuple[int, str, int]] | None) -> str | None:
@@ -307,6 +325,13 @@ def _how_by_game(history: list[tuple[int, str, int]] | None) -> str | None:
 def _by(method: str) -> str:
     """'by level-up' / 'by TM' / 'as an egg move'."""
     return "as an egg move" if method == "egg" else f"by {METHOD_LABEL.get(method, method)}"
+
+
+def _at_level(move_id: int, level: int | None, varies: dict[int, str]) -> str:
+    if move_id in varies:  # "Lv 1 in SwSh/BDSP; Lv 51–52 in other games" → bracket the rest
+        newest, _, rest = varies[move_id].partition("; ")
+        return f" at {newest} ({rest})"
+    return f" at Lv {level}" if level else ""
 
 
 def _how(method: str | None, level: int | None) -> str:
@@ -477,8 +502,19 @@ async def _learnset(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
         stmt = stmt.where(Move.damage_class == p.damage_class)
     rows = (await session.execute(stmt)).all()
 
+    # Any game: the summary table keeps each move's lowest level across games ("Lv 1" from
+    # SwSh for Swampert's Earthquake). Show the newest game's level, noting when it varies.
+    lv_ids = [m.id for m, _t, me, _l in rows if me == "level-up"]
+    history = (
+        await _histories(session, [pokemon.id], lv_ids) if p.version_group_id is None else {}
+    )
+    varies: dict[int, str] = {}
     grouped: dict[str, list] = {}
     for move, mtype, method, level in rows:
+        if method == "level-up" and (h := history.get((pokemon.id, move.id))):
+            level = _newest_level(h)
+            if note := _levels_by_game(h):
+                varies[move.id] = note
         grouped.setdefault(method or "other", []).append((move, mtype, level))
 
     chunks: list[RetrievedChunk] = []
@@ -497,7 +533,7 @@ async def _learnset(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
         listed = "; ".join(
             f"{m.name} ({t.title()}, {m.damage_class}"
             f"{f', {m.power} power' if m.power else ''})"
-            f"{f' at Lv {lv}' if method == 'level-up' and lv else ''}"
+            f"{_at_level(m.id, lv, varies) if method == 'level-up' else ''}"
             for m, t, lv in moves
         )
         label = METHOD_LABEL.get(method, method)
@@ -530,7 +566,8 @@ async def _learnset(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     )
     return LearnsetOutcome(
         "learnset", chunks, note,
-        {"pokemon": pokemon, "game": p.game, "groups": groups, "has_profile": own is not None},
+        {"pokemon": pokemon, "game": p.game, "groups": groups, "has_profile": own is not None,
+         "varies": varies},
     )
 
 

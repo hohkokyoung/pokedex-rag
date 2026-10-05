@@ -2193,6 +2193,8 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
 .ax-ls__moves{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px;}
 .ax-ls__move{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--tc) 9%,var(--surface));border-left:3px solid var(--tc);font-size:14px;min-width:0;}
 .ax-ls__lv{flex:none;font:700 11px var(--font-mono),monospace;color:var(--faint);min-width:34px;}
+.ax-ls__lv.is-varies{cursor:help;text-decoration:underline dotted;text-underline-offset:2px;}
+.ax-ls__lv sup{margin-left:1px;color:var(--accent);}
 .ax-ls__name{flex:1;min-width:0;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ax-ls__pow{flex:none;font:700 12.5px var(--font-mono),monospace;color:var(--ink-dim);font-variant-numeric:tabular-nums;}
 .ax-ls__more{margin-top:10px;border:1px solid var(--line);background:none;border-radius:var(--radius);padding:7px 12px;font:500 12px var(--font-mono),monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;}

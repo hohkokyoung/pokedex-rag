@@ -140,7 +140,11 @@ export type MoveRowData = {
   learners: number | null;
   effect: string | null;
 };
-export type LearnMoveData = { name: string; type: string; damage_class: string | null; power: number | null; level: number | null };
+export type LearnMoveData = {
+  name: string; type: string; damage_class: string | null; power: number | null; level: number | null;
+  /** Any-game lists: set when the level differs by game ("Lv 1 in SwSh/BDSP; Lv 51–52 in other games"). */
+  level_note?: string | null;
+};
 
 type ViewBase = { step: string; chunk_refs: number[] };
 export type RankingView = ViewBase & { kind: "ranking"; stat: string; order: "asc" | "desc"; total: number; rows: RankingRow[] };
@@ -330,26 +334,6 @@ export type BuildSuggestion = {
 };
 
 export type CoachTurn = { ask: string; reply: string };
-
-/** A coach-picked set for one Pokémon, every field checked against its real options.
- *  With `followUp`, the coach revises `current` per `request` (or just answers it);
- *  without `current`, `request` shapes a fresh build. */
-export async function suggestBuild(
-  pokemonId: number,
-  formId?: number | null,
-  followUp?: { current?: BuildSuggestion; request: string; history: CoachTurn[] },
-): Promise<BuildSuggestion> {
-  const res = await fetch(`${API_BASE_URL}/api/builds/suggest`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pokemon_id: pokemonId, form_id: formId ?? null, ...followUp }),
-  });
-  if (!res.ok) {
-    const detail = await res.json().then((j) => j?.detail).catch(() => null);
-    throw new Error(typeof detail === "string" ? detail : `Request failed (${res.status})`);
-  }
-  return (await res.json()) as BuildSuggestion;
-}
 
 export async function askQuestion(question: string): Promise<AskResponse> {
   const res = await fetch(`${API_BASE_URL}/api/ask`, {
