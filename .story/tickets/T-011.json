@@ -1,0 +1,13 @@
+{
+  "blockedBy": [],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "New app/services/recommend.py: recommend_additions(session, team, analysis, question) -> ranked list of candidate Pokémon. Parse preference from the question (role: sweeper=fast+offense, wall=bulk, wallbreaker=slow+power; explicit type coverage; 'legendary' opt-in). Exclude current team members and (by default) is_legendary/is_mythical. Rank by: (a) requested role fit from base stats, (b) coverage/weakness patching — resists the team's shared weaknesses and/or covers uncovered_types (reuse matchups + team_analysis role classifier), (c) BST tiebreak. Return a structured Candidate schema (id, name, dex, types, sprite_url, role, base_stats, reason) and a to-chunk helper producing citable RetrievedChunk passages. Deterministic, no LLM.",
+  "displayId": "T-011",
+  "id": "T-011",
+  "order": 10,
+  "phase": "coach-drafting",
+  "status": "complete",
+  "title": "Candidate recommender service (role + coverage + patch-holes)",
+  "type": "task"
+}

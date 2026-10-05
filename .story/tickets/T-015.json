@@ -1,0 +1,13 @@
+{
+  "blockedBy": [],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "Handle negated legendary/mythical in the keyless retrieval paths. In sql_retrieval.plan(): 'non legendary', 'non-legendary', 'no legendaries', 'without legendaries', 'not legendary' → legendary=False (and same for mythical); a bare 'legendary' stays True. In matchup.coverage(): accept/apply a legendary/mythical exclusion parsed from the question so 'non-legendary … coverage against dark' stops returning Xerneas/Tapu Lele. Add a small shared helper for negation parsing so Ask and the team recommender agree. No LLM needed.",
+  "displayId": "T-015",
+  "id": "T-015",
+  "order": 10,
+  "phase": "coverage-aware-ask",
+  "status": "complete",
+  "title": "Legendary negation in structured + matchup retrieval",
+  "type": "task"
+}

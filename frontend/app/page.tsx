@@ -2,89 +2,59 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { useKeyNav } from "@/hooks/useKeyNav";
+import { Facts, GradeBadge, StrategyBars, SummaryText, useInfo } from "@/components/TeamCardParts";
+import { defensiveMatchups, superEffectiveHits, typingEff } from "@/lib/typeChart";
+import TypeMatchups from "@/components/TypeMatchups";
+import { MoveLearnersModal } from "@/components/MoveLearners";
+import Finder from "@/components/Finder";
+import AskTile from "@/components/AskTile";
+import CatchRateTile from "@/components/CatchRateTile";
+import {
+  BULKY_SET, DcPicker, EvEditor, HpPicker, InfoBox, MoveSearch, NAT, NAT_OPTS, PickSearch, Tag, natDesc, natTag,
+  SABBR, art, loadCalcMon, loadMonMoves, monArt, natMul, offensiveSet, statFull,
+  type CalcMon, type CalcMove, type EVs, type PickOpt, type SKey,
+} from "@/components/calc/fields";
+import { renderAnswer } from "@/lib/answerFormat";
 import {
   listPokemon,
-  getPokemon,
   listTeams,
-  getTeam,
-  getPokemonMoves,
+  getPokemonAbilities,
   searchMoves,
   searchAbilities,
   searchItems,
+  getHeldItems,
   getMoveLearners,
+  getAbilityHolders,
   listNatures,
-  askQuestion,
+  suggestBuild,
+  type BuildSuggestion,
+  type CoachTurn,
   assetUrl,
   type MoveResult,
   type MoveLearner,
+  type SignatureZ,
+  type AbilityHolder,
   type ItemResult,
   type NatureInfo,
+  type TeamSummary,
 } from "@/lib/api";
 import type { PokemonSummary, Ability } from "@/lib/types";
-import { renderAnswer } from "@/lib/answerFormat";
+import { TYPE_HEX } from "@/lib/pokeTypes";
 
 /* ---------------- shared data ---------------- */
-const TC: Record<string, string> = {
-  normal: "#a8a878", fire: "#f0803c", water: "#5aa0e6", electric: "#f4cf46", grass: "#6fc25a",
-  ice: "#8fd4d4", fighting: "#d13b52", poison: "#b25ec4", ground: "#e0c068", flying: "#8aa0e6",
-  psychic: "#f0619a", bug: "#9fc02f", rock: "#b8a038", ghost: "#7a5aa0", dragon: "#7a5cf0",
-  dark: "#5a5366", steel: "#a8b0c0", fairy: "#f0a6d0",
-};
+const TC = TYPE_HEX;
 const ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
-const CH: Record<string, Record<string, number>> = {
-  normal:{rock:.5,ghost:0,steel:.5}, fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5,steel:2},
-  water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5}, electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},
-  grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5,steel:.5},
-  ice:{fire:.5,water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2,steel:.5},
-  fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0,dark:2,steel:2,fairy:.5},
-  poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,steel:0,fairy:2}, ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2,steel:2},
-  flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5,steel:.5}, psychic:{fighting:2,poison:2,psychic:.5,dark:0,steel:.5},
-  bug:{fire:.5,grass:2,fighting:.5,poison:.5,flying:.5,psychic:2,ghost:.5,dark:2,steel:.5,fairy:.5}, rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2,steel:.5},
-  ghost:{normal:0,psychic:2,ghost:2,dark:.5}, dragon:{dragon:2,steel:.5,fairy:0}, dark:{fighting:.5,psychic:2,ghost:2,dark:.5,fairy:.5},
-  steel:{fire:.5,water:.5,electric:.5,ice:2,rock:2,steel:.5,fairy:2}, fairy:{fire:.5,fighting:2,poison:.5,dragon:2,dark:2,steel:.5},
-};
-const one = (a: string, d: string) => (CH[a] && CH[a][d] !== undefined ? CH[a][d] : 1);
-const eff = (a: string, ds: string[]) => ds.reduce((m, d) => m * one(a, d), 1);
-const art = (dex: number) => assetUrl(`/sprites/official-artwork/${dex}.png`);
+const eff = typingEff;
 /** Detail link that preserves an alternate form (search results may be forms). */
 const pokeHref = (p: PokemonSummary) =>
   p.form_id ? `/pokedex/${p.dex_number}?form=${p.form_id}` : `/pokedex/${p.dex_number}`;
 const fmt = (x: number) => (x === 0 ? "0" : x === 0.25 ? "¼" : x === 0.5 ? "½" : String(x));
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function Tag({ t }: { t: string }) {
-  return <span className="lc-tt" style={{ background: TC[t] }}>{t}</span>;
-}
-
 /* ---------------- global search ---------------- */
-/* Arrow-key navigation for suggestion dropdowns: ↑/↓ move the highlight,
-   Enter chooses it, Escape clears it. Attach onKeyDown to the input,
-   listRef to the results container, and itemProps(idx) to each row. */
-function useKeyNav<T>(items: T[], onChoose: (item: T) => void) {
-  const [active, setActive] = useState(-1);
-  const [seen, setSeen] = useState(items);
-  const listRef = useRef<HTMLDivElement>(null);
-  // Reset the highlight whenever the result set changes (render-time reset).
-  if (items !== seen) { setSeen(items); setActive(-1); }
-  // Keep the highlighted row in view when navigating a long list.
-  useEffect(() => {
-    listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
-  }, [active]);
-  const onKeyDown = (e: ReactKeyboardEvent) => {
-    if (!items.length) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => (i + 1) % items.length); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => (i <= 0 ? items.length - 1 : i - 1)); }
-    else if (e.key === "Enter" && active >= 0 && active < items.length) { e.preventDefault(); onChoose(items[active]); }
-    else if (e.key === "Escape") { setActive(-1); }
-  };
-  const itemProps = (idx: number) => ({
-    "aria-selected": idx === active,
-    onMouseMove: () => setActive(idx),
-  });
-  return { active, listRef, onKeyDown, itemProps };
-}
-
 function Search() {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -110,12 +80,13 @@ function Search() {
         aria-autocomplete="list"
       />
       {res.length > 0 && (
-        <div className="ac" role="listbox" ref={listRef}>
+        <div className="ac" role="listbox" ref={listRef} data-lenis-prevent>
           {res.map((p, idx) => (
             <Link key={p.id} href={pokeHref(p)} onClick={() => setRes([])} role="option" {...itemProps(idx)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={assetUrl(p.sprite_url)} alt={p.name} />
-              <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
+              <span className="nm">{p.name}</span>
+              <span className="tps">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
               <span className="mono" style={{ fontSize: 11, color: "var(--dim)" }}>Nº{String(p.dex_number).padStart(4, "0")}</span>
             </Link>
           ))}
@@ -126,260 +97,107 @@ function Search() {
 }
 
 /* ---------------- Ask ---------------- */
-const ASK_QS = [
-  "Which non-legendary has the highest Attack?",
-  "Fastest Fire-type?",
-  "Tell me about Mewtwo.",
-];
-const ROUTE_COLOR: Record<string, string> = {
-  sql: "var(--blue)", semantic: "var(--violet)", hybrid: "var(--violet)",
-  matchup: "var(--red)", personalized: "var(--ok)",
-};
-type AskState = { route: string; answer: string; srcs: { n: number; ref: string }[] } | { error: true };
-function AskTile() {
-  // Cost note: the assistant is a paid LLM call, so we NEVER auto-fetch or
-  // rotate. A question only hits the API when the user explicitly clicks it,
-  // and answers are cached per session.
-  const [i, setI] = useState<number | null>(null);
-  const [state, setState] = useState<AskState | null>(null);
-  const [loading, setLoading] = useState(false);
-  const cache = useRef<Record<string, AskState>>({});
-
-  useEffect(() => {
-    if (i === null) return;
-    const q = ASK_QS[i];
-    let alive = true;
-    (async () => {
-      if (cache.current[q]) { if (alive) setState(cache.current[q]); return; }
-      if (alive) { setState(null); setLoading(true); }
-      try {
-        const r = await askQuestion(q);
-        const st: AskState = {
-          route: (r.route ?? "rag").toLowerCase(),
-          answer: r.answer,
-          srcs: r.sources.slice(0, 3).map((s) => ({
-            n: s.n, ref: s.pokemon_name ?? s.source_ref ?? s.chunk_type,
-          })),
-        };
-        cache.current[q] = st;
-        if (alive) setState(st);
-      } catch {
-        if (alive) setState({ error: true });
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [i]);
-
-  const ok = state && !("error" in state);
-  const routeLabel = ok ? state.route.toUpperCase() : "RAG";
-  const routeColor = ok ? (ROUTE_COLOR[state.route] ?? "var(--dim)") : "var(--dim)";
-  // Preview: first few complete bullets/lines (cut at content boundaries, never
-  // mid-line), plus deduped source names — the full answer lives in /ask.
-  let preview = "", more = false;
-  let srcs: { n: number; ref: string }[] = [];
-  if (ok) {
-    const lines = state.answer.split("\n").map((l) => l.trim()).filter(Boolean);
-    preview = lines.slice(0, 3).join("\n");
-    more = lines.length > 3;
-    const seen = new Set<string>();
-    srcs = state.srcs.filter((s) => (seen.has(s.ref) ? false : seen.add(s.ref))).slice(0, 3);
-  }
-  return (
-    <section className="card">
-      <div className="lbl">Ask the Pokédex · RAG<span className="lc-route" style={{ background: routeColor, opacity: ok ? 1 : 0.3 }}>{routeLabel}</span></div>
-      <div className="lc-qchips">
-        {ASK_QS.map((q, k) => <button key={k} className={k === i ? "on" : ""} onClick={() => setI(k)}>{q}</button>)}
-      </div>
-      <div className="lc-qbox">{i === null ? "Tap a question to ask the live assistant…" : ASK_QS[i]}</div>
-      <div className="lc-ansbox">
-        {i === null && <div className="lc-ans" style={{ color: "var(--dim)" }}>Answers use the live model, so they run only when you ask. Pick a question above, or open the full assistant.</div>}
-        {loading && <div className="lc-ans" style={{ color: "var(--dim)" }}>Retrieving &amp; answering…</div>}
-        {!loading && state && "error" in state && (
-          <div className="lc-ans" style={{ color: "var(--dim)" }}>Assistant unavailable right now — open it to try live.</div>
-        )}
-        {!loading && ok && <>
-          <div className="lc-ans">{renderAnswer(preview)}{more && <span className="lc-ansmore">…more in the assistant →</span>}</div>
-          <div className="lc-srcs">{srcs.map((s) => <div className="lc-src" key={s.n}><span className="n">{s.n}</span> {s.ref}</div>)}</div>
-        </>}
-      </div>
-      <Link className="go" href="/ask">Open the assistant →</Link>
-    </section>
-  );
-}
 
 /* ---------------- Team builder & coach ---------------- */
-type Mon = { name: string; dex: number; types: string[] };
-const EXAMPLE_TEAM: Mon[] = [
-  { name: "Charizard", dex: 6, types: ["fire", "flying"] }, { name: "Garchomp", dex: 445, types: ["dragon", "ground"] },
-  { name: "Tyranitar", dex: 248, types: ["rock", "dark"] }, { name: "Metagross", dex: 376, types: ["steel", "psychic"] },
-  { name: "Greninja", dex: 658, types: ["water", "dark"] }, { name: "Gardevoir", dex: 282, types: ["fairy", "psychic"] },
-];
-const RADAR_TYPES: [string, string][] = [
-  ["Fire", "fire"], ["Water", "water"], ["Grass", "grass"], ["Elec", "electric"],
-  ["Ice", "ice"], ["Ground", "ground"], ["Fairy", "fairy"], ["Fight", "fighting"],
-];
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-const FIX: Record<string, [string, string]> = {
-  fairy: ["a Steel or Poison-type", "Heatran"], ground: ["a Flying / Levitate pick", "Rotom-Wash"],
-  ice: ["a Steel or Fire-type", "Heatran"], fighting: ["a Ghost-type", "Aegislash"],
-  water: ["a Grass or Water resist", "Ferrothorn"], electric: ["a Ground-type", "Excadrill"],
-  psychic: ["a Dark-type", "Tyranitar"], dragon: ["a Fairy-type", "Clefable"],
-};
+/** Mini version of a /teams card: the user's teams, one at a time — grade, what
+ *  the team does, its strategy and type facts, and the one thing to fix first. */
 function TeamCoachTile() {
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [team, setTeam] = useState<Mon[]>(EXAMPLE_TEAM);
-  const [teamName, setTeamName] = useState("example team");
-  const [q, setQ] = useState("");
-  const [res, setRes] = useState<PokemonSummary[]>([]);
-  const [addOpen, setAddOpen] = useState(false);
+  const [teams, setTeams] = useState<TeamSummary[] | null>(null);
+  const [idx, setIdx] = useState(0);
 
   useEffect(() => {
     let alive = true;
-    (async () => {
-      try {
-        const { teams } = await listTeams("player");
-        if (!teams.length) return;
-        const full = await getTeam(teams[0].id);
-        const mons = full.members
-          .filter((m) => m.pokemon_id)
-          .map((m) => ({ name: m.name, dex: m.dex_number, types: m.types }));
-        if (alive && mons.length) { setTeam(mons); setTeamName(full.name); }
-      } catch { /* keep example fallback */ }
-    })();
+    listTeams()
+      .then(({ teams }) => {
+        // Most complete teams first; empty drafts aren't worth showing here.
+        const filled = teams.filter((t) => t.size > 0).sort((a, b) => b.size - a.size || a.id - b.id);
+        if (alive) setTeams(filled);
+      })
+      .catch(() => alive && setTeams([]));
     return () => { alive = false; };
   }, []);
 
-  // add-a-member search suggestions
+  // Load only a sliding window — the shown team plus its neighbours — so a
+  // switch never waits, yet the cost stays at ~3 teams however many exist.
+  const n = teams?.length ?? 0;
+  const window3 = n ? [...new Set([idx - 1, idx, idx + 1].map((i) => (i + n) % n))].map((i) => teams![i]) : [];
+  const info = useInfo(window3);
+  const neighbourKey = window3.map((t) => t.id).join(",");
   useEffect(() => {
-    const query = q.trim();
-    const id = setTimeout(() => {
-      if (query.length < 2) { setRes([]); return; }
-      listPokemon({ q: query, limit: 20 }).then((r) => setRes(r.items)).catch(() => setRes([]));
-    }, 180);
-    return () => clearTimeout(id);
-  }, [q]);
-
-  const addMon = (p: PokemonSummary) => {
-    setTeam((t) => (t.length >= 6 || t.some((m) => m.dex === p.dex_number)
-      ? t : [...t, { name: p.name, dex: p.dex_number, types: p.types }]));
-    setTeamName("your draft"); setQ(""); setRes([]); setAddOpen(false);
-  };
-  const removeMon = (dex: number) => { setTeam((t) => t.filter((m) => m.dex !== dex)); setTeamName("your draft"); };
-  const { listRef: addListRef, onKeyDown: addKeyDown, itemProps: addItemProps } = useKeyNav(res, addMon);
-
-  // Add-Pokémon modal: Escape to close, lock page (Lenis) scroll while open.
-  useEffect(() => {
-    if (!addOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setAddOpen(false); };
-    window.addEventListener("keydown", onKey);
-    const root = document.documentElement;
-    const pb = document.body.style.overflow, pr = root.style.overflow;
-    document.body.style.overflow = "hidden"; root.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = pb; root.style.overflow = pr; };
-  }, [addOpen]);
-
-  const size = team.length;
-  // shared weaknesses (computed from real member types)
-  const tally: Record<string, number> = {};
-  ORDER.forEach((a) => { let c = 0; team.forEach((m) => { if (eff(a, m.types) > 1) c++; }); if (c) tally[a] = c; });
-  const top = Object.entries(tally).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  const fx = FIX[top[0]?.[0]] || ["a defensive pivot", "a bulky resist"];
-  // radar: per-type average defensive exposure across the team (2× avg = full)
-  const radVals = RADAR_TYPES.map(([, t]) =>
-    size ? clamp(team.reduce((s, m) => s + eff(t, m.types), 0) / size / 2, 0.08, 1) : 0.1);
-  const radKey = radVals.join(",");
-
-  useEffect(() => {
-    const svg = svgRef.current, wrap = wrapRef.current;
-    if (!svg || !wrap) return;
-    const cx = 75, cy = 75, R = 54;
-    const pt = (i: number, v: number) => { const a = (-90 + i * (360 / RADAR_TYPES.length)) * Math.PI / 180; return [cx + Math.cos(a) * R * v, cy + Math.sin(a) * R * v]; };
-    let h = "";
-    [.25, .5, .75, 1].forEach((g) => { h += `<polygon class="g2" points="${RADAR_TYPES.map((_, i) => pt(i, g).join(",")).join(" ")}"/>`; });
-    RADAR_TYPES.forEach((_, i) => { const [ex, ey] = pt(i, 1); h += `<line class="ax" x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}"/>`; });
-    RADAR_TYPES.forEach((a, i) => { const [lx, ly] = pt(i, 1.16); h += `<text class="lab" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${a[0]}</text>`; });
-    h += `<polygon class="sh" id="sh" points="${radVals.map((v, i) => pt(i, v).join(",")).join(" ")}"/>`;
-    radVals.forEach((v, i) => { const [dx, dy] = pt(i, v); h += `<circle class="dot" cx="${dx}" cy="${dy}" r="2.6"/>`; });
-    svg.innerHTML = h;
-    const sh = svg.querySelector("#sh") as SVGPolygonElement | null;
-    if (!sh) return;
-    const len = sh.getTotalLength ? sh.getTotalLength() : 300;
-    sh.style.strokeDasharray = String(len); sh.style.strokeDashoffset = String(len);
-    const draw = () => { sh.style.strokeDashoffset = "0"; svg.querySelectorAll(".dot").forEach((d, i) => setTimeout(() => d.classList.add("show"), reduced() ? 0 : 600 + i * 60)); };
-    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { if (reduced()) draw(); else setTimeout(draw, 200); io.disconnect(); } }), { threshold: 0.3 });
-    io.observe(wrap);
-    // weakness bars
-    wrap.querySelectorAll<HTMLElement>(".wb i").forEach((el) => requestAnimationFrame(() => (el.style.width = el.dataset.w + "%")));
-    return () => io.disconnect();
+    for (const t of window3) for (const src of t.sprites) new Image().src = assetUrl(src); // warm sprites
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [radKey]);
+  }, [neighbourKey]);
+  const ready = (t?: TeamSummary) => !!t && !!info[t.id]?.p && !!info[t.id]?.st;
+  const want = teams?.[idx % Math.max(1, teams.length)];
+  // Stay on the team being shown until the requested one is fully loaded
+  // (state adjusted during render — React's pattern for derived state).
+  const [shownId, setShownId] = useState<number | null>(null);
+  if (want && ready(want) && shownId !== want.id) setShownId(want.id);
+  const cur = teams?.find((t) => t.id === shownId) ?? want;
+  const { p, st, sum } = (cur && info[cur.id]) || {};
+  const gap = p?.rating.areas.filter((x) => x.fix).sort((x, y) => x.score - y.score)[0];
+  const step = (d: number) => teams && setIdx((i) => (i + d + teams.length) % teams.length);
 
   return (
-    <section className="card" ref={wrapRef as React.RefObject<HTMLDivElement>}>
-      <div className="lbl">Team builder &amp; coach<span className="mono">{teamName}</span></div>
-      <div className="lc-team">
-        {team.map((m) => (
-          <div className="s" key={m.dex} title={m.name}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={art(m.dex)} alt={m.name} />
-            <button className="rm" onClick={() => removeMon(m.dex)} aria-label={`Remove ${m.name}`}>×</button>
-          </div>
-        ))}
-        {Array.from({ length: Math.max(0, 6 - size) }).map((_, k) => (
-          <button className="s e" key={"e" + k} onClick={() => { setQ(""); setRes([]); setAddOpen(true); }} aria-label="Add a Pokémon">+</button>
-        ))}
+    <section className="card lc-tc">
+      <div className="lbl">
+        Team builder &amp; coach
+        {cur && (
+          <span className="lc-tc-sw">
+            {teams && teams.length > 1 && <button onClick={() => step(-1)} aria-label="Previous team">‹</button>}
+            <span className="mono">{cur.name}</span>
+            {teams && teams.length > 1 && <button onClick={() => step(1)} aria-label="Next team">›</button>}
+          </span>
+        )}
       </div>
-      <div className="lc-coachbody">
-        <svg className="lc-radar" viewBox="0 0 150 150" ref={svgRef} />
-        <div className="lc-wk">
-          {top.length ? top.map(([t, c]) => (
-            <div className="lc-wkrow" key={t}>
-              <span className="wt" style={{ background: TC[t] }}>{t}</span>
-              <span className="wb"><i data-w={String((c / size) * 100)} /></span>
-              <span className="c">{c}/{size}</span>
-            </div>
-          )) : <div className="lc-wkrow" style={{ color: "var(--ok)", fontWeight: 600 }}>No shared weaknesses ✓</div>}
+
+      {teams === null ? (
+        <span className="lab-skel" style={{ height: 220 }} />
+      ) : !cur ? (
+        <div className="lc-tc-empty">
+          <b>Build your first team</b>
+          <span>Add up to six Pokémon and get a grade, a strategy read and what to fix.</span>
+          <Link className="go" href="/teams">Start a team →</Link>
         </div>
-      </div>
-      <div className="lc-fix">
-        {top.length
-          ? <>Most exposed to <b>{top[0][0]}</b> ({top[0][1]}/{size}). Fix: draft <b>{fx[0]}</b> — e.g. <b>{fx[1]}</b>.</>
-          : <>Balanced defensively across {size} {size === 1 ? "member" : "members"} — coverage looks solid.</>}
-      </div>
-      <Link className="go" href="/teams">Open team builder →</Link>
-      {addOpen && (
-        <div className="lc-modal lc-modal-add" onClick={() => setAddOpen(false)} role="dialog" aria-modal="true" data-lenis-prevent>
-          <div className="lc-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="lc-modal-head">
-              <b>Add a Pokémon</b>
-              <span className="sub">slot {size + 1} of 6</span>
-              <button className="x" onClick={() => setAddOpen(false)} aria-label="Close">×</button>
-            </div>
-            <div className="lc-addbody" data-lenis-prevent>
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-              <input autoFocus className="lc-addsearch" placeholder="Search any species — e.g. Ferrothorn…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={addKeyDown} aria-autocomplete="list" />
-              <div className="lc-addresults" role="listbox" ref={addListRef}>
-                {res.map((p, idx) => {
-                  const inTeam = team.some((m) => m.dex === p.dex_number);
-                  return (
-                    <button key={p.id} className="row" role="option" {...addItemProps(idx)} disabled={inTeam} onClick={() => addMon(p)}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={art(p.dex_number)} alt={p.name} />
-                      <span className="nm">{p.name}</span>
-                      <span className="tps">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
-                      {inTeam && <span className="added">on team</span>}
-                    </button>
-                  );
-                })}
-                {q.trim().length >= 2 && res.length === 0 && <div className="hint">No species match “{q.trim()}”.</div>}
-                {q.trim().length < 2 && <div className="hint">Type at least 2 letters to search.</div>}
+      ) : (
+        <>
+          <div className="lc-team">
+            {Array.from({ length: 6 }, (_, i) => cur.sprites[i]).map((s, i) =>
+              s ? (
+                <Link className="s" key={i} href={`/teams/${cur.id}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={assetUrl(s)} alt="" />
+                </Link>
+              ) : (
+                <Link className="s e" key={i} href={`/teams/${cur.id}`} aria-label="Add a Pokémon">+</Link>
+              ),
+            )}
+          </div>
+          {!p || !st ? (
+            <span className="lab-skel" style={{ height: 160 }} />
+          ) : (
+            <>
+              <div className="lc-tc-head">
+                <GradeBadge p={p} href={`/teams/${cur.id}#rating`} />
+                <span className="tl-style" title={st.style_reason}>{st.style}</span>
               </div>
-            </div>
+              <SummaryText sum={sum} fallback={p.gist} />
+              <div className="lc-tc-body">
+                <StrategyBars st={st} />
+                <Facts p={p} />
+              </div>
+              {gap && (
+                <div className="lc-fix">
+                  Weakest: <b>{gap.label.toLowerCase()} ({gap.grade})</b> — {gap.headline}. {gap.fix}
+                </div>
+              )}
+            </>
+          )}
+          <div className="lc-tc-links">
+            <Link className="go" href={`/teams/${cur.id}`}>Open team →</Link>
+            <Link className="go dim" href="/teams">All teams</Link>
           </div>
-        </div>
+        </>
       )}
     </section>
   );
@@ -390,43 +208,16 @@ function TypeCalcTile() {
   const [sel, setSel] = useState<string[]>(["fire"]);
   const toggle = (o: string) =>
     setSel((s) => (s.includes(o) ? s.filter((x) => x !== o) : s.length < 2 ? [...s, o] : [s[1], o]));
-  // Defensive: combined multiplier of an attacking type vs the selected typing.
-  const weak = ORDER.map((a) => ({ t: a, m: eff(a, sel) })).filter((x) => x.m > 1).sort((a, b) => b.m - a.m);
-  const res = ORDER.map((a) => ({ t: a, m: eff(a, sel) })).filter((x) => x.m < 1).sort((a, b) => a.m - b.m);
-  // Offensive: types the selected type(s) hit super-effectively (best STAB).
-  const hits = ORDER.filter((d) => sel.length > 0 && Math.max(...sel.map((s) => one(s, d))) >= 2);
-  const dash = <span style={{ color: "var(--dim)", fontSize: 12 }}>—</span>;
-  // Group {t,m}[] into sub-rows by multiplier, in the given multiplier order.
-  const grouped = (items: { t: string; m: number }[], order: number[]) => {
-    const by: Record<number, string[]> = {};
-    items.forEach((x) => (by[x.m] = by[x.m] ? [...by[x.m], x.t] : [x.t]));
-    return order.filter((m) => by[m]?.length).map((m) => ({ m, types: by[m] }));
-  };
-  const mxClass = (m: number) => (m === 0 ? "im" : m > 1 ? "wk" : "rs");
-  const groupRow = (label: string, groups: { m: number; types: string[] }[]) => (
-    <div className="lc-tcline g">
-      <span className="h">{label}</span>
-      {groups.length ? (
-        <div className="lc-tcgroups">
-          {groups.map((g) => (
-            <div className="lc-tcgrp" key={g.m}>
-              <span className={`lc-tcmx ${mxClass(g.m)}`}>×{fmt(g.m)}</span>
-              <span className="lc-tcset">{g.types.map((t) => <Tag key={t} t={t} />)}</span>
-            </div>
-          ))}
-        </div>
-      ) : dash}
-    </div>
-  );
+  // Same rows as the detail page's Type Matchups card, plus what the picked types hit ×2.
+  const matchups = defensiveMatchups(sel);
+  const hits = superEffectiveHits(sel);
   return (
     <section className="card">
       <div className="lbl">Type calculator<span className="mono">defends as 1–2 types</span></div>
       <div className="lc-tg">
         {ORDER.map((o) => <button key={o} onClick={() => toggle(o)} className={sel.includes(o) ? "on" : ""} style={{ "--c": TC[o] } as CSSProperties}>{o}</button>)}
       </div>
-      {groupRow("Weak to", grouped(weak, [4, 2]))}
-      {groupRow("Resists", grouped(res, [0, 0.25, 0.5]))}
-      <div className="lc-tcline"><span className="h">Hits ×2</span><span className="lc-tcset">{hits.length ? hits.map((t) => <Tag key={t} t={t} />) : dash}</span></div>
+      {sel.length > 0 && <TypeMatchups m={matchups} hits={hits} renderType={(t) => <Tag key={t} t={t} />} />}
     </section>
   );
 }
@@ -435,27 +226,46 @@ function TypeCalcTile() {
 type Entry = {
   key: string; name: string; kind: "Move" | "Ability" | "Item"; type?: string | null;
   cat?: string | null; power?: number | null; acc?: number | null; pp?: number | null;
-  cost?: number | null; effect?: string | null;
+  cost?: number | null; effect?: string | null; sub?: string | null;
+  zSig?: SignatureZ | null;
+  fling?: number | null;
 };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const moveToEntry = (m: MoveResult): Entry => ({
   key: "m" + m.id, name: m.name, kind: "Move", type: m.type,
   cat: m.damage_class ? cap(m.damage_class) : null, power: m.power, acc: m.accuracy, pp: m.pp,
-  effect: m.short_effect,
+  effect: m.short_effect, zSig: m.signature_z ?? null,
 });
-const abilityToEntry = (a: Ability): Entry => ({ key: "a" + a.id, name: a.name, kind: "Ability", effect: a.effect });
+const abilityToEntry = (a: Ability): Entry => ({
+  key: "a" + a.id, name: a.name, kind: "Ability",
+  // Lead with the concrete mechanic ("Increases moves' accuracy to 1.3×");
+  // keep the in-game flavour text as a subtitle when it adds something.
+  effect: a.short_effect ?? a.effect,
+  sub: a.short_effect ? a.effect : null,
+});
 const itemToEntry = (i: ItemResult): Entry => ({
   key: "i" + i.id, name: i.name, kind: "Item", cat: i.category, cost: i.cost, effect: i.short_effect,
+  sub: i.flavor_text ?? null, fling: i.fling_power ?? null,
 });
+/** Why no Pokémon learns a move, for the lookup card. */
+const unlearnable = (e: Entry) =>
+  e.name === "Struggle" ? "No Pokémon learns Struggle — it's used automatically once every move is out of PP."
+  : e.pp === 1 ? "Z-Move — no Pokémon learns it. A Z-Crystal turns a damaging move into it for one turn."
+  : /^(G-)?Max /.test(e.name) ? "Max Move — no Pokémon learns it. A Dynamaxed Pokémon's moves become it."
+  : "No Pokémon learns this move in any game's regular learnset.";
 const KIND_BG: Record<string, string> = { Ability: "var(--ink)", Item: "#4a4a55" };
 function LookupTile() {
   const [q, setQ] = useState("");
   const [list, setList] = useState<Entry[]>([]);
-  const [sel, setSel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [learners, setLearners] = useState<MoveLearner[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [learnerQ, setLearnerQ] = useState("");
+  // The entry whose modal is open (any kind: move, ability or item).
+  const [modal, setModal] = useState<Entry | null>(null);
+  const [holders, setHolders] = useState<AbilityHolder[]>([]);
+  // Which ability `holders` was loaded for, so a stale list never shows.
+  const [holdersFor, setHoldersFor] = useState<string | null>(null);
+  const [holderQ, setHolderQ] = useState("");
+  // The advanced finder: every move / ability / item with filters and sorting.
+  const [finder, setFinder] = useState(false);
 
   useEffect(() => {
     const query = q.trim();
@@ -469,13 +279,7 @@ function LookupTile() {
           searchItems(query, 2),
         ]);
         if (!alive) return;
-        const merged = [
-          ...moves.map(moveToEntry),
-          ...abilities.map(abilityToEntry),
-          ...items.map(itemToEntry),
-        ].slice(0, 5);
-        setList(merged);
-        setSel((cur) => (cur && merged.some((e) => e.key === cur) ? cur : merged[0]?.key ?? null));
+        setList([...moves.map(moveToEntry), ...abilities.map(abilityToEntry), ...items.map(itemToEntry)].slice(0, 5));
       } catch {
         if (alive) setList([]);
       } finally {
@@ -485,24 +289,59 @@ function LookupTile() {
     return () => { alive = false; clearTimeout(id); };
   }, [q]);
 
-  const detail = list.find((e) => e.key === sel) || list[0];
-  const { listRef: moveListRef, onKeyDown: moveKeyDown, itemProps: moveItemProps } = useKeyNav(list, (e: Entry) => setSel(e.key));
+  // Click or Enter opens the entry's modal; the card itself never grows.
+  const open = (e: Entry) => { setHolderQ(""); setModal(e); };
+  // The card previews whichever row is highlighted (hover or arrow keys); click or
+  // Enter opens its modal. The preview follows the highlight only once it rests
+  // (~90ms), so sweeping the mouse across rows doesn't resize the card per row.
+  const { active, listRef, onKeyDown, itemProps } = useKeyNav(list, open);
 
-  // When a move is selected, pull the species that can learn it (reverse learnset).
+  // Learners/holders for every listed move and ability, fetched as soon as the list
+  // appears and cached, so a preview never shows (and then drops) a loading state.
+  const [learnerCache, setLearnerCache] = useState<Record<string, (MoveLearner | AbilityHolder)[]>>({});
+  const ready = (e: Entry | undefined) => !!e && (e.kind === "Item" || e.key in learnerCache);
+  // The preview switches only to an entry whose data is ready, so it goes straight
+  // from one complete state to the next (no half-loaded box that then grows).
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
+  const target = list[active];
+  const targetReady = ready(target);
+  useEffect(() => {
+    if (!target || !targetReady) return;
+    const t = setTimeout(() => setPreviewKey(target.key), 90);
+    return () => clearTimeout(t);
+  }, [target, targetReady]);
+  const previewed = list.find((e) => e.key === previewKey);
+  // Until something has been previewed, show the top result once it's ready.
+  const detail = previewed ?? (ready(list[0]) ? list[0] : undefined);
   useEffect(() => {
     let alive = true;
-    setModalOpen(false);
-    if (detail && detail.kind === "Move") {
-      const moveId = Number(detail.key.slice(1));
-      getMoveLearners(moveId, 250).then((ls) => { if (alive) setLearners(ls); }).catch(() => { if (alive) setLearners([]); });
-    } else setLearners([]);
+    for (const e of list) {
+      if (e.kind === "Item" || e.key in learnerCache) continue;
+      const id = Number(e.key.slice(1));
+      (e.kind === "Move" ? getMoveLearners(id, 250) : getAbilityHolders(id, 250))
+        .catch(() => [])
+        .then((ls) => { if (alive) setLearnerCache((c) => ({ ...c, [e.key]: ls })); });
+    }
     return () => { alive = false; };
-  }, [detail?.key, detail?.kind]);
+  }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
+  const shownLearners = detail ? learnerCache[detail.key] ?? null : null;
 
-  // While the modal is open: close on Escape and lock the page (Lenis) scroll.
+  // An ability's modal lists every species that has it.
   useEffect(() => {
-    if (!modalOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setModalOpen(false); };
+    if (modal?.kind !== "Ability") return;
+    let alive = true;
+    const key = modal.key;
+    const done = (ls: AbilityHolder[]) => { if (alive) { setHolders(ls); setHoldersFor(key); } };
+    getAbilityHolders(Number(key.slice(1)), 250).then(done).catch(() => done([]));
+    return () => { alive = false; };
+  }, [modal]);
+
+  // Ability/item modals: close on Escape and lock the page (Lenis) scroll.
+  // (The move modal handles its own.)
+  const plainModal = modal != null && modal.kind !== "Move";
+  useEffect(() => {
+    if (!plainModal) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setModal(null); };
     window.addEventListener("keydown", onKey);
     const root = document.documentElement;
     const prevBody = document.body.style.overflow;
@@ -514,104 +353,202 @@ function LookupTile() {
       document.body.style.overflow = prevBody;
       root.style.overflow = prevRoot;
     };
-  }, [modalOpen]);
+  }, [plainModal]);
 
   const dash = (v: number | null | undefined) => (v == null ? "—" : String(v));
   const badge = (e: Entry) =>
     e.type ? <Tag t={e.type} /> : <span className="lc-tt" style={{ background: KIND_BG[e.kind] }}>{e.kind}</span>;
+  // Opened from the finder, the finder stays mounted (hidden) underneath: Back / Escape /
+  // the backdrop return to it with its filters intact, while × closes both.
+  const back = () => setModal(null);
+  const close = () => { setModal(null); setFinder(false); };
+  const shownHolders = modal && holdersFor === modal.key ? holders : null;
+
   return (
     <section className="card lc-look">
       <div className="lbl">Move · ability · item lookup<span className="mono">3,000+ entries</span></div>
-      <input placeholder="e.g. Earthquake, Levitate, Leftovers…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={moveKeyDown} aria-autocomplete="list" />
-      <div className="lc-moveres" role="listbox" ref={moveListRef}>
+      <div className="lc-look-q">
+        <input placeholder="e.g. Earthquake, Levitate, Leftovers…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKeyDown} aria-autocomplete="list" />
+        <button className="lc-look-adv" onClick={() => setFinder(true)} aria-label="Advanced search" title="Advanced search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" />
+            <circle cx="15" cy="6" r="2" /><circle cx="9" cy="12" r="2" /><circle cx="17" cy="18" r="2" />
+          </svg>
+        </button>
+      </div>
+      <div className="lc-moveres" role="listbox" ref={listRef}>
         {list.map((e, idx) => (
-          <div className={`lc-moverow${e.key === detail?.key ? " on" : ""}`} key={e.key} role="option" {...moveItemProps(idx)} onClick={() => setSel(e.key)}>
+          <div className="lc-moverow" key={e.key} role="option" {...itemProps(idx)} onClick={() => open(e)}
+            // Flag rows whose name is cut off, so hovering shows the full name.
+            onMouseEnter={(ev) => {
+              const nm = ev.currentTarget.querySelector<HTMLElement>(".nm");
+              ev.currentTarget.toggleAttribute("data-cut", !!nm && nm.scrollWidth > nm.clientWidth);
+            }}>
             {badge(e)}
-            <span className="nm">{e.name}</span>
+            <span className="lc-nmwrap">
+              <span className="nm">{e.name}</span>
+              <span className="lc-nmtip" aria-hidden>{e.name}</span>
+            </span>
             <span className="pw">{e.kind === "Move" ? `${e.cat ?? "—"} · ${dash(e.power)}` : e.kind === "Item" ? (e.cat ?? "Item") : "Ability"}</span>
           </div>
         ))}
         {!loading && list.length === 0 && <div className="sub">No match — try “Ice Beam”, “Intimidate”, “Leftovers”.</div>}
         {loading && list.length === 0 && <div className="sub">Searching…</div>}
       </div>
+      {!detail && <div className="lc-movedet lc-movedet--fixed lc-movedet--empty" aria-hidden />}
       {detail && (
-        <div className="lc-movedet">
+        <div className="lc-movedet lc-movedet--fixed">
+          {/* Keyed so each newly previewed entry fades in (see .lc-det-in). */}
+          <div key={detail.key} className="lc-det-in">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             {badge(detail)}
-            <b>{detail.name}</b>
+            <b className="lc-detname">{detail.name}</b>
           </div>
-          {detail.kind === "Move" && <>
-            <div className="lc-kv"><span className="k">Category</span><span>{detail.cat ?? "—"}</span></div>
-            <div className="lc-kv"><span className="k">Power / Acc / PP</span><span>{dash(detail.power)} / {dash(detail.acc)} / {dash(detail.pp)}</span></div>
-          </>}
-          {detail.kind === "Item" && <>
-            <div className="lc-kv"><span className="k">Category</span><span>{detail.cat ?? "—"}</span></div>
-            <div className="lc-kv"><span className="k">Cost</span><span>{detail.cost ? `₽${detail.cost.toLocaleString()}` : "—"}</span></div>
-          </>}
-          <div style={{ color: "var(--dim)", marginTop: 8, fontSize: 12.5, lineHeight: 1.5 }}>{detail.effect || "No description on file."}</div>
-          {detail.kind === "Move" && learners.length > 0 && (
-            <div className="lc-lklearn">
-              <div className="h">
-                Learned by <b>{learners.length}{learners.length >= 250 ? "+" : ""}</b> species
-                {learners.length > 18 && <button className="tog" onClick={() => { setLearnerQ(""); setModalOpen(true); }}>show all</button>}
+          {detail.kind === "Move" && (
+            <div className="lc-modal-meta lc-detmeta">
+              <span><b>{detail.cat ?? "—"}</b></span>
+              <span>Power <b>{dash(detail.power)}</b></span>
+              <span>Acc <b>{dash(detail.acc)}</b>{detail.acc != null ? "%" : ""}</span>
+              <span>PP <b>{dash(detail.pp)}</b></span>
+            </div>
+          )}
+          {detail.kind === "Item" && (
+            <div className="lc-modal-meta lc-detmeta">
+              <span><b>{detail.cat ?? "Item"}</b></span>
+              <span>Cost <b>{detail.cost ? `₽${detail.cost.toLocaleString()}` : "—"}</b></span>
+              <span>Fling <b>{dash(detail.fling)}</b></span>
+            </div>
+          )}
+          <div className="lc-deteff">{detail.effect || "No description on file."}</div>
+          </div>
+          {detail.kind === "Item" && detail.sub && (
+            <div key={detail.key + ":flavor"} className="lc-lklearn lc-det-in">
+              <div className="h"><span className="lc-dethead">In-game description</span>
+                <button className="tog" onClick={() => open(detail)}>details</button>
               </div>
-              <div className="row">
-                {learners.slice(0, 18).map((p) => (
-                  <Link key={p.id} href={`/pokedex/${p.dex_number}`} title={p.name} className="s">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={art(p.dex_number)} alt={p.name} />
-                  </Link>
-                ))}
-                {learners.length > 18 && <button className="more" onClick={() => { setLearnerQ(""); setModalOpen(true); }}>+{learners.length - 18}</button>}
+              <p className="lc-detflavor">“{detail.sub}”</p>
+            </div>
+          )}
+          {detail.kind !== "Item" && shownLearners && (
+            <div key={detail.key + ":learners"} className="lc-lklearn lc-det-in">
+              <div className="h">
+                <span className="lc-dethead">
+                  {shownLearners.length === 0 && detail.zSig ? <>Z-Move · holding <b style={{ fontWeight: 600, color: "var(--ink)" }}>{detail.zSig.crystal}</b></>
+                    : shownLearners.length === 0 ? unlearnable(detail).split(" — ")[0]
+                    : <>{detail.kind === "Move" ? "Learned by " : "Found on "}<b>{shownLearners.length}{shownLearners.length >= 250 ? "+" : ""}</b> species</>}
+                </span>
+                <button className="tog" onClick={() => open(detail)}>{shownLearners.length === 0 ? "details" : "show all"}</button>
+              </div>
+              <div className="row lc-detrow">
+                {(shownLearners.length ? shownLearners : detail.zSig ? detail.zSig.users : []).slice(0, 6).map((p) => {
+                  const formId = "form_id" in p ? p.form_id : null;
+                  return (
+                    <Link key={p.id} href={formId ? `/pokedex/${p.dex_number}?form=${formId}` : `/pokedex/${p.dex_number}`} title={p.name} className="s">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={formId ? assetUrl(p.sprite_url) : art(p.dex_number)} alt={p.name} />
+                    </Link>
+                  );
+                })}
+                {shownLearners.length > 6 && <button className="more" onClick={() => open(detail)}>+{shownLearners.length - 6}</button>}
               </div>
             </div>
           )}
         </div>
       )}
-      {modalOpen && detail && (
-        <div className="lc-modal" onClick={() => setModalOpen(false)} role="dialog" aria-modal="true" data-lenis-prevent>
-          <div className="lc-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="lc-modal-head">
-              {badge(detail)}
-              <b>{detail.name}</b>
-              <span className="sub">{learners.length}{learners.length >= 250 ? "+" : ""} species can learn it</span>
-              <button className="x" onClick={() => setModalOpen(false)} aria-label="Close">×</button>
-            </div>
-            <div className="lc-modal-sub">
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-              <input autoFocus placeholder="Filter these species…" value={learnerQ} onChange={(e) => setLearnerQ(e.target.value)} />
-            </div>
-            {(() => {
-              const f = learnerQ.trim().toLowerCase();
-              const shown = f ? learners.filter((p) => p.name.toLowerCase().includes(f)) : learners;
-              return (
-                <div className="lc-modal-grid" data-lenis-prevent>
-                  {shown.map((p) => (
-                    <Link key={p.id} href={`/pokedex/${p.dex_number}`} title={p.name} onClick={() => setModalOpen(false)}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={art(p.dex_number)} alt={p.name} />
-                      <span>{p.name}</span>
-                    </Link>
-                  ))}
-                  {shown.length === 0 && <div className="lc-modal-empty">No species match “{learnerQ.trim()}”.</div>}
+      {modal?.kind === "Move" && (
+        <MoveLearnersModal
+          move={{ id: Number(modal.key.slice(1)), name: modal.name, type: modal.type ?? null, category: modal.cat ?? null, power: modal.power ?? null, accuracy: modal.acc ?? null, pp: modal.pp ?? null, effect: modal.effect ?? null, sub: modal.sub ?? null }}
+          emptyNote={modal.zSig ? (
+            <>
+              <p className="lc-modal-desc" style={{ marginTop: 0 }}>
+                Signature Z-Move: holding <b style={{ color: "var(--ink)" }}>{modal.zSig.crystal}</b>, {modal.zSig.users.length > 1 ? "their" : "its"} <b style={{ color: "var(--ink)" }}>{modal.zSig.base_move}</b> becomes {modal.name}.
+              </p>
+              <div className="lc-modal-grid lc-modal-grid--flat">
+                {modal.zSig.users.map((u) => (
+                  <Link key={u.id} href={u.form_id ? `/pokedex/${u.dex_number}?form=${u.form_id}` : `/pokedex/${u.dex_number}`} title={u.name} onClick={close}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={assetUrl(u.sprite_url)} alt={u.name} />
+                    <span>{u.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : <p className="lc-modal-desc" style={{ marginTop: 0 }}>{unlearnable(modal)}</p>}
+          onClose={close}
+          onBack={finder ? back : undefined}
+        />
+      )}
+      {plainModal && modal && typeof document !== "undefined" && createPortal(
+        <div className="lc-modal" onClick={back} role="dialog" aria-modal="true" data-lenis-prevent>
+          <div className={`lc-modal-card${modal.kind === "Item" ? " lc-modal-card--short" : ""}`} onClick={(e) => e.stopPropagation()}>
+            <div className="lc-modal-top" style={modal.kind === "Item" ? { borderBottom: "none" } : undefined}>
+              <div className="lc-modal-head">
+                {finder && <button className="lc-modal-back" onClick={back} aria-label="Back" title="Back"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 5l-7 7 7 7" /></svg></button>}
+                {badge(modal)}
+                <b>{modal.name}</b>
+                <span className="sub">
+                  {modal.kind === "Ability" && shownHolders ? `${shownHolders.length}${shownHolders.length >= 250 ? "+" : ""} species have it` : ""}
+                </span>
+                <button className="x" onClick={close} aria-label="Close">×</button>
+              </div>
+              {modal.kind === "Item" && (
+                <div className="lc-modal-meta">
+                  <span><b>{modal.cat ?? "Item"}</b></span>
+                  <span>Cost <b>{modal.cost ? `₽${modal.cost.toLocaleString()}` : "—"}</b></span>
+                  <span>Fling <b>{dash(modal.fling)}</b></span>
                 </div>
-              );
-            })()}
+              )}
+              <p className="lc-modal-desc">{modal.effect || "No description on file."}</p>
+              {modal.sub && <p className="lc-modal-desc lc-modal-desc--flavor">{modal.sub}</p>}
+            </div>
+            {modal.kind === "Ability" && (
+              <>
+                <div className="lc-modal-sub">
+                  <input autoFocus placeholder="Filter these species…" value={holderQ} onChange={(e) => setHolderQ(e.target.value)} />
+                </div>
+                {(() => {
+                  const f = holderQ.trim().toLowerCase();
+                  const all = shownHolders ?? [];
+                  const shown = f ? all.filter((p) => p.name.toLowerCase().includes(f)) : all;
+                  return (
+                    <div className="lc-modal-grid" data-lenis-prevent>
+                      {shown.map((p) => (
+                        <Link key={p.id} href={`/pokedex/${p.dex_number}`} title={p.name} onClick={close} className={p.is_hidden ? "is-hidden" : undefined}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={art(p.dex_number)} alt={p.name} />
+                          <span>{p.name}</span>
+                          <span className="tps-mini">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
+                        </Link>
+                      ))}
+                      {!shownHolders && <div className="lc-modal-empty">Loading…</div>}
+                      {shownHolders && shown.length === 0 && <div className="lc-modal-empty">No species match “{holderQ.trim()}”.</div>}
+                    </div>
+                  );
+                })()}
+              </>
+            )}
           </div>
-        </div>
+        </div>,
+        document.body,
+      )}
+      {/* After the modals so, closing both at once, its scroll-lock cleanup runs last. */}
+      {finder && (
+        <Finder
+          hidden={modal != null}
+          initialQuery={q.trim()}
+          // Start on whatever kind the lookup is previewing (a move, ability or item).
+          initialKind={detail?.kind === "Ability" ? "ability" : detail?.kind === "Item" ? "item" : "move"}
+          onPickMove={(m) => open(moveToEntry(m))}
+          onPickAbility={(a) => open(abilityToEntry(a))}
+          onPickItem={(i) => open(itemToEntry(i))}
+          onClose={() => setFinder(false)}
+        />
       )}
     </section>
   );
 }
 
 /* ---------------- Nature helper ---------------- */
-const NAT: [string, string | null, string | null][] = [
-  ["Hardy",null,null],["Lonely","Atk","Def"],["Brave","Atk","Spe"],["Adamant","Atk","SpA"],["Naughty","Atk","SpD"],
-  ["Bold","Def","Atk"],["Docile",null,null],["Relaxed","Def","Spe"],["Impish","Def","SpA"],["Lax","Def","SpD"],
-  ["Timid","Spe","Atk"],["Hasty","Spe","Def"],["Serious",null,null],["Jolly","Spe","SpA"],["Naive","Spe","SpD"],
-  ["Modest","SpA","Atk"],["Mild","SpA","Def"],["Quiet","SpA","Spe"],["Bashful",null,null],["Rash","SpA","SpD"],
-  ["Calm","SpD","Atk"],["Gentle","SpD","Def"],["Sassy","SpD","Spe"],["Careful","SpD","SpA"],["Quirky",null,null],
-];
 const STATS = ["Atk", "Def", "SpA", "SpD", "Spe"];
 const DIAG = ["Hardy", "Docile", "Bashful", "Quirky", "Serious"]; // neutral on the diagonal, by stat index
 const STAT_LABEL: Record<string, string> = { attack: "Atk", defense: "Def", sp_attack: "SpA", sp_defense: "SpD", speed: "Spe" };
@@ -665,261 +602,682 @@ function NatureTile() {
 }
 
 /* ---------------- Damage calculator ---------------- */
-type Stats = import("@/lib/types").Stats;
-type CalcMon = { id: number; name: string; dex: number; types: string[]; stats: Stats };
-type CalcMove = { name: string; type: string; damage_class: string; power: number };
-type SKey = "hp" | "atk" | "def" | "spa" | "spd" | "spe";
-type EVs = Record<SKey, number>;
-const ZERO_EV: EVs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-const SABBR: Record<SKey, string> = { hp: "HP", atk: "Atk", def: "Def", spa: "SpA", spd: "SpD", spe: "Spe" };
-const natMul = (name: string, key: SKey): number => {
-  const r = NAT.find((x) => x[0] === name); if (!r || key === "hp") return 1;
-  return r[1] === SABBR[key] ? 1.1 : r[2] === SABBR[key] ? 0.9 : 1;
-};
-const statFull = (base: number, level: number, iv: number, ev: number, nm: number, isHP: boolean) => {
-  const core = Math.floor((2 * base + iv + Math.floor(ev / 4)) * level / 100);
-  return isHP ? core + level + 10 : Math.floor((core + 5) * nm);
-};
 // Curated damage-relevant items & abilities (name → effect flags).
-const DC_ITEMS = ["None", "Choice Band", "Choice Specs", "Life Orb", "Expert Belt", "Muscle Band", "Wise Glasses"];
-const DC_ITEMS_D = ["None", "Assault Vest", "Eviolite"];
+// Held items the calc models. Type boosters and resist berries are keyed by the move type they touch.
+const TYPE_BOOST: Record<string, string> = {
+  "Silk Scarf": "normal", "Charcoal": "fire", "Mystic Water": "water", "Magnet": "electric", "Miracle Seed": "grass", "Never-Melt Ice": "ice",
+  "Black Belt": "fighting", "Poison Barb": "poison", "Soft Sand": "ground", "Sharp Beak": "flying", "Twisted Spoon": "psychic", "Silver Powder": "bug",
+  "Hard Stone": "rock", "Spell Tag": "ghost", "Dragon Fang": "dragon", "Black Glasses": "dark", "Metal Coat": "steel", "Fairy Feather": "fairy",
+};
+const RESIST_BERRY: Record<string, string> = {
+  "Occa Berry": "fire", "Passho Berry": "water", "Wacan Berry": "electric", "Rindo Berry": "grass", "Yache Berry": "ice", "Chople Berry": "fighting",
+  "Kebia Berry": "poison", "Shuca Berry": "ground", "Coba Berry": "flying", "Payapa Berry": "psychic", "Tanga Berry": "bug", "Charti Berry": "rock",
+  "Kasib Berry": "ghost", "Haban Berry": "dragon", "Colbur Berry": "dark", "Babiri Berry": "steel", "Roseli Berry": "fairy",
+};
+type DcItem = { name: string; side: "a" | "d"; note: string };
+const DC_ITEM_INFO: DcItem[] = [
+  { name: "Choice Band", side: "a", note: "Atk ×1.5" }, { name: "Choice Specs", side: "a", note: "SpA ×1.5" },
+  { name: "Life Orb", side: "a", note: "×1.3" }, { name: "Expert Belt", side: "a", note: "super-effective ×1.2" },
+  { name: "Muscle Band", side: "a", note: "physical ×1.1" }, { name: "Wise Glasses", side: "a", note: "special ×1.1" },
+  ...Object.entries(TYPE_BOOST).map(([name, t]): DcItem => ({ name, side: "a", note: `${t} moves ×1.2` })),
+  { name: "Assault Vest", side: "d", note: "SpD ×1.5" }, { name: "Eviolite", side: "d", note: "Def & SpD ×1.5 (unevolved)" },
+  { name: "Focus Sash", side: "d", note: "survives one hit from full HP" },
+  ...Object.entries(RESIST_BERRY).map(([name, t]): DcItem => ({ name, side: "d", note: `halves super-effective ${t}` })),
+];
 const DC_ABIL = ["None", "Adaptability", "Huge Power", "Technician", "Guts", "Tinted Lens"];
 const DC_ABIL_D = ["None", "Thick Fat", "Multiscale", "Solid Rock", "Filter"];
 const WEATHER = ["None", "Rain", "Sun"];
 const TERRAIN = ["None", "Electric", "Grassy", "Psychic"];
-const ALL_IV: EVs = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
-const EV_COLOR: Record<SKey, string> = { hp: "#5DCAA5", atk: "#E24B4A", def: "#85B7EB", spa: "#EF9F27", spd: "#B25EC4", spe: "#F0619A" };
-type Spread = { nat: string; ev: EVs; iv: EVs };
-const offensiveSet = (mon: CalcMon | null): Spread => {
-  const phys = !mon || mon.stats.attack >= mon.stats.sp_attack;
-  return phys
-    ? { nat: "Adamant", ev: { ...ZERO_EV, atk: 252, spe: 252, hp: 4 }, iv: { ...ALL_IV } }
-    : { nat: "Modest", ev: { ...ZERO_EV, spa: 252, spe: 252, hp: 4 }, iv: { ...ALL_IV, atk: 0 } };
+type DcSet = { mon: CalcMon | null; pre: string; nat: string; ev: EVs; iv: EVs; item: string; abil: string; hp: number };
+// One-tap follow-ups for the calc's coach.
+const COACH_START = ["Best build", "Bulky set", "Fast sweeper", "Special attacker"];
+const COACH_QUICK = ["Make it bulkier", "Make it faster", "No Choice item", "Try a special set", "Explain the EVs"];
+const sameBuild = (a: BuildSuggestion, b?: BuildSuggestion) => !!b && JSON.stringify({ ...a, why: "" }) === JSON.stringify({ ...b, why: "" });
+// An EV spread in words, biggest spends first: "252 Atk / 252 Spe / 4 HP".
+const evText = (ev: EVs) => (Object.keys(ev) as SKey[]).filter((k) => ev[k] > 0).sort((x, y) => ev[y] - ev[x]).map((k) => `${ev[k]} ${SABBR[k]}`).join(" / ") || "none";
+type DcField = {
+  level: number; doubles: boolean; spread: boolean; weather: string; terrain: string;
+  reflect: boolean; lightscreen: boolean; crit: boolean; burn: boolean; helpingHand: boolean; friendGuard: boolean;
 };
-const BULKY_SET: Spread = { nat: "Bold", ev: { ...ZERO_EV, hp: 252, def: 252, spd: 4 }, iv: { ...ALL_IV } };
-async function loadCalcMon(id: number): Promise<CalcMon> {
-  const d = await getPokemon(id);
-  return { id: d.id, name: d.name, dex: d.dex_number, types: d.types, stats: d.stats };
+type DcResult = { minPct: number; maxPct: number; ko: number; te: number; stab: number; A: number; D: number; base: number; mod: number };
+// hp = current HP as % of max; damage % stays relative to max HP, KO calls use current.
+const newDef = (): DcSet => ({ mon: null, pre: "Bulky", ...BULKY_SET, item: "None", abil: "None", hp: 100 });
+function calcHit(atk: CalcMon, a: DcSet, def: CalcMon, d: DcSet, move: CalcMove, f: DcField): DcResult {
+  const { level } = f;
+  const phys = move.damage_class === "physical";
+  const aK: SKey = phys ? "atk" : "spa"; const dK: SKey = phys ? "def" : "spd";
+  let A = statFull(phys ? atk.stats.attack : atk.stats.sp_attack, level, a.iv[aK], a.ev[aK], natMul(a.nat, aK), false);
+  let D = statFull(phys ? def.stats.defense : def.stats.sp_defense, level, d.iv[dK], d.ev[dK], natMul(d.nat, dK), false);
+  const HP = statFull(def.stats.hp, level, d.iv.hp, d.ev.hp, 1, true);
+  if (a.item === "Choice Band" && phys) A = Math.floor(A * 1.5);
+  if (a.item === "Choice Specs" && !phys) A = Math.floor(A * 1.5);
+  if (a.abil === "Huge Power" && phys) A = Math.floor(A * 2);
+  if (a.abil === "Guts" && f.burn && phys) A = Math.floor(A * 1.5);
+  if (d.item === "Assault Vest" && !phys) D = Math.floor(D * 1.5);
+  if (d.item === "Eviolite") D = Math.floor(D * 1.5);
+  // Helping Hand boosts the move's base power, so it enters before the base-damage floor.
+  const power = f.doubles && f.helpingHand ? Math.floor(move.power * 1.5) : move.power;
+  const base = Math.floor(Math.floor(Math.floor((2 * level) / 5 + 2) * power * A / D) / 50) + 2;
+  const te = eff(move.type, def.types);
+  const stab = atk.types.includes(move.type) ? (a.abil === "Adaptability" ? 2 : 1.5) : 1;
+  let mod = 1;
+  if (f.doubles && f.spread) mod *= 0.75;
+  if (f.weather === "Rain") mod *= move.type === "water" ? 1.5 : move.type === "fire" ? 0.5 : 1;
+  if (f.weather === "Sun") mod *= move.type === "fire" ? 1.5 : move.type === "water" ? 0.5 : 1;
+  if (f.terrain === "Electric" && move.type === "electric") mod *= 1.3;
+  if (f.terrain === "Grassy" && move.type === "grass") mod *= 1.3;
+  if (f.terrain === "Psychic" && move.type === "psychic") mod *= 1.3;
+  if (f.crit) mod *= 1.5;
+  if (f.burn && phys && a.abil !== "Guts") mod *= 0.5;
+  if (!f.crit) { if (phys && f.reflect) mod *= f.doubles ? 0.667 : 0.5; if (!phys && f.lightscreen) mod *= f.doubles ? 0.667 : 0.5; }
+  if (f.doubles && f.friendGuard) mod *= 0.75;
+  if (a.item === "Life Orb") mod *= 1.3;
+  if (a.item === "Muscle Band" && phys) mod *= 1.1;
+  if (a.item === "Wise Glasses" && !phys) mod *= 1.1;
+  if (a.item === "Expert Belt" && te > 1) mod *= 1.2;
+  if (TYPE_BOOST[a.item] === move.type) mod *= 1.2;
+  if (RESIST_BERRY[d.item] === move.type && te > 1) mod *= 0.5;
+  if (a.abil === "Technician" && move.power <= 60) mod *= 1.5;
+  if (a.abil === "Tinted Lens" && te < 1) mod *= 2;
+  if (d.abil === "Thick Fat" && (move.type === "fire" || move.type === "ice")) mod *= 0.5;
+  if (d.abil === "Multiscale" && d.hp >= 100) mod *= 0.5;
+  if ((d.abil === "Solid Rock" || d.abil === "Filter") && te > 1) mod *= 0.75;
+  const total = base * stab * te * mod;
+  const maxDmg = Math.floor(total), minDmg = Math.floor(total * 0.85);
+  return { minPct: HP ? minDmg / HP * 100 : 0, maxPct: HP ? maxDmg / HP * 100 : 0, ko: te === 0 || minDmg <= 0 ? 0 : Math.ceil((HP * d.hp) / 100 / minDmg), te, stab, A, D, base, mod: stab * te * mod };
 }
-function DcPicker({ mon, onPick, ph }: { mon: CalcMon | null; onPick: (id: number) => void; ph: string }) {
-  const [q, setQ] = useState(""); const [res, setRes] = useState<PokemonSummary[]>([]); const [open, setOpen] = useState(false);
+// Doubles targeting, from the move's PokéAPI `move_targets` identifier.
+type TgKind = "sel" | "rand" | "foes" | "all" | "ally";
+const tgKind = (t?: string | null): TgKind =>
+  t === "all-opponents" ? "foes" : t === "all-other-pokemon" ? "all" : t === "ally" ? "ally" : t === "random-opponent" ? "rand" : "sel";
+const TG_LABEL: Record<TgKind, string> = { sel: "one target", rand: "random foe", foes: "both foes", all: "everyone else", ally: "ally" };
+const isSpread = (k: TgKind) => k === "foes" || k === "all";
+const isAimable = (k: TgKind) => k === "sel" || k === "rand";
+const pctText = (r: DcResult) => (r.te === 0 ? "immune" : `${r.minPct.toFixed(0)}–${r.maxPct.toFixed(0)}%`);
+
+/** HP left after the hit: solid = worst roll, faded = best roll. */
+function HpLeft({ min, max, hp = 100 }: { min: number; max: number; hp?: number }) {
+  const worst = Math.max(0, hp - max), best = Math.max(0, hp - min);
+  const col = (l: number) => (l > 50 ? "var(--ok)" : l > 20 ? "#f0b429" : "var(--red)");
+  return (
+    <div className="dc-hpl" aria-hidden>
+      {hp < 100 && <i className="lost" style={{ left: `${hp}%`, width: `${100 - hp}%` }} />}
+      <i className="ghost" style={{ width: `${best}%`, background: col(best) }} />
+      <i style={{ width: `${worst}%`, background: col(worst) }} />
+    </div>
+  );
+}
+
+
+function useCalcMoves(mon: CalcMon | null) {
+  const [moves, setMoves] = useState<CalcMove[]>([]);
+  const [idx, setIdx] = useState(0);
   useEffect(() => {
-    const query = q.trim();
-    const id = setTimeout(() => {
-      if (query.length < 2) { setRes([]); return; }
-      listPokemon({ q: query, limit: 6 }).then((r) => setRes(r.items)).catch(() => setRes([]));
-    }, 180);
-    return () => clearTimeout(id);
-  }, [q]);
-  return (
-    <div className="dc-pill">
-      {mon && <img src={art(mon.dex)} alt={mon.name} />/* eslint-disable-line @next/next/no-img-element */}
-      <input placeholder={ph} value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} />
-      {open && res.length > 0 && (
-        <div className="ac">
-          {res.map((p) => (
-            <button key={p.id} onMouseDown={() => { onPick(p.id); setQ(""); setRes([]); }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={art(p.dex_number)} alt={p.name} />
-              <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
-              <span className="tps">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    if (!mon) return; let alive = true;
+    loadMonMoves(mon).then((ms) => {
+      // The whole learnset: damaging moves first (STAB, then power), status moves after.
+      const keep = ms.filter((m) => m.type).map((m) => ({
+        name: m.name, type: m.type as string, damage_class: m.damage_class ?? "status", power: m.power ?? 0,
+        target: m.target ?? null, priority: m.priority ?? 0, accuracy: m.accuracy, effect: m.short_effect,
+      }));
+      keep.sort((a, b) => (Number(a.power === 0) - Number(b.power === 0))
+        || (Number(mon.types.includes(b.type)) - Number(mon.types.includes(a.type))) || b.power - a.power || a.name.localeCompare(b.name));
+      const want = mon.stats.attack >= mon.stats.sp_attack ? "physical" : "special";
+      if (alive) { setMoves(keep); setIdx(Math.max(0, keep.findIndex((m) => m.damage_class === want))); }
+    }).catch(() => { if (alive) { setMoves([]); setIdx(0); } });
+    return () => { alive = false; };
+  }, [mon?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  return { moves, idx, setIdx, move: mon ? moves[idx] : undefined };
 }
-const EV_KEYS: SKey[] = ["hp", "atk", "def", "spa", "spd", "spe"];
-function EvBar({ ev }: { ev: EVs }) {
-  const total = EV_KEYS.reduce((s, k) => s + ev[k], 0) || 1;
-  return (
-    <div className="dc-evbar">
-      {EV_KEYS.map((k) => ev[k] > 0 && <i key={k} style={{ width: `${ev[k] / total * 100}%`, background: EV_COLOR[k] }} title={`${SABBR[k]} ${ev[k]}`} />)}
-    </div>
-  );
+// Held items' real descriptions (for the item card's hover), loaded once.
+let heldItemInfo: Promise<Map<string, string>> | null = null;
+function useItemInfo(): Map<string, string> {
+  const [info, setInfo] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    (heldItemInfo ??= getHeldItems()
+      .then((xs) => new Map(xs.filter((x) => x.short_effect).map((x) => [x.name, x.short_effect!.replace(/^Held:\s*/i, "")])))
+      .catch(() => {
+        heldItemInfo = null;
+        return new Map<string, string>();
+      })).then((m) => alive && setInfo(m));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return info;
 }
-function EvEditor({ ev, iv, onEv, onIv }: { ev: EVs; iv: EVs; onEv: (e: EVs) => void; onIv: (i: EVs) => void }) {
-  const total = EV_KEYS.reduce((s, k) => s + ev[k], 0);
-  return (
-    <div className="dc-eved">
-      {EV_KEYS.map((k) => (
-        <div className="dc-evline" key={k}>
-          <span className="k">{SABBR[k]}</span>
-          <input type="range" min={0} max={252} step={4} value={ev[k]} onChange={(e) => onEv({ ...ev, [k]: Number(e.target.value) })} style={{ accentColor: EV_COLOR[k] }} />
-          <span className="v">{ev[k]}</span>
-          <input className="iv" type="number" min={0} max={31} value={iv[k]} onChange={(e) => onIv({ ...iv, [k]: Math.max(0, Math.min(31, Number(e.target.value) || 0)) })} />
-        </div>
-      ))}
-      <div className="dc-evfoot">
-        <span className={total > 510 ? "over" : ""}>EVs {total} / 510</span>
-        <span className="ivq">IV:
-          <button onClick={() => onIv({ ...ALL_IV })}>31</button>
-          <button onClick={() => onIv({ ...iv, atk: 0 })}>0 Atk</button>
-          <button onClick={() => onIv({ ...iv, spe: 0 })}>0 Spe</button>
-        </span>
-      </div>
-    </div>
-  );
+const ITEM_OPTS: PickOpt[] = [{ v: "None", hint: "no item" }, ...DC_ITEM_INFO.map((i) => ({ v: i.name, hint: i.note }))];
+// Typing searches every item in the database; ones the calc doesn't model are marked as not changing damage.
+const searchAllItems = (q: string): Promise<PickOpt[]> => searchItems(q, 30).then((xs) => xs
+  .filter((x) => !DC_ITEM_INFO.some((i) => i.name === x.name))
+  .map((x) => ({ v: x.name, hint: `${x.short_effect ?? x.category ?? "item"} · no effect on damage`, off: true })));
+const ABIL_HINT: Record<string, string> = {
+  None: "no damage effect", Adaptability: "STAB ×2", "Huge Power": "Atk ×2", Technician: "moves ≤60 power ×1.5", Guts: "Atk ×1.5 while burned",
+  "Tinted Lens": "resisted hits ×2", "Thick Fat": "takes ½ from Fire & Ice", Multiscale: "takes ½ at full HP", "Solid Rock": "super-effective hits ×0.75", Filter: "super-effective hits ×0.75",
+};
+const newAtk = (): DcSet => ({ mon: null, pre: "Offensive", ...offensiveSet(null), item: "None", abil: "None", hp: 100 });
+// Slots 0–1 are your side (lead, partner) and 2–3 the opponent's (left, right). Singles uses slots 0 and 2.
+const sideOf = (i: number) => (i < 2 ? 0 : 1);
+const SLOT_ROLE = ["Lead", "Partner", "Left", "Right"];
+const ORD = ["1st", "2nd", "3rd", "4th"];
+const CALC_ABILS = new Set([...DC_ABIL.slice(1), ...DC_ABIL_D.slice(1)]);
+// A species' real abilities (cached), for the ability field.
+const abilityCache = new Map<number, Promise<Ability[]>>();
+const loadAbilities = (id: number) => {
+  if (!abilityCache.has(id)) abilityCache.set(id, getPokemonAbilities(id).catch(() => { abilityCache.delete(id); return []; }));
+  return abilityCache.get(id)!;
+};
+// A form carries its own abilities; a species' come from the API.
+const monAbilities = (m: CalcMon) => (m.abilities ? Promise.resolve(m.abilities) : loadAbilities(m.id));
+// Default ability for a newly picked Pokémon: one the calc models if it has one, else its first regular ability.
+const defaultAbility = (ab: Ability[]) => (ab.find((a) => CALC_ABILS.has(a.name)) ?? ab.find((a) => !a.is_hidden) ?? ab[0])?.name ?? "None";
+function useAbilityOpts(mon: CalcMon | null): PickOpt[] {
+  const [ab, setAb] = useState<{ id: number; list: Ability[] } | null>(null);
+  useEffect(() => {
+    if (!mon) return; let alive = true;
+    monAbilities(mon).then((list) => { if (alive) setAb({ id: mon.id, list }); });
+    return () => { alive = false; };
+  }, [mon?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  return useMemo(() => {
+    const list = ab && mon && ab.id === mon.id ? ab.list : [];
+    return list.map((a) => ({
+      v: a.name,
+      hint: `${a.is_hidden ? "Hidden · " : ""}${ABIL_HINT[a.name] ?? `${a.short_effect ?? ""}${a.short_effect ? " · " : ""}no effect on damage`}`,
+      off: !CALC_ABILS.has(a.name),
+    }));
+  }, [ab, mon]);
 }
+type DcHit = { from: number; to: number; r: DcResult; ff: boolean };
+type TurnHit = DcHit & { ko: "yes" | "maybe" | null; sash: boolean };
+
 function DamageCalcTile() {
   const [level, setLevel] = useState(100);
   const [doubles, setDoubles] = useState(false);
   const [open, setOpen] = useState(false);
   const [showMath, setShowMath] = useState(false);
-  const [atk, setAtk] = useState<CalcMon | null>(null);
-  const [def, setDef] = useState<CalcMon | null>(null);
-  const [moves, setMoves] = useState<CalcMove[]>([]);
-  const [moveIdx, setMoveIdx] = useState(0);
-  const [aNat, setANat] = useState("Adamant"); const [aEv, setAEv] = useState<EVs>({ ...ZERO_EV, atk: 252, spe: 252, hp: 4 }); const [aIv, setAIv] = useState<EVs>({ ...ALL_IV });
-  const [dNat, setDNat] = useState("Bold"); const [dEv, setDEv] = useState<EVs>({ ...ZERO_EV, hp: 252, def: 252, spd: 4 }); const [dIv, setDIv] = useState<EVs>({ ...ALL_IV });
-  const [aPre, setAPre] = useState("Offensive"); const [dPre, setDPre] = useState("Bulky");
-  const [aItem, setAItem] = useState("None"); const [aAbil, setAAbil] = useState("None");
-  const [dItem, setDItem] = useState("None"); const [dAbil, setDAbil] = useState("None");
+  // Which card of the focused Pokémon is open as a search ("<slot>:move", "<slot>:item"…).
+  const [editing, setEditing] = useState<string | null>(null);
+  const itemInfo = useItemInfo();
+  const [sets, setSets] = useState<DcSet[]>([newAtk(), newAtk(), newDef(), newDef()]);
+  // The opposing slot each Pokémon aims a single-target move at.
+  const [aims, setAims] = useState<number[]>([2, 3, 0, 1]);
+  // The Pokémon whose details are open.
+  const [focus, setFocus] = useState(0);
   const [weather, setWeather] = useState("None"); const [terrain, setTerrain] = useState("None");
   const [reflect, setReflect] = useState(false); const [lightscreen, setLightscreen] = useState(false);
-  const [crit, setCrit] = useState(false); const [burn, setBurn] = useState(false); const [spread, setSpread] = useState(false);
-  const [ask, setAsk] = useState<{ loading: boolean; text?: string; err?: boolean } | null>(null);
+  const [crit, setCrit] = useState(false); const [burn, setBurn] = useState(false);
+  const [friendGuard, setFriendGuard] = useState(false);
+  // The coach's proposed build for one slot. `prev` holds what it replaced once applied, for Revert.
+  // The coach's proposed build for one slot, and the conversation that shaped it. `prev` is the set
+  // before the coach's first Apply (what Revert restores); `applied` says the current proposal is in.
+  const [coach, setCoach] = useState<{
+    slot: number; monId: number; loading?: boolean; err?: string; build?: BuildSuggestion; pick?: string;
+    prev?: { set: DcSet; idx: number }; applied?: boolean; thread: CoachTurn[]; asking?: string;
+  } | null>(null);
+  const [coachInput, setCoachInput] = useState("");
+  const coachChatRef = useRef<HTMLDivElement | null>(null);
+  // Keep the newest message in view as the conversation grows.
+  useEffect(() => {
+    const el = coachChatRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: reduced() ? "auto" : "smooth" });
+  }, [coach?.thread.length, coach?.asking, coach?.err]);
+  const mv0 = useCalcMoves(sets[0].mon), mv1 = useCalcMoves(sets[1].mon), mv2 = useCalcMoves(sets[2].mon), mv3 = useCalcMoves(sets[3].mon);
+  const mvs = [mv0, mv1, mv2, mv3];
+  const ab0 = useAbilityOpts(sets[0].mon), ab1 = useAbilityOpts(sets[1].mon), ab2 = useAbilityOpts(sets[2].mon), ab3 = useAbilityOpts(sets[3].mon);
+  const abilityOptsBySlot = [ab0, ab1, ab2, ab3];
+
+  const patchSet = (i: number, p: Partial<DcSet>) => setSets((ds) => ds.map((d, k) => (k === i ? { ...d, ...p } : d)));
+  // A newly picked Pokémon on the Offensive preset gets the spread matching its category.
+  const pickMon = (i: number, m: CalcMon) => {
+    setSets((ds) => ds.map((d, k) => (k !== i ? d : d.pre === "Offensive" ? { ...d, mon: m, ...offensiveSet(m), abil: "None" } : { ...d, mon: m, abil: "None" })));
+    monAbilities(m).then((ab) => setSets((ds) => ds.map((d, k) => (k === i && d.mon?.id === m.id ? { ...d, abil: defaultAbility(ab) } : d))));
+  };
 
   useEffect(() => { (async () => {
-    try { setAtk(await loadCalcMon(445)); } catch { /* */ }
-    try { setDef(await loadCalcMon(823)); } catch { /* */ }
+    try { pickMon(0, await loadCalcMon(445)); } catch { /* */ }
+    try { pickMon(2, await loadCalcMon(823)); } catch { /* */ }
   })(); }, []);
 
-  useEffect(() => {
-    if (!atk) return; let alive = true;
-    // keep an Offensive preset aligned to the (possibly new) attacker's category
-    if (aPre === "Offensive") { const s = offensiveSet(atk); setANat(s.nat); setAEv(s.ev); setAIv(s.iv); }
-    getPokemonMoves(atk.id).then((ms) => {
-      const dmg = ms.filter((m) => m.type && m.damage_class !== "status" && (m.power ?? 0) > 0)
-        .map((m) => ({ name: m.name, type: m.type as string, damage_class: m.damage_class as string, power: m.power as number }));
-      dmg.sort((a, b) => (Number(atk.types.includes(b.type)) - Number(atk.types.includes(a.type))) || b.power - a.power);
-      const want = atk.stats.attack >= atk.stats.sp_attack ? "physical" : "special";
-      if (alive) { setMoves(dmg); setMoveIdx(Math.max(0, dmg.findIndex((m) => m.damage_class === want))); }
-    }).catch(() => { if (alive) { setMoves([]); setMoveIdx(0); } });
-    return () => { alive = false; };
-  }, [atk?.id, atk?.types]); // eslint-disable-line react-hooks/exhaustive-deps
+  const applyPre = (i: number, p: string) => {
+    const sp = p === "Bulky" ? BULKY_SET : offensiveSet(sets[i].mon);
+    patchSet(i, { pre: p, nat: sp.nat, ev: sp.ev, iv: sp.iv });
+  };
 
-  const applyA = (p: string) => { setAPre(p); const s = p === "Bulky" ? BULKY_SET : offensiveSet(atk); setANat(s.nat); setAEv(s.ev); setAIv(s.iv); };
-  const applyD = (p: string) => { setDPre(p); const s = p === "Bulky" ? BULKY_SET : offensiveSet(def); setDNat(s.nat); setDEv(s.ev); setDIv(s.iv); };
-  const aEvSet = (e: EVs) => { setAEv(e); setAPre("Custom"); }; const aIvSet = (i: EVs) => { setAIv(i); setAPre("Custom"); };
-  const dEvSet = (e: EVs) => { setDEv(e); setDPre("Custom"); }; const dIvSet = (i: EVs) => { setDIv(i); setDPre("Custom"); };
+  const active = doubles ? [0, 1, 2, 3] : [0, 2];
+  const f = active.includes(focus) ? focus : sideOf(focus) === 0 ? 0 : 2;
+  const foesOf = (i: number) => active.filter((j) => sideOf(j) !== sideOf(i));
+  const mateOf = (i: number) => active.find((j) => j !== i && sideOf(j) === sideOf(i));
+  // Aim at a filled opposing slot: the one picked, else the first with a Pokémon in it.
+  const targetsOf = (i: number) => foesOf(i).filter((j) => sets[j].mon);
+  const aimOf = (i: number) => (targetsOf(i).includes(aims[i]) ? aims[i] : targetsOf(i)[0] ?? foesOf(i)[0]);
+  const kindOf = (i: number) => tgKind(mvs[i].move?.target);
+  const baseField: DcField = { level, doubles, spread: false, weather, terrain, reflect, lightscreen, crit, burn, helpingHand: false, friendGuard };
 
-  const move = moves[moveIdx];
-  let r: null | { minPct: number; maxPct: number; ko: number; te: number; stab: number; A: number; D: number; base: number; mod: number } = null;
-  if (atk && def && move) {
-    const phys = move.damage_class === "physical";
-    const aK: SKey = phys ? "atk" : "spa"; const dK: SKey = phys ? "def" : "spd";
-    let A = statFull(phys ? atk.stats.attack : atk.stats.sp_attack, level, aIv[aK], aEv[aK], natMul(aNat, aK), false);
-    let D = statFull(phys ? def.stats.defense : def.stats.sp_defense, level, dIv[dK], dEv[dK], natMul(dNat, dK), false);
-    const HP = statFull(def.stats.hp, level, dIv.hp, dEv.hp, 1, true);
-    if (aItem === "Choice Band" && phys) A = Math.floor(A * 1.5);
-    if (aItem === "Choice Specs" && !phys) A = Math.floor(A * 1.5);
-    if (aAbil === "Huge Power" && phys) A = Math.floor(A * 2);
-    if (aAbil === "Guts" && burn && phys) A = Math.floor(A * 1.5);
-    if (dItem === "Assault Vest" && !phys) D = Math.floor(D * 1.5);
-    if (dItem === "Eviolite") D = Math.floor(D * 1.5);
-    const base = Math.floor(Math.floor(Math.floor((2 * level) / 5 + 2) * move.power * A / D) / 50) + 2;
-    const te = eff(move.type, def.types);
-    const stab = atk.types.includes(move.type) ? (aAbil === "Adaptability" ? 2 : 1.5) : 1;
-    let mod = 1;
-    if (spread) mod *= 0.75;
-    if (weather === "Rain") mod *= move.type === "water" ? 1.5 : move.type === "fire" ? 0.5 : 1;
-    if (weather === "Sun") mod *= move.type === "fire" ? 1.5 : move.type === "water" ? 0.5 : 1;
-    if (terrain === "Electric" && move.type === "electric") mod *= 1.3;
-    if (terrain === "Grassy" && move.type === "grass") mod *= 1.3;
-    if (terrain === "Psychic" && move.type === "psychic") mod *= 1.3;
-    if (crit) mod *= 1.5;
-    if (burn && phys && aAbil !== "Guts") mod *= 0.5;
-    if (!crit) { if (phys && reflect) mod *= doubles ? 0.667 : 0.5; if (!phys && lightscreen) mod *= doubles ? 0.667 : 0.5; }
-    if (aItem === "Life Orb") mod *= 1.3;
-    if (aItem === "Muscle Band" && phys) mod *= 1.1;
-    if (aItem === "Wise Glasses" && !phys) mod *= 1.1;
-    if (aItem === "Expert Belt" && te > 1) mod *= 1.2;
-    if (aAbil === "Technician" && move.power <= 60) mod *= 1.5;
-    if (aAbil === "Tinted Lens" && te < 1) mod *= 2;
-    if (dAbil === "Thick Fat" && (move.type === "fire" || move.type === "ice")) mod *= 0.5;
-    if (dAbil === "Multiscale") mod *= 0.5;
-    if ((dAbil === "Solid Rock" || dAbil === "Filter") && te > 1) mod *= 0.75;
-    const total = base * stab * te * mod;
-    const maxDmg = Math.floor(total), minDmg = Math.floor(total * 0.85);
-    r = { minPct: HP ? minDmg / HP * 100 : 0, maxPct: HP ? maxDmg / HP * 100 : 0, ko: te === 0 || minDmg <= 0 ? 0 : Math.ceil(HP / minDmg), te, stab, A, D, base, mod: stab * te * mod };
-  }
-  const koLabel = !r ? "" : r.te === 0 ? "immune" : r.ko === 1 ? "OHKO" : `${r.ko}HKO`;
-  const faster = atk && def
-    ? (statFull(atk.stats.speed, level, aIv.spe, aEv.spe, natMul(aNat, "spe"), false) === statFull(def.stats.speed, level, dIv.spe, dEv.spe, natMul(dNat, "spe"), false)
-      ? "speed tie" : `${(statFull(atk.stats.speed, level, aIv.spe, aEv.spe, natMul(aNat, "spe"), false) > statFull(def.stats.speed, level, dIv.spe, dEv.spe, natMul(dNat, "spe"), false) ? atk : def).name} outspeeds`)
-    : "";
-  const runAsk = () => { if (!atk) return; setAsk({ loading: true });
-    askQuestion(`Give a competitive build and moveset suggestion for ${atk.name}.`).then((res) => setAsk({ loading: false, text: res.answer })).catch(() => setAsk({ loading: false, err: true })); };
+  // The hits `move` from slot `u` makes, following the move's real targeting. `up(t)` says whether slot t is
+  // still standing and `hpOf(t)` its HP going into the hit, so the turn can be played out in order.
+  const hitsFor = (u: number, move: CalcMove | undefined, aim: number, up: (t: number) => boolean = () => true, hpOf: (t: number) => number = (t) => sets[t].hp): DcHit[] => {
+    const a = sets[u], mate = mateOf(u);
+    if (!a.mon || !move || move.power <= 0) return [];
+    // Singles has one foe and no partner: every move is a plain single-target hit.
+    const k = doubles ? tgKind(move.target) : "sel";
+    if (k === "ally") return [];
+    const helped = doubles && mate !== undefined && !!sets[mate].mon && up(mate) && kindOf(mate) === "ally";
+    const standing = foesOf(u).filter((t) => sets[t].mon && up(t));
+    // A single-target move aimed at a fainted foe switches to its partner, as in the games.
+    const single = sets[aim]?.mon && up(aim) ? aim : standing[0];
+    const tos = [...(isSpread(k) ? standing : single !== undefined ? [single] : []), ...(k === "all" && mate !== undefined && sets[mate].mon && up(mate) ? [mate] : [])];
+    return tos.map((t) => {
+      // Screens and Friend Guard sit on the opponent's side; the burn toggle is on your attacker.
+      const opp = sideOf(t) === 1;
+      const fld = { ...baseField, spread: isSpread(k), helpingHand: helped, reflect: reflect && opp, lightscreen: lightscreen && opp, friendGuard: friendGuard && opp, burn: burn && sideOf(u) === 0 };
+      return { from: u, to: t, r: calcHit(a.mon!, a, sets[t].mon!, { ...sets[t], hp: hpOf(t) }, move, fld), ff: sideOf(t) === sideOf(u) };
+    });
+  };
 
-  const side = (which: "a" | "d") => {
-    const isA = which === "a";
-    const pre = isA ? aPre : dPre, apply = isA ? applyA : applyD;
-    const nat = isA ? aNat : dNat, setNat = isA ? (n: string) => { setANat(n); setAPre("Custom"); } : (n: string) => { setDNat(n); setDPre("Custom"); };
-    const item = isA ? aItem : dItem, setItem = isA ? setAItem : setDItem, items = isA ? DC_ITEMS : DC_ITEMS_D;
-    const abil = isA ? aAbil : dAbil, setAbil = isA ? setAAbil : setDAbil, abils = isA ? DC_ABIL : DC_ABIL_D;
-    const ev = isA ? aEv : dEv, iv = isA ? aIv : dIv, onEv = isA ? aEvSet : dEvSet, onIv = isA ? aIvSet : dIvSet;
+  const spe = (s: DcSet) => (s.mon ? statFull(s.mon.stats.speed, level, s.iv.spe, s.ev.spe, natMul(s.nat, "spe"), false) : 0);
+  // Turn order: move priority first, then Speed.
+  const order = active.filter((i) => sets[i].mon)
+    .map((i) => ({ i, pri: mvs[i].move?.priority ?? 0, spe: spe(sets[i]) }))
+    .sort((x, y) => y.pri - x.pri || y.spe - x.spe);
+  const stepOf = (i: number) => order.findIndex((o) => o.i === i) + 1;
+
+  // Play the turn out in order. HP carries over from hit to hit as a range — `lo` if every roll is high,
+  // `hi` if every roll is low — starting from each Pokémon's current HP. A Pokémon that is KO'd even on
+  // low rolls doesn't get to move, and Focus Sash saves its holder once, from full HP.
+  const hp: Record<number, { lo: number; hi: number; sash: boolean }> = {};
+  for (const i of active) hp[i] = { lo: sets[i].hp, hi: sets[i].hp, sash: false };
+  const standing = (t: number) => hp[t].hi > 0;
+  const steps = order.map(({ i }) => {
+    if (!standing(i)) return { i, skipped: true, atRisk: false, hits: [] as TurnHit[] };
+    const atRisk = hp[i].lo <= 0;
+    const hs: TurnHit[] = hitsFor(i, mvs[i].move, aimOf(i), standing, (t) => hp[t].hi).map((h) => {
+      const x = hp[h.to], d = sets[h.to];
+      if (h.r.te === 0) return { ...h, ko: null, sash: false };
+      const sash = d.item === "Focus Sash" && !x.sash && x.lo >= 100 && h.r.maxPct >= 100;
+      if (sash) { x.sash = true; x.lo = 1; x.hi = Math.max(1, 100 - h.r.minPct); }
+      else { x.lo = Math.max(0, x.lo - h.r.maxPct); x.hi = Math.max(0, x.hi - h.r.minPct); }
+      return { ...h, ko: x.hi <= 0 ? "yes" : x.lo <= 0 ? "maybe" : null, sash };
+    });
+    return { i, skipped: false, atRisk, hits: hs };
+  });
+  const hits = steps.flatMap((st) => st.hits);
+  // Damage taken over the turn, from the HP it started with.
+  const takenBy = (i: number) => {
+    const all = hits.filter((h) => h.to === i), hs = all.filter((h) => h.r.te !== 0), x = hp[i] ?? { lo: sets[i].hp, hi: sets[i].hp, sash: false };
+    return { all, hs, min: sets[i].hp - x.hi, max: sets[i].hp - x.lo, fainted: x.hi <= 0, maybe: x.lo <= 0 && x.hi > 0, sash: x.sash };
+  };
+  // Dropdown hint: the hardest hit on the other side, plus a warning when it also hits the partner.
+  const preview = (u: number) => (m: CalcMove) => {
+    const hs = hitsFor(u, m, aimOf(u)), foe = hs.filter((h) => !h.ff).sort((x, y) => y.r.maxPct - x.r.maxPct);
+    if (!hs.length) return "";
+    return `${foe.length ? ` · ${pctText(foe[0].r)}` : ""}${hs.some((h) => h.ff) ? " · hits partner" : ""}`;
+  };
+  const involves = (i: number) => i === f || hits.some((h) => (h.from === i && h.to === f) || (h.from === f && h.to === i));
+
+  // Battle-log wording: your Pokémon by name, the opponent's as "the opposing …", like the games.
+  const who = (i: number, cap = false) => sideOf(i) === 0
+    ? <b>{sets[i].mon?.name}</b>
+    : <><span className="opp">{cap ? "The" : "the"} opposing</span> <b>{sets[i].mon?.name}</b></>;
+  const logLines = (st: (typeof steps)[number]): ReactNode[] => {
+    const i = st.i, m = mvs[i].move; if (!m) return [];
+    const out: ReactNode[] = [], mate = mateOf(i);
+    if (m.power <= 0) {
+      out.push(doubles && kindOf(i) === "ally" && mate !== undefined && sets[mate].mon
+        ? <>{who(mate, true)}&apos;s move gets a ×1.5 boost.</>
+        : <span className="fx">Status move: no damage.</span>);
+    } else if (!st.hits.length) out.push(<span className="fx">But there was no target…</span>);
+    for (const h of st.hits) {
+      const r = h.r;
+      if (r.te === 0) { out.push(<><span className="fx">It doesn&apos;t affect</span> {who(h.to)}…</>); continue; }
+      const fx = r.te > 1 ? "It's super effective! " : r.te < 1 ? "It's not very effective… " : "";
+      out.push(<>
+        {fx && <span className="fx">{fx}</span>}{who(h.to, true)} lost <b className="pct">{pctText(r)}</b> of its HP
+        {h.ff && <span className="ffc"> ({sideOf(h.to) === 0 ? "your" : "its"} partner)</span>}.
+        {h.sash ? " It hung on using its Focus Sash!" : h.ko === "maybe" ? " It could faint." : ""}
+      </>);
+      if (h.ko === "yes") out.push(<span className="ko">{who(h.to, true)} fainted!</span>);
+    }
+    return out;
+  };
+
+  const mathHit = hits.find((h) => h.from === f && h.r.te !== 0) ?? hits.find((h) => h.r.te !== 0);
+  const mathMove = mathHit ? mvs[mathHit.from].move : undefined;
+  // A first ask: a fresh build for the focused Pokémon, shaped by whatever the message asks for.
+  const runCoach = (text?: string) => {
+    const a = sets[f].mon; if (!a) return;
+    const slot = f, monId = a.id, same = (c: typeof coach) => c?.slot === slot && c.monId === monId;
+    const ask = text?.trim() || `Best build for ${a.name}`;
+    // A fresh ask starts a new conversation, but keeps the Revert point if a build is already applied.
+    setCoach((c) => ({ slot, monId, loading: true, asking: ask, thread: [], prev: same(c) ? c?.prev : undefined, applied: same(c) ? c?.applied : undefined }));
+    setCoachInput("");
+    suggestBuild(a.formId ? a.dex : a.id, a.formId, text?.trim() ? { request: ask, history: [] } : undefined)
+      .then((build) => setCoach((c) => (same(c) ? { ...c!, loading: false, asking: undefined, build, pick: undefined, applied: false, thread: [{ ask, reply: build.why }] } : c)))
+      .catch((e: Error) => setCoach((c) => (same(c) ? { ...c!, loading: false, asking: undefined, err: e.message } : c)));
+  };
+  // A proposal only stands while its slot still holds the same Pokémon.
+  const cb = coach && sets[coach.slot]?.mon?.id === coach.monId ? coach : null;
+  const cSet = cb ? sets[cb.slot] : null, cMoves = cb ? mvs[cb.slot] : null;
+  // The move Apply will use: the one picked from the moveset chips, else the coach's first damaging move.
+  const cMoveIdx = cb?.build && cMoves ? (() => {
+    const at = (n: string) => cMoves.moves.findIndex((m) => m.name === n);
+    if (cb.pick && at(cb.pick) >= 0) return at(cb.pick);
+    const hit = cb.build.moves.map(at).find((i) => i >= 0 && cMoves.moves[i].power > 0);
+    return hit ?? cb.build.moves.map(at).find((i) => i >= 0) ?? -1;
+  })() : -1;
+  const proposed = cb?.build && cSet ? {
+    ...cSet,
+    abil: cb.build.ability ?? cSet.abil, nat: cb.build.nature ?? cSet.nat, item: cb.build.item ?? cSet.item,
+    ev: { ...cb.build.evs }, pre: "Custom",
+  } : null;
+  const applyCoach = () => {
+    if (!cb || !cSet || !cMoves || !proposed) return;
+    setCoach({ ...cb, prev: cb.prev ?? { set: cSet, idx: cMoves.idx }, applied: true });
+    patchSet(cb.slot, proposed);
+    if (cMoveIdx >= 0) cMoves.setIdx(cMoveIdx);
+  };
+  const revertCoach = () => {
+    if (!cb?.prev || !cMoves) return;
+    patchSet(cb.slot, cb.prev.set);
+    cMoves.setIdx(cb.prev.idx);
+    setCoach({ ...cb, prev: undefined, applied: false });
+  };
+  // A follow-up revises the current proposal (or just answers, leaving it as is).
+  const followUp = (text: string) => {
+    const ask = text.trim(), mon = cSet?.mon;
+    if (!ask || !cb?.build || cb.asking || !mon) return;
+    const { slot, monId } = cb, same = (c: typeof coach) => c?.slot === slot && c.monId === monId;
+    setCoach({ ...cb, asking: ask, err: undefined });
+    setCoachInput("");
+    suggestBuild(mon.formId ? mon.dex : mon.id, mon.formId, { current: cb.build, request: ask, history: cb.thread })
+      .then((build) => setCoach((c) => (same(c) ? {
+        ...c!, asking: undefined, thread: [...c!.thread, { ask, reply: build.why }],
+        // A new set goes back to pending; a reply that leaves the set alone keeps it applied.
+        ...(sameBuild(build, c!.build) ? {} : { build, pick: undefined, applied: false }),
+      } : c)))
+      .catch((e: Error) => setCoach((c) => (same(c) ? { ...c!, asking: undefined, err: e.message } : c)));
+  };
+  // The coach box talks about the focused Pokémon: a follow-up once it has a build, else a first ask.
+  const cv = cb && cb.slot === f ? cb : null;
+  const sendCoach = (text: string) => (cv?.build ? followUp(text) : runCoach(text));
+  const chip = (on: boolean, set: (v: boolean) => void, label: string, hint: string) => (
+    <label className={on ? "on" : ""} title={hint}><input type="checkbox" checked={on} onChange={(e) => set(e.target.checked)} />{label}</label>
+  );
+
+  const rosterCard = (i: number) => {
+    const s = sets[i], m = mvs[i].move, t = takenBy(i), n = stepOf(i);
+    const placeholder = sideOf(i) === 0 ? (i === 0 ? "Your Pokémon" : "Partner") : doubles ? `Foe ${i - 1}` : "Opponent";
+    // Removing resets the slot to a fresh set for its side (and keeps focus where it was).
+    const remove = () => setSets((ds) => ds.map((d, k) => (k !== i ? d : sideOf(i) === 0 ? newAtk() : newDef())));
     return (
-      <div className="dc-side">
-        <div className="sh">{isA ? "Attacker set" : "Defender set"}</div>
-        <div className="dc-preset">{["Offensive", "Bulky", "Custom"].map((p) => (
-          <button key={p} className={pre === p ? "on" : ""} onClick={() => p === "Custom" ? (isA ? setAPre : setDPre)("Custom") : apply(p)}>{p}</button>
-        ))}</div>
-        <div className="dc-ctrls">
-          <label>Nature<select value={nat} onChange={(e) => setNat(e.target.value)}>{NAT.map((n) => <option key={n[0]}>{n[0]}</option>)}</select></label>
-          <label>Item<select value={item} onChange={(e) => setItem(e.target.value)}>{items.map((x) => <option key={x}>{x}</option>)}</select></label>
-          <label>Ability<select value={abil} onChange={(e) => setAbil(e.target.value)}>{abils.map((x) => <option key={x}>{x}</option>)}</select></label>
-        </div>
-        {pre === "Custom" ? <EvEditor ev={ev} iv={iv} onEv={onEv} onIv={onIv} /> : <EvBar ev={ev} />}
+      <div key={i} className="dc-rcw">
+      <button className={`dc-rc${i === f ? " on" : ""}${s.mon ? "" : " empty"}${involves(i) ? "" : " faded"}${s.mon && t.fainted ? " ko" : ""}`} onClick={() => setFocus(i)} aria-pressed={i === f}>
+        {s.mon ? <img src={monArt(s.mon)} alt="" />/* eslint-disable-line @next/next/no-img-element */ : <span className="add" aria-hidden>+</span>}
+        <b>{s.mon?.name ?? placeholder}</b>
+        <small>{s.mon ? <>{n > 0 && `#${n} · `}{m?.name ?? "—"}{s.item !== "None" && <span className="itm"> · {s.item}</span>}</> : "tap to pick"}</small>
+        {s.mon && (
+          <span className="d">
+            <em className={t.fainted ? "ko" : !t.hs.length && t.all.length ? "imm" : ""}>{t.fainted ? "KO" : t.hs.length ? `${t.min.toFixed(0)}–${t.max.toFixed(0)}%` : t.all.length ? "immune" : ""}</em>
+            <HpLeft min={t.min} max={t.max} hp={s.hp} />
+          </span>
+        )}
+      </button>
+      {s.mon && (
+        <button className="rm-x" onClick={remove} aria-label={`Remove ${s.mon.name}`} title="Remove">
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      )}
       </div>
     );
   };
+
+  // The focused Pokémon's details.
+  const s = sets[f], m = mvs[f].move, t = takenBy(f), n = stepOf(f);
+  const abilOpts = abilityOptsBySlot[f];
+  const k: TgKind = m && doubles ? tgKind(m.target) : "sel";
 
   return (
     <section className="card dc">
       <div className="lbl">Damage calculator
         <span className="dc-top">
-          <span className="dc-seg">{["Singles", "Doubles"].map((m, k) => <button key={m} className={doubles === (k === 1) ? "on" : ""} onClick={() => setDoubles(k === 1)}>{m}</button>)}</span>
+          <span className="dc-seg">{["Singles", "Doubles"].map((x, i) => <button key={x} className={doubles === (i === 1) ? "on" : ""} onClick={() => setDoubles(i === 1)}>{x}</button>)}</span>
           <span className="dc-seg">{[50, 100].map((L) => <button key={L} className={level === L ? "on" : ""} onClick={() => setLevel(L)}>Lv{L}</button>)}</span>
         </span>
       </div>
-      <div className="dc-oneline">
-        <DcPicker mon={atk} onPick={(id) => { setAPre("Offensive"); loadCalcMon(id).then(setAtk); }} ph="Attacker…" />
-        <select className="dc-mv" value={moveIdx} onChange={(e) => setMoveIdx(Number(e.target.value))}>
-          {moves.length === 0 && <option>move…</option>}
-          {moves.slice(0, 60).map((m, i) => <option key={m.name} value={i}>{m.name} · {m.type} · {m.power}</option>)}
-        </select>
-        <span className="vs">vs</span>
-        <DcPicker mon={def} onPick={(id) => loadCalcMon(id).then(setDef)} ph="Defender…" />
-        <span className="eq">=</span>
-        <div className="dc-out">{r ? <><b>{r.minPct.toFixed(0)}–{r.maxPct.toFixed(0)}%</b><span className={`dc-ko${r.ko === 1 ? " o" : ""}${r.te === 0 ? " im" : ""}`}>{koLabel}</span></> : <span className="dim">—</span>}</div>
+      <div className="dc-v2">
+        <div className="dc-main">
+          <div className="dc-ros">
+            <div className="col"><span className="dc-k">Your team</span>{active.filter((i) => sideOf(i) === 0).map(rosterCard)}</div>
+            <div className="col them"><span className="dc-k">Opponent</span>{active.filter((i) => sideOf(i) === 1).map(rosterCard)}</div>
+          </div>
+          {order.length > 0 && (
+            <div className="dc-log">
+              <span className="dc-k">This turn · priority › speed</span>
+              {order.map((o, idx) => {
+                const mv = mvs[o.i].move, st = steps[idx];
+                const tie = order.some((x) => x.i !== o.i && x.pri === o.pri && x.spe === o.spe);
+                return (
+                  <button key={o.i} className={`dc-ls${o.i === f ? " on" : ""}${involves(o.i) ? "" : " faded"}`} onClick={() => setFocus(o.i)}>
+                    <span className="n">{idx + 1}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={monArt(sets[o.i].mon!)} alt="" />
+                    <span className="tx">
+                      {st.skipped
+                        ? <span className="u gone">{who(o.i, true)} fainted before it could move.</span>
+                        : <span className="u">{who(o.i, true)} used <b>{mv?.name ?? "…"}</b>!
+                            {o.pri !== 0 && <em>{o.pri > 0 ? "+" : ""}{o.pri}</em>}{tie && <em>speed tie</em>}{st.atRisk && <em>if it&apos;s still standing</em>}
+                          </span>}
+                      {!st.skipped && logLines(st).map((l, j) => <span key={j} className="l">{l}</span>)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="dc-panel" key={f}>
+          <span className="dc-k">{sideOf(f) === 0 ? "Your team" : "Opponent"}{doubles ? ` · ${SLOT_ROLE[f]}` : ""}{n > 0 && ` · moves ${ORD[n - 1]}`}</span>
+          <div className="dc-ph">
+            <DcPicker mon={s.mon} onPick={(p) => loadCalcMon(p.dex_number, p.form_id).then((mm) => pickMon(f, mm)).catch(() => {})} ph="Pick a Pokémon…" />
+            {s.mon && <span className="dc-start"><HpPicker value={s.hp} onChange={(hp) => patchSet(f, { hp })} /></span>}
+          </div>
+          {s.mon && (
+            <>
+              <div className="dc-hpnow">
+                <span className="dc-k">After turn{t.sash ? <em className="warn"> · Sash holds</em> : t.fainted ? <em> · KO</em> : t.maybe ? <em> · maybe KO</em> : null}</span>
+                <HpLeft min={t.min} max={t.max} hp={s.hp} />
+              </div>
+              <div className="dc-c2">
+                {/* left: what it does — move, target, nature, item, ability */}
+                <div className="l">
+                  <InfoBox
+                    className="se-mv"
+                    label={m ? <><i style={{ background: TC[m.type] ?? "#999" }} />{m.type}</> : "Move"}
+                    name={m?.name ?? (mvs[f].moves.length ? "Pick a move" : "Loading moves…")}
+                    meta={m ? `${m.damage_class === "status" ? "status" : `${m.damage_class} ${m.power}`}${m.accuracy ? ` · ${m.accuracy}%` : ""}${m.priority ? ` · ${m.priority > 0 ? "+" : ""}${m.priority}` : ""}${doubles ? ` · ${TG_LABEL[k]}${isSpread(k) ? " ×0.75" : ""}` : ""}` : undefined}
+                    desc={m?.effect ?? undefined}
+                    editing={editing === `${f}:move`}
+                    onOpen={() => setEditing(`${f}:move`)}
+                  >
+                    <MoveSearch moves={mvs[f].moves} value={m?.name ?? null} onPick={(mm) => mvs[f].setIdx(mvs[f].moves.indexOf(mm))} onDone={() => setEditing(null)} autoFocus owner={s.mon.name} preview={preview(f)} />
+                  </InfoBox>
+                  {doubles && m && m.power > 0 && isAimable(k) && targetsOf(f).length > 1 && (
+                    <div className="dc-aim">
+                      <span className="dc-k">Target</span>
+                      <span className="dc-aimseg" role="radiogroup" aria-label="Target">
+                        {targetsOf(f).map((d) => (
+                          <button key={d} role="radio" aria-checked={aimOf(f) === d} className={aimOf(f) === d ? "on" : ""} onClick={() => setAims((xs) => xs.map((x, j) => (j === f ? d : x)))}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={monArt(sets[d].mon!)} alt="" />{sets[d].mon!.name}
+                          </button>
+                        ))}
+                      </span>
+                      {k === "rand" && <span className="fx">random target · previewing</span>}
+                    </div>
+                  )}
+                  <div className="se-infos">
+                    <InfoBox
+                      label="Ability"
+                      name={s.abil}
+                      meta={ABIL_HINT[s.abil] ?? (abilOpts.find((o) => o.v === s.abil)?.off ? "no damage effect" : undefined)}
+                      desc={abilOpts.find((o) => o.v === s.abil)?.hint}
+                      editing={editing === `${f}:abil`}
+                      onOpen={() => setEditing(`${f}:abil`)}
+                    >
+                      <PickSearch bare autoFocus label="Ability" value={s.abil} opts={abilOpts} onPick={(v) => patchSet(f, { abil: v })} onDone={() => setEditing(null)} />
+                    </InfoBox>
+                    <InfoBox
+                      label="Nature"
+                      name={s.nat}
+                      meta={natTag(s.nat)}
+                      desc={natDesc(s.nat)}
+                      editing={editing === `${f}:nat`}
+                      onOpen={() => setEditing(`${f}:nat`)}
+                    >
+                      <PickSearch bare autoFocus label="Nature" value={s.nat} opts={NAT_OPTS} onPick={(v) => patchSet(f, { nat: v, pre: "Custom" })} onDone={() => setEditing(null)} />
+                    </InfoBox>
+                    <InfoBox
+                      label="Item"
+                      name={s.item === "None" ? "No item" : s.item}
+                      meta={s.item === "None" ? undefined : DC_ITEM_INFO.find((i) => i.name === s.item)?.note ?? "no damage effect"}
+                      desc={s.item === "None" ? undefined : itemInfo.get(s.item)}
+                      editing={editing === `${f}:item`}
+                      onOpen={() => setEditing(`${f}:item`)}
+                    >
+                      <PickSearch bare autoFocus label="Item" value={s.item} opts={ITEM_OPTS} search={searchAllItems} onPick={(v) => patchSet(f, { item: v })} onDone={() => setEditing(null)} />
+                    </InfoBox>
+                  </div>
+                </div>
+                {/* right: the stats it has */}
+                <div className="r">
+                  <div className="dc-sth">
+                    <span className="dc-k">Stats · Lv{level}</span>
+                    <span className="dc-seg">{["Offensive", "Bulky", "Custom"].map((x) => (
+                      <button key={x} className={s.pre === x ? "on" : ""} onClick={() => (x === "Custom" ? patchSet(f, { pre: "Custom" }) : applyPre(f, x))}>{x}</button>
+                    ))}</span>
+                  </div>
+                  <EvEditor mon={s.mon} level={level} nat={s.nat} ev={s.ev} iv={s.iv} onEv={(e) => patchSet(f, { ev: e, pre: "Custom" })} onIv={(v) => patchSet(f, { iv: v, pre: "Custom" })} />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
       <div className="dc-subrow">
-        {r && <span className="fast">{faster} · ×{fmt(r.te)}{r.stab > 1 ? " STAB" : ""}</span>}
-        <button className="dc-optbtn" onClick={() => setOpen((v) => !v)}>{open ? "hide options ▴" : "options — spread · item · ability · field ▾"}</button>
+        <button className="dc-optbtn" onClick={() => setOpen((v) => !v)}>{open ? "hide field ▴" : "field — weather · screens · crit ▾"}</button>
+        <button className="dc-optbtn" onClick={() => setShowMath((v) => !v)}>{showMath ? "hide math ▴" : "math ▾"}</button>
       </div>
       {open && (
         <div className="dc-drawer">
-          <div className="dc-two">{side("a")}{side("d")}</div>
           <div className="dc-field">
             <select value={weather} onChange={(e) => setWeather(e.target.value)}>{WEATHER.map((x) => <option key={x}>{x === "None" ? "Weather" : x}</option>)}</select>
             <select value={terrain} onChange={(e) => setTerrain(e.target.value)}>{TERRAIN.map((x) => <option key={x}>{x === "None" ? "Terrain" : x}</option>)}</select>
-            <label className={reflect ? "on" : ""}><input type="checkbox" checked={reflect} onChange={(e) => setReflect(e.target.checked)} />Reflect</label>
-            <label className={lightscreen ? "on" : ""}><input type="checkbox" checked={lightscreen} onChange={(e) => setLightscreen(e.target.checked)} />Light Screen</label>
-            <label className={crit ? "on" : ""}><input type="checkbox" checked={crit} onChange={(e) => setCrit(e.target.checked)} />Crit</label>
-            <label className={burn ? "on" : ""}><input type="checkbox" checked={burn} onChange={(e) => setBurn(e.target.checked)} />Burn</label>
-            {doubles && <label className={spread ? "on" : ""}><input type="checkbox" checked={spread} onChange={(e) => setSpread(e.target.checked)} />Spread</label>}
+            {chip(reflect, setReflect, "Foe Reflect", doubles ? "On the opponent's side · ×0.667 in doubles" : "On the opponent's side · ×0.5 in singles")}
+            {chip(lightscreen, setLightscreen, "Foe Light Screen", doubles ? "On the opponent's side · ×0.667 in doubles" : "On the opponent's side · ×0.5 in singles")}
+            {chip(crit, setCrit, "Crit", "Every hit crits: ×1.5, ignores screens")}
+            {chip(burn, setBurn, "Your side burned", "Halves your physical damage unless Guts")}
+            {doubles && chip(friendGuard, setFriendGuard, "Foe Friend Guard ×0.75", "The opponent's partner has Friend Guard")}
           </div>
-          <button className="dc-mathtog" onClick={() => setShowMath((v) => !v)}>{showMath ? "hide math ▴" : "show math ▾"}</button>
-          {showMath && r && move && (
-            <div className="dc-formula">dmg = ⌊(⌊(2·{level}/5+2)·{move.power}·{r.A}/{r.D}⌋/50)+2⌋ × {r.stab} STAB × {fmt(r.te)} type × [0.85–1.0] = <b>{r.base}</b> base → <b>{r.minPct.toFixed(1)}–{r.maxPct.toFixed(1)}%</b></div>
+        </div>
+      )}
+      {showMath && mathHit && mathMove && (
+        <div className="dc-formula dc-formula-top">dmg = ⌊(⌊(2·{level}/5+2)·{mathMove.power}·{mathHit.r.A}/{mathHit.r.D}⌋/50)+2⌋ × {mathHit.r.stab} STAB × {fmt(mathHit.r.te)} type × [0.85–1.0] = <b>{mathHit.r.base}</b> base → <b>{mathHit.r.minPct.toFixed(1)}–{mathHit.r.maxPct.toFixed(1)}%</b> ({sets[mathHit.from].mon?.name} → {sets[mathHit.to].mon?.name})</div>
+      )}
+      {s.mon && (
+        <div className="dc-coach" role="region" aria-label="Coach">
+          {cv?.build && cSet && proposed ? ((cb, cSet) => {
+            // "Was" is what the calc has now — or, once applied, what the coach replaced.
+            const base = cb.applied && cb.prev ? cb.prev.set : cSet;
+            const wasMove = cb.applied && cb.prev ? mvs[cb.slot].moves[cb.prev.idx]?.name : cMoves?.move?.name;
+            const rows: [string, string | undefined, string | undefined][] = [
+              ["Move", wasMove, cMoveIdx >= 0 ? cMoves?.moves[cMoveIdx]?.name : undefined],
+              ["Ability", base.abil, proposed.abil],
+              ["Nature", base.nat, proposed.nat],
+              ["Item", base.item, proposed.item],
+            ];
+            const evSame = evText(base.ev) === evText(proposed.ev);
+            return (
+              <>
+                <div className="dc-coach-h">
+                  <span className="t">{cb.applied ? "Applied: " : "Coach's build for "}<b>{cSet.mon?.name}</b></span>
+                  <span className="acts">
+                    {cb.prev && <button className="rev" onClick={revertCoach}>Revert</button>}
+                    {!cb.applied && <button className="ok" onClick={applyCoach}>Apply build</button>}
+                    <button className="x" onClick={() => setCoach(null)} aria-label="Dismiss">×</button>
+                  </span>
+                </div>
+                <div className="dc-coach-diff">
+                  {rows.map(([k, was, now]) => (
+                    <div key={k} className={was === now || !now ? "same" : "chg"}>
+                      <span className="dc-k">{k}</span>
+                      {!now || was === now ? <span className="v">{was === "None" ? "No item" : was ?? "—"}</span> : <span className="v"><s>{was === "None" ? "No item" : was ?? "—"}</s> → <b>{now}</b></span>}
+                    </div>
+                  ))}
+                  <div className={`wide ${evSame ? "same" : "chg"}`}>
+                    <span className="dc-k">EVs</span>
+                    <span className="dc-evdiff">
+                      {(Object.keys(proposed.ev) as SKey[]).filter((k) => base.ev[k] || proposed.ev[k]).map((k) => (
+                        <span key={k} className={base.ev[k] === proposed.ev[k] ? "ev same" : "ev"}>
+                          <em>{SABBR[k]}</em>
+                          {base.ev[k] === proposed.ev[k] ? proposed.ev[k] : <><s>{base.ev[k]}</s> → <b>{proposed.ev[k]}</b></>}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                </div>
+                <div className="dc-coach-set">
+                  <span className="dc-k">Full moveset</span>
+                  {cb.build!.moves.map((n) => {
+                    const i = cMoves?.moves.findIndex((m) => m.name === n) ?? -1, mv = i >= 0 ? cMoves!.moves[i] : undefined;
+                    return (
+                      <button
+                        key={n}
+                        className={(cb.applied ? cMoves?.move?.name === n : cMoveIdx === i) ? "on" : ""}
+                        disabled={i < 0}
+                        // Before Apply a chip picks the move to apply; after, it swaps the calc's move directly.
+                        onClick={() => (cb.applied ? cMoves?.setIdx(i) : setCoach({ ...cb, pick: n }))}
+                        title={mv ? (cb.applied ? `Use ${n} in the calc` : `Apply with ${n}`) : n}
+                      >
+                        {mv && <i style={{ background: TC[mv.type] ?? "#999" }} />}{n}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })(cv, cSet) : (
+            <div className="dc-coach-h"><span className="t">Ask the coach about <b>{s.mon.name}</b></span></div>
           )}
-          <div className="dc-ask">
-            <button className="dc-askbtn" onClick={runAsk} disabled={ask?.loading}>{ask?.loading ? "Asking…" : "Ask the coach: best build & moveset"}</button>
-            {ask && !ask.loading && ask.err && <div className="dc-answ err">Assistant unavailable — open it to try live.</div>}
-            {ask && !ask.loading && ask.text && <div className="dc-answ">{renderAnswer(ask.text.split("\n").slice(0, 4).join("\n"))}<Link className="go" href="/ask">Open the assistant →</Link></div>}
+          {cv && (cv.thread.length > 0 || cv.asking || cv.err) && (
+            <div className="dc-coach-chat" ref={coachChatRef} data-lenis-prevent>
+              {cv.thread.map((t, j) => (
+                <div key={j} className={j < cv.thread.length - 1 || cv.asking ? "turn old" : "turn"}>
+                  <p className="you">{t.ask}</p>
+                  {/* Same light Markdown as the Ask answers and the team coach. */}
+                  {t.reply && <div className="coach">{renderAnswer(t.reply)}</div>}
+                </div>
+              ))}
+              {cv.asking && <div className="turn"><p className="you">{cv.asking}</p><p className="coach wait">Coach is thinking…</p></div>}
+              {cv.err && <p className="coach err">{cv.err}</p>}
+            </div>
+          )}
+          <div className="dc-coach-quick">
+            {(cv?.build ? COACH_QUICK : COACH_START).map((q) => (
+              <button key={q} onClick={() => sendCoach(q)} disabled={!!cv?.asking}>{q}</button>
+            ))}
           </div>
+          <form className="dc-coach-in" onSubmit={(e) => { e.preventDefault(); sendCoach(coachInput); }}>
+            <input
+              value={coachInput}
+              onChange={(e) => setCoachInput(e.target.value)}
+              placeholder={cv?.build ? `Ask a follow-up, e.g. "swap ${cv.build.moves.at(-1) ?? "a move"} for a priority move"` : `What should ${s.mon.name} do? e.g. "a bulky set for doubles"`}
+              aria-label="Message the coach"
+              disabled={!!cv?.asking}
+            />
+            <button type="submit" disabled={!!cv?.asking || !coachInput.trim()}>Send</button>
+          </form>
         </div>
       )}
     </section>
@@ -956,22 +1314,24 @@ export default function Home() {
     <main ref={rootRef} className="lc">
       <div className="lc-app">
         <header className="lc-head">
-          <p className="eyebrow">Pokédex OS · your competitive toolkit</p>
           <Search />
         </header>
 
+        {/* three column stacks; below 1440px the columns flatten (display:contents)
+            and the tiles are placed on a 12-col grid instead */}
         <div className="lc-bento">
-          <div className="band b1">
+          <div className="col c1">
             <div className="ga ga-coach"><TeamCoachTile /></div>
-            <div className="ga ga-ask"><AskTile /></div>
+            <div className="ga ga-tc"><TypeCalcTile /></div>
           </div>
-          <div className="band b2">
+          <div className="col c2">
+            <div className="ga ga-ask"><AskTile /></div>
             <div className="ga ga-dc"><DamageCalcTile /></div>
           </div>
-          <div className="band b3">
+          <div className="col c3">
             <div className="ga ga-look"><LookupTile /></div>
-            <div className="ga ga-tc"><TypeCalcTile /></div>
             <div className="ga ga-nat"><NatureTile /></div>
+            <div className="ga ga-cr"><CatchRateTile /></div>
           </div>
         </div>
       </div>

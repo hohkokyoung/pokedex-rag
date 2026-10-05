@@ -24,6 +24,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -55,7 +56,11 @@ class Ability(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     identifier: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
+    # Fluffy in-game flavour text (from ability_flavor_text).
     effect: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Concise mechanical effect with the real numbers, e.g. "Increases moves'
+    # accuracy to 1.3×" (from ability_prose.short_effect, English).
+    short_effect: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
 
 class Pokemon(Base):
@@ -110,6 +115,15 @@ class Pokemon(Base):
     # A representative English description + sprite.
     flavor_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     sprite_path: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    # Female artwork for species with visual gender differences (Pyroar, Unfezant…);
+    # null when the female looks the same or is its own form (Meowstic, Indeedee).
+    female_sprite_path: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    # Cosmetic (non-battle) variants sharing this pokemon record, in game order —
+    # e.g. Alcremie's 63 cream × sweet combos, Vivillon's patterns. Empty unless >1.
+    # Each entry is ``{"name": ..., "sprite_path": "variants/<id>-<form>.png"}``.
+    cosmetic_variants: Mapped[list[dict[str, str]]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
 
     generation: Mapped[Generation | None] = relationship(back_populates="pokemon")
     types: Mapped[list[PokemonType]] = relationship(
@@ -220,11 +234,18 @@ class PokemonForm(Base):
     # Per-form enrichment (display-only; forms can't use the pokemon-id FKs).
     flavor_texts: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     learnset: Mapped[list[dict]] = mapped_column(JSONB, nullable=False, default=list)
+    # The pokemon id this form evolves from: another form (Galarian Darumaka ->
+    # Galarian Darmanitan) or a default species (Koffing -> Galarian Weezing).
     evolves_from_form_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     evo_trigger: Mapped[str | None] = mapped_column(String(64), nullable=True)
     evo_min_level: Mapped[int | None] = mapped_column(Integer, nullable=True)
     evo_item: Mapped[str | None] = mapped_column(String(64), nullable=True)
     evo_condition: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    # Evolutions from this form into a *new species* (Hisuian Qwilfish -> Overqwil):
+    # [{"to_pokemon_id", "trigger", "min_level", "item", "condition"}]
+    evolves_to: Mapped[list[dict]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
 
 
 class PokemonEvolution(Base):

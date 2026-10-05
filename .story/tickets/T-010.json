@@ -1,0 +1,16 @@
+{
+  "blockedBy": [
+    "T-006",
+    "T-004"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "pytest for the analysis engine (coverage/weakness/role math on known fixtures) and team CRUD/validation API (EV caps, illegal move rejection). Add labeled team-coach questions to backend/eval so `make eval` exercises the grounded coach path. Update README.md feature tour and CLAUDE.md architecture/commands to document the team builder + coach, new tables, and endpoints. Run make lint + make test.",
+  "displayId": "T-010",
+  "id": "T-010",
+  "order": 90,
+  "phase": "team-builder-coach",
+  "status": "complete",
+  "title": "Tests, eval questions & docs for team builder",
+  "type": "chore"
+}

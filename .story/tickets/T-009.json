@@ -1,0 +1,17 @@
+{
+  "blockedBy": [
+    "T-006",
+    "T-007",
+    "T-008"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "On the team page: a visual analysis report from T-006 (defensive weakness grid across types, offensive coverage gaps, role balance, per-slot suggestions) and an opponent picker that switches the report to vs-opponent 'what to improve'. Plus a coach chat panel (reuse AskConsole patterns + SSE) wired to /api/teams/{id}/ask so the user can ask 'best EV/ability for X', 'how do I beat this opponent', etc., with streamed, cited answers and the assistant's honest abstentions surfaced. Show llm-disabled state gracefully when no API key.",
+  "displayId": "T-009",
+  "id": "T-009",
+  "order": 80,
+  "phase": "team-builder-coach",
+  "status": "complete",
+  "title": "Frontend: coach panel + analysis view (vs-opponent)",
+  "type": "feature"
+}

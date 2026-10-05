@@ -1,0 +1,13 @@
+{
+  "blockedBy": [],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "Check our dataset we should have more info",
+  "id": "T-001",
+  "order": 10,
+  "parentTicket": null,
+  "phase": "p0",
+  "status": "complete",
+  "title": "Add more info to each pokemon in the pokedex",
+  "type": "task"
+}

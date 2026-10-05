@@ -1,0 +1,16 @@
+{
+  "blockedBy": [
+    "T-004",
+    "T-005"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "New /app/teams route + nav entry. Team list (player + opponent sections), create/rename/delete. Team editor with 6 slots; slot editor to pick species (search), ability, nature, EV spread (sliders with 510/252 caps + live stat preview), IV spread, and up to 4 moves from the species' legal learnset (from T-005). Opponent teams use the same editor with kind=opponent. Extend frontend/lib/api.ts + types.ts. Reuse TypeBadge/StatBars/sprite conventions. Entrance/scroll reveals via IntersectionObserver+CSS; GSAP reserved for stat-bar moments; respect prefers-reduced-motion.",
+  "displayId": "T-008",
+  "id": "T-008",
+  "order": 70,
+  "phase": "team-builder-coach",
+  "status": "complete",
+  "title": "Frontend: team builder UI (/teams) + slot editor",
+  "type": "feature"
+}

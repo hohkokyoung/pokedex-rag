@@ -19,11 +19,25 @@ class GenerationOut(BaseModel):
     name: str
 
 
+class FlavorEntry(BaseModel):
+    """A dex entry plus the game(s) and generation(s) it comes from."""
+
+    text: str
+    version: str | None = None  # the first game with this text
+    generation: int | None = None
+    generation_label: str | None = None  # e.g. "Gen V"
+    # Every game that uses this text (identical wording is grouped), oldest first.
+    versions: list[str] = []
+    version_generations: list[int | None] = []  # aligned with ``versions``
+    generations: list[int] = []
+
+
 class AbilityOut(BaseModel):
     id: int
     identifier: str
     name: str
     effect: str | None = None
+    short_effect: str | None = None
     is_hidden: bool = False
 
 
@@ -53,6 +67,8 @@ class PokemonSummary(BaseModel):
     # Set when this result is an alternate form; the UI links to
     # /pokedex/{dex_number}?form={form_id}. None for a default-species result.
     form_id: int | None = None
+    # Per-stat breakdown so cards can flag the best/worst stat.
+    stats: StatsOut | None = None
 
 
 class EvolutionStage(BaseModel):
@@ -66,14 +82,27 @@ class EvolutionStage(BaseModel):
     condition: str | None = None
 
 
+class CosmeticVariantOut(BaseModel):
+    name: str
+    sprite_url: str = ""
+
+
 class EvolutionMember(BaseModel):
     id: int
     name: str
     types: list[str]
     sprite_url: str
+    # Link target: species link to /pokedex/{dex_number}; alternate forms link to
+    # /pokedex/{dex_number}?form={form_id}. A member's ``id`` is a PokemonForm.id for
+    # form chains, which is not a valid dex number, so the UI must use these instead.
+    dex_number: int
+    form_id: int | None = None
+    # Cosmetic variants this member comes in (Alcremie's 63 cream × sweet combos).
+    variants: list[CosmeticVariantOut] = []
 
 
 class FormAbilityOut(BaseModel):
+    id: int | None = None
     name: str
     identifier: str
     is_hidden: bool = False
@@ -109,6 +138,7 @@ class FormOut(BaseModel):
     sprite_url: str
     matchups: MatchupsOut = MatchupsOut()
     flavor_texts: list[str] = []
+    flavor_entries: list[FlavorEntry] = []
     evolution_members: list[EvolutionMember] = []
     evolution_stages: list[EvolutionStage] = []
 
@@ -120,6 +150,8 @@ class PokemonDetail(BaseModel):
     genus: str | None = None
     types: list[str]
     sprite_url: str
+    # Female artwork when the species differs visually by gender; else None.
+    female_sprite_url: str | None = None
 
     height_m: float | None = None
     weight_kg: float | None = None
@@ -147,6 +179,7 @@ class PokemonDetail(BaseModel):
     abilities: list[AbilityOut]
     flavor_text: str | None = None
     flavor_texts: list[str] = []
+    flavor_entries: list[FlavorEntry] = []
 
     evolution_chain_id: int | None = None
     evolution_stages: list[EvolutionStage] = []

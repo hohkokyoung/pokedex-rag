@@ -133,6 +133,7 @@ def ingest() -> dict[str, int]:
             vg = int(row["version_group_id"])
             if aid not in ability_effect or vg > ability_effect[aid][0]:
                 ability_effect[aid] = (vg, clean_flavor_text(row["flavor_text"]))
+        ability_short_effect = load_ability_short_effects()
         abilities = []
         for row in read_csv("abilities"):
             aid = int(row["id"])
@@ -144,6 +145,7 @@ def ingest() -> dict[str, int]:
                     identifier=row["identifier"],
                     name=ability_names.get(aid, {}).get("name", row["identifier"]),
                     effect=ability_effect.get(aid, (0, None))[1],
+                    short_effect=ability_short_effect.get(aid),
                 )
             )
         session.add_all(abilities)
@@ -180,27 +182,8 @@ def ingest() -> dict[str, int]:
             if col:
                 stats[pid][col] = int(row["base_stat"])
 
-        # English flavour texts per pokemon (deduped by text; version label from latest)
-        version_id_to_name: dict[int, str] = {}
-        for row in read_csv("version_names"):
-            if int(row["local_language_id"]) == ENGLISH_LANGUAGE_ID:
-                version_id_to_name[int(row["version_id"])] = row["name"]
-
-        flavor_by_pokemon: dict[int, dict[str, tuple[int, str]]] = defaultdict(dict)
-        for row in read_csv("pokemon_species_flavor_text"):
-            if int(row["language_id"]) != ENGLISH_LANGUAGE_ID:
-                continue
-            sid = int(row["species_id"])
-            if sid not in default_ids:
-                continue
-            text = clean_flavor_text(row["flavor_text"])
-            if not text:
-                continue
-            vid = int(row["version_id"])
-            # keep one entry per distinct text, remembering the newest version id
-            existing = flavor_by_pokemon[sid].get(text)
-            if existing is None or vid > existing[0]:
-                flavor_by_pokemon[sid][text] = (vid, text)
+        # English flavour texts per pokemon: one per game, oldest first.
+        flavor_by_pokemon = load_species_flavor(default_ids)
 
         # --- build pokemon rows ---
         pokemon_rows = []
@@ -212,20 +195,13 @@ def ingest() -> dict[str, int]:
             bst = sum(st.get(c, 0) for c in STAT_COLUMN.values())
             name_row = species_names.get(pid, {})
 
-            # representative flavour text = newest distinct entry
-            texts = flavor_by_pokemon.get(pid, {})
-            rep_text = None
-            if texts:
-                newest = max(texts.values(), key=lambda t: t[0])
-                rep_text = newest[1]
-                for vid, text in sorted(texts.values(), key=lambda t: t[0]):
-                    flavor_rows.append(
-                        PokemonFlavorText(
-                            pokemon_id=pid,
-                            version=version_id_to_name.get(vid),
-                            flavor_text=text,
-                        )
-                    )
+            # representative flavour text = the newest game's entry
+            entries = flavor_by_pokemon.get(pid, [])
+            rep_text = entries[-1][1] if entries else None
+            for version, text in entries:
+                flavor_rows.append(
+                    PokemonFlavorText(pokemon_id=pid, version=version, flavor_text=text)
+                )
 
             pokemon_rows.append(
                 Pokemon(
@@ -270,9 +246,7 @@ def ingest() -> dict[str, int]:
             pid = int(row["pokemon_id"])
             tid = int(row["type_id"])
             if pid in default_ids and tid in valid_type_ids:
-                type_rows.append(
-                    PokemonType(pokemon_id=pid, type_id=tid, slot=int(row["slot"]))
-                )
+                type_rows.append(PokemonType(pokemon_id=pid, type_id=tid, slot=int(row["slot"])))
         session.add_all(type_rows)
         counts["pokemon_types"] = len(type_rows)
 
@@ -315,6 +289,53 @@ def ingest() -> dict[str, int]:
     return counts
 
 
+def load_species_flavor(ids: set[int]) -> dict[int, list[tuple[str | None, str]]]:
+    """English dex entries per species, one ``(version name, text)`` per game, oldest first.
+
+    Games that repeat an earlier game's text are kept (the API groups identical
+    texts), so every game a species appears in is listed. Shared by the full
+    ingest and the standalone ``backfill_flavor_texts``.
+    """
+    names: dict[int, str] = {}
+    for row in read_csv("version_names"):
+        if int(row["local_language_id"]) == ENGLISH_LANGUAGE_ID:
+            names[int(row["version_id"])] = row["name"]
+    by_species: dict[int, list[tuple[int, str]]] = defaultdict(list)
+    for row in read_csv("pokemon_species_flavor_text"):
+        if int(row["language_id"]) != ENGLISH_LANGUAGE_ID:
+            continue
+        sid = int(row["species_id"])
+        if sid not in ids:
+            continue
+        text = clean_flavor_text(row["flavor_text"])
+        if text:
+            by_species[sid].append((int(row["version_id"]), text))
+    return {
+        sid: [(names.get(vid), text) for vid, text in sorted(rows)]
+        for sid, rows in by_species.items()
+    }
+
+
+def load_ability_short_effects() -> dict[int, str]:
+    """Map ability_id → concise English mechanical effect text.
+
+    Reads ``ability_prose.short_effect`` (``local_language_id`` 9), the source of
+    the real numbers ("Increases moves' accuracy to 1.3×") that the fluffy
+    ``ability_flavor_text`` omits. Shared by the full ingest and the standalone
+    backfill.
+    """
+    out: dict[int, str] = {}
+    for row in read_csv("ability_prose"):
+        if to_int(row["local_language_id"]) != 9:
+            continue
+        aid = to_int(row["ability_id"])
+        text = (row.get("short_effect") or "").strip()
+        if aid is None or aid >= 10000 or not text:
+            continue
+        out[aid] = text[:512]
+    return out
+
+
 def load_move_short_effects() -> dict[int, str]:
     """Map move_id → concise English effect text (``$effect_chance`` resolved).
 
@@ -339,6 +360,22 @@ def load_move_short_effects() -> dict[int, str]:
             continue
         text = text.replace("$effect_chance", (row.get("effect_chance") or "").strip())
         out[mid] = text[:512]
+    return out
+
+
+def load_move_targets() -> dict[int, str]:
+    """Map move_id → PokéAPI target identifier (``moves.target_id`` → ``move_targets``).
+
+    Shared by the full ingest and the standalone backfill.
+    """
+    idents = _lookup("move_targets")
+    out: dict[int, str] = {}
+    for row in read_csv("moves"):
+        mid = to_int(row["id"])
+        tid = to_int(row["target_id"])
+        if mid is None or mid >= 10000 or tid is None or tid not in idents:
+            continue
+        out[mid] = idents[tid]
     return out
 
 
@@ -377,6 +414,7 @@ def _ingest_moves_natures(
     move_names = _english_names("move_names", "move_id")
     damage_classes = _lookup("move_damage_classes")
     short_effects = load_move_short_effects()
+    targets = load_move_targets()
     move_rows: list[dict] = []
     valid_move_ids: set[int] = set()
     for row in read_csv("moves"):
@@ -397,6 +435,7 @@ def _ingest_moves_natures(
                 "accuracy": to_int(row["accuracy"]),
                 "priority": to_int(row["priority"]) or 0,
                 "short_effect": short_effects.get(mid),
+                "target": targets.get(mid),
             }
         )
     if move_rows:
@@ -419,11 +458,15 @@ def _ingest_moves_natures(
         rank = _METHOD_RANK.get(method or "", 9)
         key = (pid, mid)
         cur = best.get(key)
-        if cur is None or rank < cur[0] or (
-            rank == cur[0]
-            and method == "level-up"
-            and level
-            and (cur[2] is None or level < cur[2])
+        if (
+            cur is None
+            or rank < cur[0]
+            or (
+                rank == cur[0]
+                and method == "level-up"
+                and level
+                and (cur[2] is None or level < cur[2])
+            )
         ):
             best[key] = (rank, method, level)
 
@@ -444,23 +487,61 @@ def _ingest_moves_natures(
 
 
 def _evolution_condition(
-    detail: dict[str, str], item_names: dict[int, dict[str, str]]
+    detail: dict[str, str],
+    item_names: dict[int, dict[str, str]],
+    *,
+    species_names: dict[int, dict[str, str]] | None = None,
+    move_names: dict[int, dict[str, str]] | None = None,
+    type_names: dict[int, dict[str, str]] | None = None,
+    location_names: dict[int, dict[str, str]] | None = None,
 ) -> str | None:
-    """Summarise extra evolution conditions into a short human-readable string."""
+    """Summarise extra evolution conditions into a short human-readable string.
+
+    The frontend parses these tokens back into chips + a description, so the
+    wording is kept in stable, matchable phrases ("with X in party", "near X",
+    "knowing a X-type move", "(male)"). Name lookups are optional so callers that
+    only have ``item_names`` still work — they just emit fewer tokens.
+    """
     parts: list[str] = []
     if to_int(detail.get("minimum_happiness")):
         parts.append(f"happiness ≥ {detail['minimum_happiness']}")
+    if to_int(detail.get("minimum_affection")):
+        parts.append(f"affection ≥ {detail['minimum_affection']}")
+    if to_int(detail.get("minimum_beauty")):
+        parts.append(f"beauty ≥ {detail['minimum_beauty']}")
     if detail.get("time_of_day"):
         parts.append(f"{detail['time_of_day']} time")
     held = item_names.get(to_int(detail.get("held_item_id")) or -1, {}).get("name")
     if held:
         parts.append(f"holding {held}")
+    if type_names is not None:
+        move_type = type_names.get(to_int(detail.get("known_move_type_id")) or -1, {}).get("name")
+        if move_type:
+            parts.append(f"knowing a {move_type}-type move")
+    if move_names is not None:
+        move = move_names.get(to_int(detail.get("known_move_id")) or -1, {}).get("name")
+        if move:
+            parts.append(f"knowing {move}")
+    if location_names is not None:
+        loc = location_names.get(to_int(detail.get("location_id")) or -1, {}).get("name")
+        if loc:
+            parts.append(f"near {loc}")
+    if species_names is not None:
+        party = species_names.get(to_int(detail.get("party_species_id")) or -1, {}).get("name")
+        if party:
+            parts.append(f"with {party} in party")
+        traded_for = species_names.get(to_int(detail.get("trade_species_id")) or -1, {}).get("name")
+        if traded_for:
+            parts.append(f"for {traded_for}")
+    gender = to_int(detail.get("gender_id"))
+    if gender == 1:
+        parts.append("(female)")
+    elif gender == 2:
+        parts.append("(male)")
     if detail.get("needs_overworld_rain") == "1":
         parts.append("while raining")
-    if to_int(detail.get("minimum_affection")):
-        parts.append(f"affection ≥ {detail['minimum_affection']}")
-    if to_int(detail.get("minimum_beauty")):
-        parts.append(f"beauty ≥ {detail['minimum_beauty']}")
+    if detail.get("turn_upside_down") == "1":
+        parts.append("holding the console upside down")
     return ", ".join(parts) or None
 
 

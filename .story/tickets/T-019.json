@@ -1,0 +1,15 @@
+{
+  "blockedBy": [
+    "T-017"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "The LLM draft-intent extractor is unreliable (Groq's json_object mode 400s stochastically on gpt-oss-120b), so it silently falls back to the keyword parser — which misreads 'fuck legendary' as include, flooding drafts with legendaries. Two fixes: (1) make nlfilters negation sentiment-aware and proximity-based — a negative token (no/not/non/without/skip/avoid/hate/fuck/screw/ban/drop/remove/ditch…) in the few words before 'legendar'/'mythical', plus multiword phrases (don't want, sick of, get rid of), means exclude; a bare positive mention ('legendary dragons', 'give me a legendary') stays include; unmentioned stays None. Keep Ask semantics correct. (2) In draft_intent.extract_draft_prefs, stop using Groq json mode (want_json=False) and parse JSON out of the text with _extract_json, so the LLM path succeeds far more often. Update/extend tests (battery incl. 'fuck legendary', 'skip the legendaries', 'which legendary is not a dragon' → include) and docs. make lint + make test.",
+  "displayId": "T-019",
+  "id": "T-019",
+  "order": 30,
+  "phase": "robust-draft-intent",
+  "status": "complete",
+  "title": "Sentiment-aware keyword negation + drop brittle Groq JSON mode",
+  "type": "task"
+}

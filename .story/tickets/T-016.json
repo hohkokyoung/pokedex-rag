@@ -1,0 +1,15 @@
+{
+  "blockedBy": [
+    "T-015"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "Upgrade matchup.coverage from STAB/type-level to movepool-based: a Pokémon 'covers' target type X if it can learn a damaging (physical/special) move whose type is super-effective against X — using pokemon_moves + moves + the type chart (matchups.counters_for gives the counter types; filter pokemon that EXISTS a learnable damaging move of a counter type). Keep the existing sp_attack/BST sort and legendary exclusion from T-015. Update the grounding NOTE to state coverage is judged by learnset (not just typing). Add unit/integration tests (e.g. a Water-type credited with Ice coverage via Ice Beam; legendaries excluded when asked) and update README/CLAUDE.md. Run make lint + make test.",
+  "displayId": "T-016",
+  "id": "T-016",
+  "order": 20,
+  "phase": "coverage-aware-ask",
+  "status": "complete",
+  "title": "Movepool-based type coverage in matchup retrieval",
+  "type": "feature"
+}

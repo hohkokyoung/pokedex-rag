@@ -1,0 +1,15 @@
+{
+  "blockedBy": [
+    "T-003"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "New router app/api/teams.py mounted in main.py: GET /api/teams (list, filter by kind), POST /api/teams, GET/PUT/DELETE /api/teams/{id}, and slot editing (PUT /api/teams/{id}/slots/{slot} to set/clear pokemon+ability+nature+EV/IV+moves). Pydantic schemas with validation: EV per stat 0-252 and total <=510, IV 0-31, <=4 moves and each move must be in the species' legal learnset, ability must belong to the species, nature valid. Service layer in app/services/teams.py returns hydrated slots (names, types, sprite_url, stat totals). 404/422 on invalid.",
+  "displayId": "T-004",
+  "id": "T-004",
+  "order": 30,
+  "phase": "team-builder-coach",
+  "status": "complete",
+  "title": "Team CRUD API + schemas",
+  "type": "task"
+}

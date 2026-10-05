@@ -3,18 +3,23 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { gsap } from "gsap";
-import { getPokemon, listPokemon, assetUrl } from "@/lib/api";
+import { getPokemon, listPokemon, getAbilityHolders, assetUrl } from "@/lib/api";
+import type { AbilityHolder } from "@/lib/api";
 import { dexLabel, primaryColor, titleCase, typeColor } from "@/lib/pokeTypes";
-import type { PokemonDetail, PokemonSummary } from "@/lib/types";
+import type { FlavorEntry, PokemonDetail, PokemonSummary } from "@/lib/types";
 import TypeBadge from "@/components/TypeBadge";
 import StatBars from "@/components/StatBars";
 import EvolutionChain from "@/components/EvolutionChain";
 import TypeMatchups from "@/components/TypeMatchups";
 import TrainingBreeding from "@/components/TrainingBreeding";
 import MovesetPanel from "@/components/MovesetPanel";
+import EncountersPanel from "@/components/EncountersPanel";
 import FavoriteButton from "@/components/FavoriteButton";
 import { useStaggerReveal } from "@/hooks/useStaggerReveal";
+import { useKeyNav } from "@/hooks/useKeyNav";
+import { superEffectiveHits } from "@/lib/typeChart";
 
 /** Search box to jump straight to any Pokémon (not just prev/next). */
 function JumpSearch() {
@@ -34,6 +39,7 @@ function JumpSearch() {
     setRes([]);
     router.push(p.form_id ? `/pokedex/${p.dex_number}?form=${p.form_id}` : `/pokedex/${p.dex_number}`);
   };
+  const { listRef, onKeyDown, itemProps } = useKeyNav(res, go);
   return (
     <div className="d-jump">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
@@ -41,20 +47,154 @@ function JumpSearch() {
         placeholder="Jump to any Pokémon…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && res[0]) go(res[0]); }}
+        onKeyDown={onKeyDown}
+        aria-autocomplete="list"
       />
       {res.length > 0 && (
-        <div className="ac">
-          {res.map((p) => (
-            <button key={p.id} onClick={() => go(p)}>
+        <div className="ac" role="listbox" ref={listRef}>
+          {res.map((p, idx) => (
+            <button key={p.id} role="option" {...itemProps(idx)} onClick={() => go(p)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={assetUrl(p.sprite_url)} alt="" />
-              <span style={{ flex: 1, fontWeight: 600 }}>{titleCase(p.name)}</span>
+              <span className="nm">{titleCase(p.name)}</span>
+              <span className="tps">{p.types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}</span>
               <span className="font-mono" style={{ fontSize: 11, color: "var(--faint)" }}>{dexLabel(p.dex_number)}</span>
             </button>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function Chevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d={dir === "left" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
+    </svg>
+  );
+}
+
+/** Form name without the species name ("Pikachu Pop Star" → "Pop Star",
+ *  "Mega Charizard X" → "Mega X"), since the page already says which species. */
+function shortFormName(form: string, species: string) {
+  const s = form.replace(new RegExp(`\\b${species}\\b`, "i"), "").replace(/\s+/g, " ").trim();
+  return s || form;
+}
+
+const FORM_TAB_LIMIT = 6;
+
+/** Form switcher in the Moveset panel's tab style. Long lists (Pikachu's caps)
+ *  show the first few and expand in place; a selected form past the cut is
+ *  always shown. */
+function FormTabs({
+  species,
+  forms,
+  value,
+  onChange,
+}: {
+  species: string;
+  forms: PokemonDetail["forms"];
+  value: number | null;
+  onChange: (id: number | null) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const all = [
+    { id: null as number | null, label: "Base" },
+    ...forms.map((f) => ({ id: f.id as number | null, label: shortFormName(f.name, species) })),
+  ];
+  const capped = all.length > FORM_TAB_LIMIT + 1 && !expanded;
+  // Collapsed: the first few, plus the selected form if it sits past the cut.
+  const shown = capped
+    ? all.filter((f, i) => i < FORM_TAB_LIMIT || f.id === value)
+    : all;
+  return (
+    <div className="mv-tabs d-formtabs reveal" role="tablist" aria-label="Form">
+      {shown.map((f) => (
+        <button
+          key={f.id ?? "base"}
+          type="button"
+          role="tab"
+          aria-selected={value === f.id}
+          className={`mv-tab ${value === f.id ? "on" : ""}`}
+          onClick={() => onChange(f.id)}
+        >
+          {f.label}
+        </button>
+      ))}
+      {capped && (
+        <button type="button" className="d-formtabs__more" onClick={() => setExpanded(true)}>
+          +{all.length - shown.length} more
+        </button>
+      )}
+      {expanded && (
+        <button type="button" className="d-formtabs__more" onClick={() => setExpanded(false)}>
+          Show less
+        </button>
+      )}
+    </div>
+  );
+}
+
+const GEN_ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
+
+/** Dex entries: the newest game's entry featured as a quote, then one tab per
+ *  generation (the Moveset tab style, newest selected) over boxes that list only
+ *  that generation's games. Identical text across games is grouped by the API.
+ *  Forms without per-game data get plain boxes. */
+function DexEntries({ entries }: { entries: FlavorEntry[] }) {
+  const gamesIn = (e: FlavorEntry, gen: number) =>
+    (e.versions ?? []).filter((_, i) => e.version_generations?.[i] === gen);
+  const gens = [...new Set(entries.flatMap((e) => e.version_generations ?? []))]
+    .filter((g): g is number => g != null)
+    .sort((a, b) => a - b);
+  const newest = gens.at(-1);
+  // Featured: the entry used by the newest game (the last one listed in that gen).
+  const featured = newest != null ? entries.filter((e) => gamesIn(e, newest).length > 0).at(-1) : undefined;
+  const [gen, setGen] = useState(newest);
+  const shown = gen != null ? entries.filter((e) => gamesIn(e, gen).length > 0) : entries;
+  return (
+    <div className="panel d-panel">
+      <h2 className="d-panel__title font-mono">DEX ENTRIES</h2>
+      {featured && (
+        <div className="d-dex__feat">
+          <p className="font-display">“{featured.text}”</p>
+          <div className="tb__chips">
+            {(featured.versions ?? []).map((v) => <span key={v} className="tb__chip font-mono">{v}</span>)}
+          </div>
+        </div>
+      )}
+      {gens.length > 1 && (
+        <div className="mv-tabs d-dex__tabs" role="tablist" aria-label="Generation">
+          {gens.map((g) => (
+            <button
+              key={g}
+              type="button"
+              role="tab"
+              aria-selected={g === gen}
+              className={`mv-tab${g === gen ? " on" : ""}`}
+              onClick={() => setGen(g)}
+            >
+              Gen {GEN_ROMAN[g] ?? g}<span className="c">{entries.filter((e) => gamesIn(e, g).length > 0).length}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="d-dex">
+        {shown.map((e) => {
+          const games = gen != null ? gamesIn(e, gen) : [];
+          return (
+            <div key={e.text} className="d-dex__card">
+              <p>{e.text}</p>
+              {games.length > 0 && (
+                <div className="tb__chips">
+                  {games.map((v) => <span key={v} className="tb__chip font-mono">{v}</span>)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -66,6 +206,159 @@ function Fact({ label, value }: { label: string; value: string | number | null }
         {label}
       </div>
       <div style={{ fontSize: 15, marginTop: 4 }}>{value ?? "—"}</div>
+    </div>
+  );
+}
+
+/** Rarity marker folded into the dex eyebrow line — a gold (legendary) or violet
+ *  (mythical) sparkled tag that reads as metadata beside the dex number, keeping
+ *  the type-badge row clean. */
+function RarityBadge({ kind }: { kind: "legendary" | "mythical" }) {
+  return (
+    <span className={`d-rarity d-rarity--${kind}`}>
+      <span aria-hidden className="d-rarity__sep">·</span>
+      <svg aria-hidden viewBox="0 0 24 24" width="11" height="11">
+        <path
+          d="M12 1.5l2.1 6.3a2 2 0 001.3 1.3l6.3 2.1-6.3 2.1a2 2 0 00-1.3 1.3L12 22.5l-2.1-6.3a2 2 0 00-1.3-1.3L2.3 12.8l6.3-2.1a2 2 0 001.3-1.3L12 1.5z"
+          fill="currentColor"
+        />
+      </svg>
+      {kind === "legendary" ? "Legendary" : "Mythical"}
+    </span>
+  );
+}
+
+/** "Show all" button + modal listing every other species that has an ability. */
+function AbilityHolders({
+  abilityId,
+  name,
+  effect,
+  selfId,
+}: {
+  abilityId: number;
+  name: string;
+  effect: string | null;
+  selfId: number;
+}) {
+  const [holders, setHolders] = useState<AbilityHolder[] | null>(null);
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState("");
+
+  // Fetch once so the button can show the count up front.
+  useEffect(() => {
+    let alive = true;
+    getAbilityHolders(abilityId, 250)
+      .then((hs) => { if (alive) setHolders(hs); })
+      .catch(() => { if (alive) setHolders([]); });
+    return () => { alive = false; };
+  }, [abilityId]);
+
+  // Lock scroll + close on Escape while the modal is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open]);
+
+  const others = (holders ?? []).filter((h) => h.id !== selfId);
+  if (holders !== null && others.length === 0) return null;
+
+  const f = filter.trim().toLowerCase();
+  const shown = f ? others.filter((h) => h.name.toLowerCase().includes(f)) : others;
+
+  return (
+    <div className="d-ability__holders">
+      <button
+        type="button"
+        className="d-ability__toggle font-mono"
+        disabled={holders === null}
+        onClick={() => { setFilter(""); setOpen(true); }}
+      >
+        {holders === null
+          ? "…"
+          : `Show all ${others.length}${others.length >= 249 ? "+" : ""}`}
+      </button>
+
+      {open && typeof document !== "undefined" && createPortal(
+        <div className="d-hmodal" onClick={() => setOpen(false)} role="dialog" aria-modal="true" data-lenis-prevent>
+          <div className="d-hmodal__card" onClick={(e) => e.stopPropagation()}>
+            <div className="d-hmodal__top">
+              <div className="d-hmodal__head">
+                <span className="d-hmodal__badge font-mono">ABILITY</span>
+                <b>{name}</b>
+                <span className="d-hmodal__count font-mono">{others.length}{others.length >= 249 ? "+" : ""} species have it</span>
+                <button className="d-hmodal__x" onClick={() => setOpen(false)} aria-label="Close">×</button>
+              </div>
+              {effect && <p className="d-hmodal__desc">{effect}</p>}
+            </div>
+            <div className="d-hmodal__filter">
+              <input autoFocus placeholder="Filter these species…" value={filter} onChange={(e) => setFilter(e.target.value)} />
+            </div>
+            <div className="d-hmodal__grid" data-lenis-prevent>
+              {shown.map((h) => (
+                <Link
+                  key={h.id}
+                  href={`/pokedex/${h.dex_number}`}
+                  title={h.is_hidden ? "hidden ability" : undefined}
+                  className={h.is_hidden ? "is-hidden" : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={assetUrl(h.sprite_url)} alt={h.name} />
+                  <span>{titleCase(h.name)}</span>
+                  <span className="tps-mini">{h.types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}</span>
+                </Link>
+              ))}
+              {shown.length === 0 && <div className="d-hmodal__empty">No species match “{filter.trim()}”.</div>}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+    </div>
+  );
+}
+
+/** Male/female artwork for species with visual gender differences: the shown
+ *  gender stands in front, the other waits smaller behind it (top-right) and
+ *  swaps forward on click. Both images stay mounted so the swap can transition. */
+function GenderStack({
+  name, male, female, showFemale, onSwap,
+}: { name: string; male: string; female: string; showFemale: boolean; onSwap: (female: boolean) => void }) {
+  const looks = [
+    { key: "male", isFemale: false, url: male, glyph: "♂", label: "Male" },
+    { key: "female", isFemale: true, url: female, glyph: "♀", label: "Female" },
+  ];
+  const front = looks.find((l) => l.isFemale === showFemale)!;
+  const back = looks.find((l) => l.isFemale !== showFemale)!;
+  return (
+    <div className="d-gstack">
+      {looks.map((l) => {
+        const isFront = l.isFemale === showFemale;
+        return (
+          <button
+            key={l.key}
+            type="button"
+            className={`d-gstack__look ${isFront ? "is-front" : "is-back"}`}
+            onClick={isFront ? undefined : () => onSwap(l.isFemale)}
+            tabIndex={isFront ? -1 : 0}
+            aria-disabled={isFront || undefined}
+            aria-label={isFront ? undefined : `Show ${l.label.toLowerCase()} appearance`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={assetUrl(l.url)} alt={isFront ? `${name} (${l.label.toLowerCase()})` : ""} width={460} height={460} />
+          </button>
+        );
+      })}
+      <span key={`now-${front.key}`} className="d-gstack__tag d-gstack__tag--front font-mono">
+        <span aria-hidden>{front.glyph}</span> {front.label}
+      </span>
+      <button key={`alt-${back.key}`} type="button" className="d-gstack__tag d-gstack__tag--back font-mono" onClick={() => onSwap(back.isFemale)} tabIndex={-1} aria-hidden>
+        <span>{back.glyph}</span> {back.label}
+      </button>
     </div>
   );
 }
@@ -88,6 +381,8 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
     router.replace(`/pokedex/${dex}${qs ? `?${qs}` : ""}`, { scroll: false });
   };
   const artRef = useRef<HTMLDivElement | null>(null);
+  // Male/female artwork toggle for species with visual gender differences.
+  const [female, setFemale] = useState(false);
   const scope = useStaggerReveal<HTMLElement>([data]);
 
   // The page remounts this component on `dex` change (via `key`), so initial
@@ -148,59 +443,51 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
     height_m: form ? form.height_m : data.height_m,
     weight_kg: form ? form.weight_kg : data.weight_kg,
     abilities: form
-      ? form.abilities.map((a) => ({ key: a.identifier, name: a.name, is_hidden: a.is_hidden, effect: a.effect }))
-      : data.abilities.map((a) => ({ key: `${a.id}-${a.is_hidden}`, name: a.name, is_hidden: a.is_hidden, effect: a.effect })),
+      ? form.abilities.map((a) => ({ key: a.identifier, id: a.id, name: a.name, is_hidden: a.is_hidden, effect: a.effect }))
+      : data.abilities.map((a) => ({ key: `${a.id}-${a.is_hidden}`, id: a.id, name: a.name, is_hidden: a.is_hidden, effect: a.effect })),
     evolution_members: form ? form.evolution_members : data.evolution_members,
     evolution_stages: form ? form.evolution_stages : data.evolution_stages,
     flavor_texts: form ? form.flavor_texts : data.flavor_texts,
+    flavor_entries: form ? form.flavor_entries : data.flavor_entries,
     currentId: form ? form.id : data.id,
   };
+
+  // Gender differences are cosmetic and only recorded for the base species.
+  const femaleArt = form ? null : data.female_sprite_url ?? null;
 
   const color = primaryColor(view.types);
   const color2 = typeColor(view.types[1] ?? view.types[0]);
   const prev = data.dex_number > 1 ? data.dex_number - 1 : null;
   const next = data.dex_number < 1025 ? data.dex_number + 1 : null;
 
+  // Evolution: a form with its own multi-member chain (e.g. a regional form
+  // that evolves differently) shows that chain. Mega and other cosmetic forms
+  // have no chain of their own, so fall back to the base species' family tree
+  // (highlighting the base species, since the form isn't a chain member).
+  const evo = form && view.evolution_members.length > 1
+    ? { members: view.evolution_members, stages: view.evolution_stages, currentId: view.currentId }
+    : { members: data.evolution_members, stages: data.evolution_stages, currentId: data.id };
+
   return (
-    <main ref={scope} style={{ paddingTop: 84 }}>
+    <main ref={scope} style={{ paddingTop: 84, paddingBottom: 100 }}>
       {/* ---- nav row ---- */}
-      <div className="shell" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, position: "relative", zIndex: 20 }}>
-        <Link href="/pokedex" className="font-mono" style={{ fontSize: 12, color: "var(--muted)", letterSpacing: "0.1em", flex: "none" }}>
-          ← CATALOG
+      <div className="shell d-navrow">
+        <Link href="/pokedex" className="d-back">
+          <Chevron dir="left" /> Pokédex
         </Link>
-        <JumpSearch />
-        <div style={{ display: "flex", gap: 8, flex: "none" }}>
-          {prev && <Link href={`/pokedex/${prev}`} className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: 12 }}>← {dexLabel(prev)}</Link>}
-          {next && <Link href={`/pokedex/${next}`} className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: 12 }}>{dexLabel(next)} →</Link>}
+        <div className="d-navrow__right">
+          <JumpSearch />
+          <div className="d-step">
+            {prev && <Link href={`/pokedex/${prev}`} aria-label={`Previous: ${dexLabel(prev)}`}><Chevron dir="left" /> {dexLabel(prev)}</Link>}
+            {next && <Link href={`/pokedex/${next}`} aria-label={`Next: ${dexLabel(next)}`}>{dexLabel(next)} <Chevron dir="right" /></Link>}
+          </div>
         </div>
       </div>
 
       {/* ---- form switcher (only when the species has alternate forms) ---- */}
       {data.forms.length > 0 && (
-        <div className="shell">
-          <div className="d-formswitch reveal" role="tablist" aria-label="Form">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={formId === null}
-              className={`d-formpill ${formId === null ? "is-active" : ""}`}
-              onClick={() => selectForm(null)}
-            >
-              {titleCase(data.name)}
-            </button>
-            {data.forms.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                role="tab"
-                aria-selected={formId === f.id}
-                className={`d-formpill ${formId === f.id ? "is-active" : ""}`}
-                onClick={() => selectForm(f.id)}
-              >
-                {titleCase(f.name)}
-              </button>
-            ))}
-          </div>
+        <div className="shell d-formrow">
+          <FormTabs species={data.name} forms={data.forms} value={formId} onChange={selectForm} />
         </div>
       )}
 
@@ -213,13 +500,21 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
           <span aria-hidden className="d-hero__dexbg font-display">{dexLabel(data.dex_number)}</span>
           <div className="d-hero__aura" />
           <div ref={artRef} className="d-art">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={view.sprite_url} src={assetUrl(view.sprite_url)} alt={view.name} width={460} height={460} />
+            {femaleArt ? (
+              <GenderStack name={view.name} male={view.sprite_url} female={femaleArt} showFemale={female} onSwap={setFemale} />
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img key={view.sprite_url} src={assetUrl(view.sprite_url)} alt={view.name} width={460} height={460} />
+            )}
           </div>
         </div>
 
         <div className="d-hero__info">
-          <p className="eyebrow reveal">{dexLabel(data.dex_number)}{data.generation ? ` · ${data.generation.name}` : ""}</p>
+          <p className="eyebrow reveal">
+            {dexLabel(data.dex_number)}{data.generation ? ` · ${data.generation.name}` : ""}
+            {data.is_legendary && <RarityBadge kind="legendary" />}
+            {data.is_mythical && <RarityBadge kind="mythical" />}
+          </p>
           <h1 className="font-display reveal" style={{ fontSize: "clamp(2.6rem, 7vw, 5rem)", marginTop: 8 }}>
             {view.name}
           </h1>
@@ -227,8 +522,6 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
 
           <div className="reveal" style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
             {view.types.map((t) => <TypeBadge key={t} type={t} />)}
-            {data.is_legendary && <span className="d-flag">Legendary</span>}
-            {data.is_mythical && <span className="d-flag">Mythical</span>}
             <FavoriteButton pokemonId={data.id} />
           </div>
 
@@ -247,26 +540,38 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
         </div>
       </section>
 
-      {/* ---- stats + abilities ---- */}
-      <section className="shell d-grid">
-        <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">BASE STATS</h2>
-          <StatBars key={view.name} stats={view.stats} color={color} />
-        </div>
-
+      {/* ---- abilities: full-width strip, one column per ability ---- */}
+      <section className="shell">
         <div className="panel d-panel">
           <h2 className="d-panel__title font-mono">ABILITIES</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {view.abilities.length === 0 && (
+            <p className="d-hmodal__empty">Ability data for this form isn’t in the PokéAPI dataset yet.</p>
+          )}
+          <div className="d-abilities" style={{ "--n": view.abilities.length } as React.CSSProperties}>
             {view.abilities.map((a) => (
-              <div key={a.key} className="d-ability">
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600 }}>{a.name}</span>
-                  {a.is_hidden && <span className="d-ability__hidden font-mono">HIDDEN</span>}
+              <div key={a.key} className={`d-ability${a.is_hidden ? " is-hidden" : ""}`}>
+                <div className="d-ability__top">
+                  {/* The home lookup's kind tag: ink "Ability", red "Hidden". */}
+                  <span className="lc-tt d-ability__tag">{a.is_hidden ? "Hidden" : "Ability"}</span>
+                  {a.id != null && <AbilityHolders abilityId={a.id} name={a.name} effect={a.effect} selfId={data.id} />}
                 </div>
-                {a.effect && <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>{a.effect}</p>}
+                <h3 className="d-ability__name">{a.name}</h3>
+                {a.effect && <p className="d-ability__effect">{a.effect}</p>}
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ---- stats + type matchups: both have a fixed row count, so they pair evenly ---- */}
+      <section className="shell d-grid" style={{ marginTop: 20 }}>
+        <div className="panel d-panel d-panel--fill">
+          <h2 className="d-panel__title font-mono">BASE STATS</h2>
+          <StatBars key={view.name} stats={view.stats} color={color} />
+        </div>
+        <div className="panel d-panel d-panel--fill">
+          <h2 className="d-panel__title font-mono">TYPE MATCHUPS</h2>
+          <TypeMatchups m={view.matchups} hits={superEffectiveHits(view.types)} />
         </div>
       </section>
 
@@ -275,14 +580,6 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
         <div className="panel d-panel">
           <h2 className="d-panel__title font-mono">TRAINING &amp; BREEDING</h2>
           <TrainingBreeding d={data} />
-        </div>
-      </section>
-
-      {/* ---- type matchups ---- */}
-      <section className="shell" style={{ marginTop: 20 }}>
-        <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">TYPE MATCHUPS</h2>
-          <TypeMatchups m={view.matchups} />
         </div>
       </section>
 
@@ -295,32 +592,33 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       </section>
 
       {/* ---- evolution ---- */}
-      {(!form || view.evolution_members.length > 1) && (
+      {evo.members.length > 1 && (
         <section className="shell" style={{ marginTop: 20 }}>
           <div className="panel d-panel">
             <h2 className="d-panel__title font-mono">EVOLUTION</h2>
             <EvolutionChain
-              members={view.evolution_members}
-              stages={view.evolution_stages}
-              currentId={view.currentId}
+              members={evo.members}
+              stages={evo.stages}
+              currentId={evo.currentId}
             />
           </div>
         </section>
       )}
 
       {/* ---- dex entries ---- */}
-      {view.flavor_texts.length > 0 && (
-        <section className="shell" style={{ marginTop: 20, marginBottom: 100 }}>
-          <div className="panel d-panel">
-            <h2 className="d-panel__title font-mono">DEX ENTRIES · {view.flavor_texts.length}</h2>
-            <div className="d-entries">
-              {view.flavor_texts.slice(0, 6).map((t, i) => (
-                <p key={i} className="d-entry">{t}</p>
-              ))}
-            </div>
-          </div>
+      {view.flavor_entries.length > 0 && (
+        <section className="shell" style={{ marginTop: 20 }}>
+          <DexEntries key={view.currentId} entries={view.flavor_entries} />
         </section>
       )}
+
+      {/* ---- where to find ---- */}
+      <section className="shell" style={{ marginTop: 20 }}>
+        <div className="panel d-panel">
+          <h2 className="d-panel__title font-mono">WHERE TO FIND</h2>
+          <EncountersPanel key={view.currentId} pokemonId={view.currentId} />
+        </div>
+      </section>
     </main>
   );
 }

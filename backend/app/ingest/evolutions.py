@@ -37,6 +37,10 @@ def _species_evo_detail() -> dict[int, dict[str, str]]:
 def ingest_evolutions(session: Session, default_ids: set[int]) -> int:
     triggers = _lookup("evolution_triggers")
     item_names = _english_names("item_names", "item_id")
+    species_names = _english_names("pokemon_species_names", "pokemon_species_id")
+    move_names = _english_names("move_names", "move_id")
+    type_names = _english_names("type_names", "type_id")
+    location_names = _english_names("location_names", "location_id")
     species = {int(r["id"]): r for r in read_csv("pokemon_species")}
     evo_detail = _species_evo_detail()
 
@@ -55,7 +59,14 @@ def ingest_evolutions(session: Session, default_ids: set[int]) -> int:
                 trigger=triggers.get(to_int(detail.get("evolution_trigger_id")) or -1),
                 min_level=to_int(detail.get("minimum_level")),
                 item=item_names.get(to_int(detail.get("trigger_item_id")) or -1, {}).get("name"),
-                condition=_evolution_condition(detail, item_names),
+                condition=_evolution_condition(
+                    detail,
+                    item_names,
+                    species_names=species_names,
+                    move_names=move_names,
+                    type_names=type_names,
+                    location_names=location_names,
+                ),
             )
         )
     session.execute(delete(PokemonEvolution))

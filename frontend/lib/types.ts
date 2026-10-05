@@ -13,6 +13,8 @@ export type PokemonSummary = {
   is_mythical: boolean;
   /** Set when this result is an alternate form; link to /pokedex/{dex_number}?form={form_id}. */
   form_id?: number | null;
+  /** Per-stat breakdown (used to flag the best/worst stat on cards). */
+  stats?: Stats | null;
 };
 
 export type PokemonListResponse = {
@@ -27,6 +29,7 @@ export type Ability = {
   identifier: string;
   name: string;
   effect: string | null;
+  short_effect: string | null;
   is_hidden: boolean;
 };
 
@@ -57,14 +60,26 @@ export type EvolutionStage = {
   condition: string | null;
 };
 
+/** One cosmetic look of a species (same stats/types), with its artwork. */
+export interface CosmeticVariant {
+  name: string;
+  sprite_url: string;
+}
+
 export type EvolutionMember = {
   id: number;
   name: string;
   types: string[];
   sprite_url: string;
+  /** Link target: species link to /pokedex/{dex_number}; forms add ?form={form_id}. */
+  dex_number: number;
+  form_id?: number | null;
+  /** Cosmetic variants (e.g. Alcremie's 63 cream × sweet combos); empty if none. */
+  variants?: CosmeticVariant[];
 };
 
 export type FormAbility = {
+  id: number | null;
   name: string;
   identifier: string;
   is_hidden: boolean;
@@ -87,8 +102,21 @@ export type PokemonForm = {
   sprite_url: string;
   matchups: Matchups;
   flavor_texts: string[];
+  flavor_entries: FlavorEntry[];
   evolution_members: EvolutionMember[];
   evolution_stages: EvolutionStage[];
+};
+
+export type FlavorEntry = {
+  text: string;
+  version: string | null;
+  generation: number | null;
+  generation_label: string | null;
+  /** Every game that uses this text (identical wording is grouped), oldest first. */
+  versions?: string[];
+  /** Generation of each game in `versions` (same order). */
+  version_generations?: (number | null)[];
+  generations?: number[];
 };
 
 export type Matchups = {
@@ -106,6 +134,8 @@ export type PokemonDetail = {
   genus: string | null;
   types: string[];
   sprite_url: string;
+  /** Female artwork when the species differs visually by gender (Pyroar's mane). */
+  female_sprite_url?: string | null;
   height_m: number | null;
   weight_kg: number | null;
   base_experience: number | null;
@@ -127,6 +157,7 @@ export type PokemonDetail = {
   abilities: Ability[];
   flavor_text: string | null;
   flavor_texts: string[];
+  flavor_entries: FlavorEntry[];
   evolution_chain_id: number | null;
   evolution_stages: EvolutionStage[];
   evolution_members: EvolutionMember[];

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Data (raw PokéAPI dump + downloaded sprites can be large; keep out of git)
+data/raw/pokeapi/*
+!data/raw/pokeapi/.gitkeep
+data/sprites/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log

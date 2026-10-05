@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.ingest.csv_source import read_csv, to_int
@@ -166,21 +166,55 @@ def ingest_forms(
             {"move_id": mid, "method": method, "level": level if method == "level-up" else None}
         )
 
-    # --- per-form evolution linkage (rows carrying evolved_form_id) ---
+    # --- per-form evolution linkage ---
+    # Two kinds of rows touch a form:
+    #  * evolved_form_id is a form -> that form's parent. base_form_id is often blank
+    #    when the parent is a plain species (Koffing -> Galarian Weezing), so fall back
+    #    to the evolved species' pre-evolution (its default pokemon id == species id).
+    #  * base_form_id is a form but the result is a new species (Hisuian Qwilfish ->
+    #    Overqwil) -> an ``evolves_to`` edge on the base form.
+    # A species may have several rows (per version group); the is_default row wins.
     triggers = _lookup_local("evolution_triggers")
     item_names = _english_names("item_names", "item_id")
+    species_parent = {
+        int(r["id"]): to_int(r.get("evolves_from_species_id"))
+        for r in read_csv("pokemon_species")
+    }
+
+    def _edge(row: dict[str, str]) -> dict:
+        return {
+            "trigger": triggers.get(to_int(row.get("evolution_trigger_id")) or -1),
+            "min_level": to_int(row.get("minimum_level")),
+            "item": item_names.get(to_int(row.get("trigger_item_id")) or -1, {}).get("name"),
+            "condition": _evolution_condition(row, item_names),
+        }
+
     form_evo: dict[int, dict] = {}
+    form_evo_default: set[int] = set()
+    evolves_to: dict[int, dict[int, dict]] = defaultdict(dict)
+    evolves_to_default: set[tuple[int, int]] = set()
     for row in read_csv("pokemon_evolution"):
+        evolved_species = to_int(row.get("evolved_species_id"))
         evolved_form = to_int(row.get("evolved_form_id"))
         base_form = to_int(row.get("base_form_id"))
-        if evolved_form in form_pokemon and base_form is not None:
-            form_evo[evolved_form] = {
-                "from": base_form,
-                "trigger": triggers.get(to_int(row.get("evolution_trigger_id")) or -1),
-                "min_level": to_int(row.get("minimum_level")),
-                "item": item_names.get(to_int(row.get("trigger_item_id")) or -1, {}).get("name"),
-                "condition": _evolution_condition(row, item_names),
+        is_default = row.get("is_default") == "1"
+        if evolved_form in form_pokemon:
+            parent = base_form or species_parent.get(evolved_species or -1)
+            if parent is None or (evolved_form in form_evo_default and not is_default):
+                continue
+            form_evo[evolved_form] = {"from": parent, **_edge(row)}
+            if is_default:
+                form_evo_default.add(evolved_form)
+        elif base_form in form_pokemon and evolved_species in default_ids:
+            key = (base_form, evolved_species)
+            if key in evolves_to_default and not is_default:
+                continue
+            evolves_to[base_form][evolved_species] = {
+                "to_pokemon_id": evolved_species,
+                **_edge(row),
             }
+            if is_default:
+                evolves_to_default.add(key)
 
     rows: list[PokemonForm] = []
     for pid, base in sorted(form_pokemon.items()):
@@ -236,12 +270,48 @@ def ingest_forms(
                 evo_min_level=form_evo.get(pid, {}).get("min_level"),
                 evo_item=form_evo.get(pid, {}).get("item"),
                 evo_condition=form_evo.get(pid, {}).get("condition"),
+                evolves_to=list(evolves_to.get(pid, {}).values()),
             )
         )
 
     session.execute(delete(PokemonForm))
     session.add_all(rows)
-    return {"pokemon_forms": len(rows)}
+    variants = _cosmetic_variants(default_ids)
+    session.execute(update(Pokemon).values(cosmetic_variants=[]))
+    for pid, names in variants.items():
+        session.execute(update(Pokemon).where(Pokemon.id == pid).values(cosmetic_variants=names))
+    return {"pokemon_forms": len(rows), "cosmetic_variant_species": len(variants)}
+
+
+def variant_sprite_path(pokemon_id: int, form_identifier: str) -> str:
+    """Where a cosmetic variant's artwork lives under the sprites dir (see
+    ``app.ingest.variant_sprites``, which downloads it)."""
+    return f"variants/{pokemon_id}-{form_identifier or 'default'}.png"
+
+
+def _cosmetic_variants(default_ids: set[int]) -> dict[int, list[dict[str, str]]]:
+    """default pokemon id -> ``{name, sprite_path}`` of its cosmetic forms, in game order.
+
+    These are ``pokemon_forms`` rows that share the species' default pokemon record
+    (same stats/types) — Alcremie's creams × sweets, Vivillon patterns, Burmy cloaks.
+    Battle-only forms (Cherrim Sunshine, Arceus plates…) are skipped; only species
+    with more than one variant are returned."""
+    names = _english_names("pokemon_form_names", "pokemon_form_id")
+    by_pokemon: dict[int, list[tuple[int, dict[str, str]]]] = defaultdict(list)
+    for row in read_csv("pokemon_forms"):
+        pid = to_int(row["pokemon_id"])
+        if pid not in default_ids or row.get("is_battle_only") == "1":
+            continue
+        ident = row.get("form_identifier") or ""
+        label = (names.get(int(row["id"]), {}).get("form_name") or "").strip()
+        label = label or (ident.replace("-", " ").title() if ident else "Standard")
+        variant = {"name": label, "sprite_path": variant_sprite_path(pid, ident)}
+        by_pokemon[pid].append((to_int(row.get("order")) or 0, variant))
+    return {
+        pid: [v for _order, v in sorted(forms, key=lambda f: f[0])]
+        for pid, forms in by_pokemon.items()
+        if len(forms) > 1
+    }
 
 
 def main() -> None:
@@ -251,7 +321,10 @@ def main() -> None:
         valid_type_ids = {tid for (tid,) in session.execute(select(Type.id)).all()}
         counts = ingest_forms(session, default_ids, valid_type_ids)
         session.commit()
-    print(f"Ingested {counts['pokemon_forms']} alternate forms.")
+    print(
+        f"Ingested {counts['pokemon_forms']} alternate forms; cosmetic variants for "
+        f"{counts['cosmetic_variant_species']} species."
+    )
 
 
 if __name__ == "__main__":

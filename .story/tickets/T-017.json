@@ -1,0 +1,13 @@
+{
+  "blockedBy": [],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "Add a DraftPrefs dataclass (role, include_legendary, include_mythical, want_types) in recommend.py and give recommend_additions an optional `prefs` param that overrides the keyword parsers field-by-field (unset fields fall back to parse_role/allow_legendary/requested_types, so offline behavior is unchanged). Add app/rag/draft_intent.py: extract_draft_prefs(question) -> DraftPrefs | None via answer_service.quick_complete(want_json=True) with a prompt that maps sentiment to include/exclude/any (e.g. 'fuck legendaries'/'skip the ubers' -> exclude; 'only legendaries' -> include). Factor a pure _prefs_from_json(data) mapper so it's unit-testable without the LLM. Returns None when no LLM key or the call/parse fails. Wire the coach endpoint (teams.py) draft branch to call the extractor and pass prefs into recommend_additions.",
+  "displayId": "T-017",
+  "id": "T-017",
+  "order": 10,
+  "phase": "robust-draft-intent",
+  "status": "complete",
+  "title": "LLM draft-preference extractor + wire into coach draft",
+  "type": "feature"
+}

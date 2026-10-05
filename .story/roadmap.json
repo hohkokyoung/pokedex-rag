@@ -1,0 +1,41 @@
+{
+  "blockers": [],
+  "date": "2026-09-08",
+  "phases": [
+    {
+      "description": "Pokédex dataset ingestion and enrichment (stats, types, matchups, training/breeding info).",
+      "id": "p0",
+      "label": "PHASE 0",
+      "name": "Data & Enrichment"
+    },
+    {
+      "description": "A team-building feature for the single local user, with the RAG assistant acting as a coach. Users compose teams of up to 6 Pokémon, configuring per slot: ability (incl. hidden), nature, EV spread (max 510, 252/stat), IV spread, and 4 moves from the species' legal learnset. Users also save opponent teams. The assistant curates: recommends best ability/EV/nature per slot (grounded in base stats + ev_yield), analyzes defensive weaknesses and offensive coverage (via existing type-matchup data + move types), assesses role/stat balance, and compares a team against a saved opponent to say what to improve. All advice is grounded in ingested DB data — the assistant abstains honestly where the data can't support a claim. Movesets/natures are ingested from the existing local PokéAPI CSVs (no runtime PokéAPI calls). Retrievers continue to return RetrievedChunk so the shared answer+citation path is reused.",
+      "id": "team-builder-coach",
+      "label": "PHASE 1",
+      "name": "Team Builder & Coach",
+      "summary": "Build/save Pokémon teams + opponents; RAG coach advises IV/EV/ability/nature/moves and what to improve."
+    },
+    {
+      "description": "Make the coach able to DRAFT additions and ACT on them. Currently the coach abstains on 'help me draft the other 5' because its grounded context has no candidate Pokémon — only the current team + analysis. This phase adds a deterministic candidate recommender that pulls real Pokémon from the DB, ranked by what the user asks (role like sweeper/wall, coverage types) and, by default, by how well they patch the team's analysis (shared weaknesses, missing roles, coverage gaps); legendaries/mythicals excluded by default and current members excluded. Those candidates are injected as citable RetrievedChunks so the coach recommends from real data, and surfaced to the UI as recommendation cards with one-click 'Add to team' buttons (fills the next empty slot). The user can also add conversationally ('add Garchomp' / 'include it') — the endpoint resolves the species and adds it. Adding is always an explicit one-click or one-sentence confirm; nothing is added silently. The team view refreshes (slots + analysis) after any add.",
+      "id": "coach-drafting",
+      "label": "PHASE 2",
+      "name": "Coach-Assisted Drafting",
+      "summary": "Coach recommends real non-legendary candidates to fill the team and can add them (one-click card + 'add X' chat)."
+    },
+    {
+      "description": "Close two gaps in the general Ask's structured/matchup retrieval, surfaced by the query 'non-legendary Pokémon with highest sp attack that has coverage against dark'. (1) The retrievers ignore negation — 'legendary' in the text sets legendary=True regardless of 'non/no/without', so legendaries leak into 'non-legendary' results (Xerneas, Tapu Lele). (2) The matchup retriever judges coverage at the type level (is the Pokémon a Fighting/Bug/Fairy type) rather than by movepool, despite learnsets now being ingested — so a Water-type that learns Ice Beam isn't credited with Ice coverage. Fix negation in the heuristic planner + matchup path and plumb a legendary filter into matchup.coverage; and add movepool-based coverage (a Pokémon covers type X if it can learn a damaging move whose type is super-effective vs X) using pokemon_moves + moves + the type chart, with the grounding note updated to say coverage is judged by learnset.",
+      "id": "coverage-aware-ask",
+      "label": "PHASE 3",
+      "name": "Coverage-Aware Ask",
+      "summary": "Ask honors 'non-legendary' negation and judges type coverage by real movepool, not just STAB typing."
+    },
+    {
+      "description": "The coach's drafting filters (legendary include/exclude, role, preferred types) are parsed by brittle keyword matching in recommend.py, which reads only a fixed list of negation phrases. Open-ended sentiment like \"fuck legendaries, give me a full team\" is misread as \"ONLY legendaries\" (the exact opposite). Fix by extracting draft preferences with the LLM (a small JSON completion, mirroring llm_router.classify) that understands sentiment, and passing explicit prefs into the deterministic recommend_additions; keep the keyword parser as the no-key/failure fallback so offline behavior is unchanged. LLM decides intent; SQL still selects the Pokémon.",
+      "id": "robust-draft-intent",
+      "label": "PHASE 4",
+      "name": "Robust Draft Intent",
+      "summary": "Coach draft reads preferences (legendary sentiment, role, types) via the LLM, with keyword parsing as the offline fallback."
+    }
+  ],
+  "title": "pokedex-rag"
+}

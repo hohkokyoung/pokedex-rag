@@ -5,7 +5,7 @@
 DB_URL ?= postgresql+asyncpg://pokedex:pokedex@localhost:5433/pokedex
 BACKEND = cd backend && DATABASE_URL=$(DB_URL)
 
-.PHONY: up down logs migrate ingest items forms evolutions sprites data test lint
+.PHONY: up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites data test lint
 
 up:            ## Build and start the full stack
 	docker compose up --build -d
@@ -28,6 +28,21 @@ items:         ## Ingest items (standalone; safe to run on its own)
 forms:         ## Ingest alternate forms (standalone; safe to run on its own)
 	$(BACKEND) uv run python -m app.ingest.forms
 
+learnsets:     ## Ingest per-game learnsets (standalone; needs pokemon, forms, moves)
+	$(BACKEND) uv run python -m app.ingest.learnsets
+
+encounters:    ## Ingest where to find each Pokémon, per game (standalone; needs pokemon, forms)
+	$(BACKEND) uv run python -m app.ingest.encounters
+
+ability-effects: ## Backfill abilities.short_effect (standalone; safe to run on its own)
+	$(BACKEND) uv run python -m app.ingest.backfill_ability_effects
+
+move-targets:  ## Backfill moves.target (doubles targeting; standalone; safe to run on its own)
+	$(BACKEND) uv run python -m app.ingest.backfill_move_targets
+
+flavor:        ## Rebuild dex entries, one per game (standalone; safe to run on its own)
+	$(BACKEND) uv run python -m app.ingest.backfill_flavor_texts
+
 evolutions:    ## Rebuild evolution edges (standalone; safe to run on its own)
 	$(BACKEND) uv run python -m app.ingest.evolutions
 
@@ -46,13 +61,19 @@ sprites:       ## Download official-artwork sprites (default forms + alternate f
 		xargs -P 24 -I {} curl -sfL -o data/sprites/official-artwork/{}.png \
 		"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{}.png" || true
 
+variant-sprites: ## Download HOME artwork for cosmetic variants (Alcremie, Vivillon, …)
+	$(BACKEND) uv run python -m app.ingest.variant_sprites
+
+female-sprites: ## Download + record female artwork (visual gender differences: Pyroar, …)
+	$(BACKEND) uv run python -m app.ingest.female_sprites
+
 chart:         ## Ingest the type-effectiveness chart (matchups)
 	$(BACKEND) uv run python -m app.ingest.type_chart
 
 enrich:        ## Add training & breeding info (gender, eggs, growth, EVs)
 	$(BACKEND) uv run python -m app.ingest.enrich
 
-data: migrate ingest items enrich chart sprites chunks  ## Full data pipeline
+data: migrate ingest items learnsets encounters enrich chart sprites variant-sprites female-sprites chunks  ## Full data pipeline
 	@echo "Data pipeline complete."
 
 test:          ## Run backend tests

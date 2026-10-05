@@ -1,0 +1,15 @@
+{
+  "blockedBy": [
+    "T-002"
+  ],
+  "completedDate": "2026-09-09",
+  "createdDate": "2026-09-09",
+  "description": "Add SQLAlchemy models for saved teams (single local user). Team(id, name, kind: 'player'|'opponent', notes, created/updated). TeamMember(team_id, slot 1-6, pokemon_id, ability_id nullable, nature_id nullable, ev_spread JSONB {stat:0-252, sum<=510}, iv_spread JSONB {stat:0-31}, move_ids JSONB list<=4). FKs to pokemon/abilities/natures/moves. Validation lives in schemas/service, not DB. Alembic migration (respect include_object FTS exclusion in alembic/env.py). No auth — teams belong to the sole user.",
+  "displayId": "T-003",
+  "id": "T-003",
+  "order": 20,
+  "phase": "team-builder-coach",
+  "status": "complete",
+  "title": "Team & TeamMember models + migration (player/opponent)",
+  "type": "task"
+}
