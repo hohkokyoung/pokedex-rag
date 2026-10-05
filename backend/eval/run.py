@@ -38,7 +38,8 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
     async with factory() as session:
         results = await evaluate(session, use_llm=use_llm, factory=factory, tpm=tpm,
                                  plans_only=plans_only)
-        coach_results = await evaluate_coach(session, use_llm=use_llm and not plans_only)
+        coach_results = await evaluate_coach(session, use_llm=use_llm, factory=factory,
+                                             plans_only=plans_only)
     await engine.dispose()
 
     mode = "OFF — keyword planner only" if not use_llm else "plans only" if plans_only else "ON"
@@ -72,14 +73,24 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
     print()
 
     # ---- team coach ----
-    print("Team Coach (grounded coaching path)")
-    print("-" * 96)
-    print(f"{'id':<4}{'grounded':<10}{'cite':<6}{'abst':<6} question")
+    print("Team Coach (agent, team scope)")
+    print("-" * 110)
+    print(f"{'id':<5}{'plan':<9}{'kw':<4}{'ok':<4}{'fast':<5}{'ctx':<5}{'calls':<6}"
+          f"{'cite':<5}{'abst':<5} question  → tools")
     for r in coach_results:
+        fast = "·" if r.case.fast_path is None else _mark(r.keyword_confident == r.case.fast_path)
         print(
-            f"{r.case.id:<4}{_mark(r.grounded):<10}{_mark(r.citation_ok):<6}"
-            f"{_mark(r.abstained):<6} {r.case.question}"
+            f"{r.case.id:<5}{r.planner:<9}{_mark(r.keyword_plan_ok):<4}{_mark(r.plan_ok):<4}"
+            f"{fast:<5}{_mark(r.grounded):<5}{str(r.usage.get('llm_calls', '')):<6}"
+            f"{_mark(r.citation_ok):<5}{_mark(r.abstained):<5} {r.case.question}"
+            f"  → {', '.join(r.tools) or '(team context only)'}"
         )
+    graded = [r for r in coach_results if not r.case.abstain]
+    kw = [r.keyword_plan_ok for r in graded]
+    print(f"\n  coach keyword_plan_accuracy: {_pct(sum(kw) / len(kw) if kw else None)}")
+    calls = [r.usage["llm_calls"] for r in coach_results if r.usage]
+    if calls:
+        print(f"  coach avg_llm_calls       : {sum(calls) / len(calls):.2f}")
     print()
 
 

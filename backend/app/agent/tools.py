@@ -25,9 +25,17 @@ from app.agent.results import ToolResult
 
 @dataclass
 class AgentContext:
-    """Per-request context a handler may use (never the question text)."""
+    """Per-request context a handler may use (never the question text).
+
+    The team coach fills ``team``/``opponent`` (``TeamOut``) and ``report`` (what the
+    page shows); ``extra`` carries per-request values such as the computed analysis and
+    the request's ``Usage`` for tools that make their own LLM call.
+    """
 
     scope: str = "ask"
+    team: Any = None
+    opponent: Any = None
+    report: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -42,6 +50,8 @@ class Tool:
     args: type[BaseModel]
     handler: Handler
     closed_form: bool = False
+    # False for built-in steps the runner adds itself (never offered to the planner).
+    plannable: bool = True
 
 
 REGISTRY: dict[str, Tool] = {}
@@ -59,19 +69,23 @@ def tool(
     description: str,
     args: type[BaseModel],
     closed_form: bool = False,
+    plannable: bool = True,
 ) -> Callable[[Handler], Handler]:
     """Decorator form of ``register``."""
 
     def wrap(fn: Handler) -> Handler:
-        register(Tool(name, frozenset(scopes), description, args, fn, closed_form))
+        register(Tool(name, frozenset(scopes), description, args, fn, closed_form, plannable))
         return fn
 
     return wrap
 
 
-def tools_for(scope: str) -> list[Tool]:
+def tools_for(scope: str, *, plannable_only: bool = False) -> list[Tool]:
     """Tools available in a scope, in registration order."""
-    return [t for t in REGISTRY.values() if scope in t.scopes]
+    return [
+        t for t in REGISTRY.values()
+        if scope in t.scopes and (t.plannable or not plannable_only)
+    ]
 
 
 # ---- compact signatures for the planner prompt ---------------------------------------

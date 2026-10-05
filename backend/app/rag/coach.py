@@ -1,37 +1,26 @@
-"""Team-aware coaching context for the RAG assistant.
+"""Team-aware coaching context for the assistant.
 
-Represents the user's team, the deterministic analysis report, and (optionally) a
-saved opponent as numbered ``RetrievedChunk`` passages, then appends ordinary dex
-retrieval for whatever the question references. Everything the coach says is thus
-grounded in — and cites — the same context path as the rest of the assistant.
+Builders that represent the user's team, the deterministic analysis, and (optionally) a
+saved opponent as ``RetrievedChunk`` passages. The agent's built-in ``team_context`` step
+(``app/agent/team_tools.py``) attaches them to every coach question, so everything the
+coach says is grounded in — and cites — the same evidence path as the rest of the
+assistant. Also the keyless composers used when no LLM is available.
 """
 
 from __future__ import annotations
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.config import get_settings
-from app.models import Pokemon
-from app.rag import router as rag_router
 from app.rag.retrieval import RetrievedChunk
 from app.schemas.analysis import TeamAnalysis
 from app.schemas.recommend import Candidate
-from app.schemas.team import TeamMemberOut, TeamOut
-
-# Imperative "put this on my team" verbs vs. deliberation ("should I add …?").
-_ADD_VERBS = ("add ", "include ", "put ", "bring in ", "slot in ", "recruit ", "run ")
-_DELIBERATE = ("should i", "is it worth", "worth adding", "worth it", "do you think", "would you")
+from app.schemas.team import TeamMemberOut
 
 COACH_NOTE = (
     "NOTE: You are coaching the user's Pokémon team. The CONTEXT contains the team's "
     "current slots, a deterministic analysis (type weaknesses, offensive coverage, roles, "
-    "and per-slot suggestions), when provided a saved opponent team, and — for drafting "
-    "questions — 'Candidate addition' passages of real Pokémon to recommend from. Give "
+    "and per-slot suggestions), when provided a saved opponent team, and any extra lookups "
+    "planned for this question. Give "
     "concrete, actionable advice — which Pokémon, abilities, natures, EVs or moves to change "
-    "and why — grounded in these facts and cited with [n]. When recommending additions, pick "
-    "ONLY from the Candidate passages, name them, and briefly say why each fits; tell the user "
-    "they can add one with its 'Add to team' button or by saying e.g. 'add <name>'. If the "
+    "and why — grounded in these facts and cited with [n]. If the "
     "user asks for data that isn't present (exact competitive tiers, full real-world movesets), "
     "say you don't have it rather than guessing. When a 'Team report' passage is present it "
     "is exactly what the user sees on the page — its grades, weak spots, threats, answers and "
@@ -188,66 +177,6 @@ def _vs_chunk(a: TeamAnalysis) -> RetrievedChunk | None:
         content="\n".join(lines),
         score=1.0,
     )
-
-
-async def build_coach_chunks(
-    session: AsyncSession,
-    question: str,
-    team: TeamOut,
-    analysis: TeamAnalysis,
-    opponent: TeamOut | None = None,
-    candidate_chunks: list[RetrievedChunk] | None = None,
-    report: str | None = None,
-) -> list[RetrievedChunk]:
-    """The page's report (when sent) first, then team + analysis facts (citable),
-    then candidates, then dex retrieval."""
-    chunks: list[RetrievedChunk] = []
-    if report and report.strip():
-        chunks.append(
-            RetrievedChunk(
-                id=-10, pokemon_id=None, pokemon_name=None, dex_number=None,
-                chunk_type="team_report", source_ref="team page",
-                content="Team report shown on the page (authoritative):\n" + report.strip(),
-                score=1.0,
-            )
-        )
-    chunks += [_member_chunk(m) for m in team.members]
-    chunks.append(_analysis_chunk(analysis))
-    chunks.append(_suggestions_chunk(analysis))
-    if opponent is not None:
-        chunks.extend(_member_chunk(m, opponent=True) for m in opponent.members)
-    vs = _vs_chunk(analysis)
-    if vs is not None:
-        chunks.append(vs)
-    if candidate_chunks:
-        chunks.extend(candidate_chunks)
-
-    # Ordinary dex retrieval so questions about specific species/mechanics are grounded.
-    k = get_settings().rag_top_k
-    try:
-        _route, dex_chunks = await rag_router.route_and_retrieve(session, question, k=k)
-        chunks.extend(dex_chunks)
-    except Exception:  # noqa: BLE001 — dex retrieval is best-effort enrichment
-        pass
-    return chunks
-
-
-def is_add_command(question: str) -> bool:
-    """True for an imperative 'add <name>' — not a 'should I add …?' deliberation."""
-    low = question.lower()
-    if any(d in low for d in _DELIBERATE):
-        return False
-    return any(v in low for v in _ADD_VERBS)
-
-
-async def resolve_species(session: AsyncSession, text: str) -> Pokemon | None:
-    """Find the Pokémon whose name appears in the text (longest name wins)."""
-    low = text.lower()
-    rows = (await session.execute(select(Pokemon.id, Pokemon.name))).all()
-    for pid, name in sorted(rows, key=lambda r: -len(r[1])):
-        if name.lower() in low:
-            return await session.get(Pokemon, pid)
-    return None
 
 
 def compose_extractive_draft(candidates: list[Candidate]) -> str:

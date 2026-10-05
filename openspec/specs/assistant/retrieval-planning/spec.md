@@ -66,7 +66,7 @@ When an LLM is available, the keyword planner SHALL still run first. Its plan SH
 - **THEN** the LLM planner is called and its plan sets the type, legendary and move filters as explicit arguments
 
 ### Requirement: Tools are limited to read-only Pokédex data
-Every tool available on Ask SHALL read only from the locally ingested database or the user's local profile. No tool SHALL call an external data API. No tool on Ask SHALL change stored data, other than logging the asked question to history as today.
+Every tool available on Ask SHALL read only from the locally ingested database or the user's local profile. No tool SHALL call an external data API. No tool on Ask SHALL change stored data, other than logging the asked question to history as today. In the team coach scope, the only tool that may change stored data is the explicit add, under the rules in `team-coach/coach-actions`; every other tool in any scope is read-only.
 
 #### Scenario: Plan names an unknown tool
 - **WHEN** a plan includes a step whose tool is not registered for the Ask scope
@@ -75,6 +75,10 @@ Every tool available on Ask SHALL read only from the locally ingested database o
 #### Scenario: Invalid tool arguments
 - **WHEN** a step's arguments fail validation against the tool's schema (for example an unknown stat name)
 - **THEN** that step is reported as an error step with a short reason and contributes no evidence
+
+#### Scenario: Team tool planned on Ask
+- **WHEN** a plan on Ask names a team-only tool such as the add or set-edit tool
+- **THEN** that step is reported as an error step and nothing is changed
 
 ### Requirement: Filters are explicit tool arguments
 Filters a planner decides, such as types, damage class, legendary/mythical inclusion, generation, game, and stat thresholds, SHALL be passed as tool arguments. Tools SHALL apply them as given rather than re-deriving them from the question text.

@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.agent import (
     ask_tools,  # noqa: F401 — registers the tools validated below
     names,
+    team_tools,  # noqa: F401
 )
 from app.agent.plan import Plan, build_plan
 from app.rag import learnset, matchup, personalize, similarity, sql_retrieval
@@ -27,8 +28,7 @@ from app.services import nlfilters
 
 MAX_KEYWORD_STEPS = 3
 
-# Description / lore wording (moved from rag/router.py, which keeps its own copy for
-# the team coach until that path moves to the agent).
+# Description / lore wording (the old heuristic router's markers).
 _LORE_MARKERS = (
     "tell me about", "lore", "origin", "story", "describe", "description",
     "where does", "where do", "lives", "live", "habitat", "personality",
@@ -60,10 +60,120 @@ def _step(tool: str, why: str, **args) -> dict:
     return {"tool": tool, "args": args, "why": why}
 
 
-async def plan_keywords(session: AsyncSession, question: str, scope: str = "ask") -> KeywordPlan:
+async def plan_keywords(
+    session: AsyncSession, question: str, scope: str = "ask", ctx=None
+) -> KeywordPlan:
+    if scope == "team" and ctx is not None and ctx.team is not None:
+        raw, confident = await _decide_team(session, question, ctx)
+        plan = build_plan(raw[:MAX_KEYWORD_STEPS], "keyword", scope=scope)
+        # A plain team question has no extra steps: the attached team context answers it.
+        ok = len(plan.valid_steps) == len(plan.steps) <= 1
+        return KeywordPlan(plan, confident and ok)
     raw, confident = await _decide(session, question)
     plan = build_plan(raw[:MAX_KEYWORD_STEPS], "keyword", scope=scope)
     return KeywordPlan(plan, confident and len(plan.valid_steps) == 1)
+
+
+# ---- team coach phrasings -------------------------------------------------------------
+
+# Imperative "put this on my team" verbs vs. deliberation ("should I add …?").
+_ADD_VERBS = ("add ", "include ", "put ", "bring in ", "slot in ", "recruit ", "run ")
+_DELIBERATE = ("should i", "is it worth", "worth adding", "worth it", "do you think", "would you",
+               "could i", "can i", "what if")
+# A set change: an edit verb or a set field (ported from the old TeamCoach.tsx regex).
+_SET_EDIT = re.compile(
+    r"\b(change|make|give|set|swap|switch|replace|teach|equip|put|tweak|improve|optimi[sz]e|"
+    r"fix|rebuild|build|use|hold|run)\b|\b(best|better|new) (set|build|moveset)\b|"
+    r"\bmoveset\b|\bevs?\b|\bitem\b|\bnature\b|\bability\b", re.I)
+_THEIRS = re.compile(r"\b(their|opponent'?s?|rival'?s?|enemy|foe'?s?)\b", re.I)
+_SWAP = re.compile(r"\b(replace|swap|switch)\b", re.I)
+_DRAFT_KEYWORDS = (
+    "draft", "recommend", "suggest", "who should", "what should i add", "which pokemon",
+    "fill", "complete", "round out", "additions", "rest of", "best 5", "best five", "team of",
+    "picks", "options",
+)
+_VS = re.compile(r"\b(vs\.?|versus|against)\b", re.I)
+
+
+def is_imperative_add(question: str) -> bool:
+    """True for an imperative 'add <name>' — never for a 'should I add …?' deliberation."""
+    low = question.lower()
+    if any(d in low for d in _DELIBERATE):
+        return False
+    return any((" " + low).find(" " + v) != -1 for v in _ADD_VERBS)
+
+
+def _deliberating_add(question: str) -> bool:
+    low = question.lower()
+    return any(d in low for d in _DELIBERATE) and any(v in low for v in _ADD_VERBS)
+
+
+def _members(question: str, team) -> list:
+    low = question.lower()
+    return sorted(
+        (m for m in (team.members if team else []) if m.name.lower() in low),
+        key=lambda m: -len(m.name),
+    )
+
+
+async def _decide_team(session: AsyncSession, question: str, ctx) -> tuple[list[dict], bool]:
+    text = question.lower()
+    ours, theirs = _members(question, ctx.team), _members(question, ctx.opponent)
+    roster = {m.name.lower() for m in ctx.team.members} | {
+        m.name.lower() for m in (ctx.opponent.members if ctx.opponent else [])}
+
+    # ---- a set change for a member (checked first: "what should Garchomp run?") ----
+    if _SET_EDIT.search(text) and (ours or theirs):
+        side = "theirs" if (theirs and (_THEIRS.search(text) or not ours)) else "ours"
+        m = (theirs if side == "theirs" else ours)[0]
+        step = _step("propose_set_edit", f"a new set for {m.name}", member=m.name, side=side,
+                     request=question[:300])
+        return [step], not _SWAP.search(text) and not any(k in text for k in _DRAFT_KEYWORDS)
+
+    # ---- an add, or a deliberation about one (the runner's gate decides which) ----
+    mons = [m for m in await names.find_in_text(session, question, ("pokemon",))
+            if m.name.lower() not in roster]
+    if mons and (is_imperative_add(question) or _deliberating_add(question)):
+        return [_step("add_member", f"add {mons[0].name}", pokemon=mons[0].name)], True
+
+    # ---- drafting ----
+    if any(k in text for k in _DRAFT_KEYWORDS):
+        from app.services import recommend
+
+        known = set(names.STANDARD_TYPES)
+        return [_step(
+            "recommend_additions", "draft additions for the team",
+            role=recommend.parse_role(question),
+            legendary=nlfilters.legendary_constraint(question),
+            mythical=nlfilters.mythical_constraint(question),
+            types=recommend.requested_types(question, known),
+        )], False
+
+    # ---- one of ours against one of theirs ----
+    if ours and theirs and _VS.search(text):
+        return [_step("duel", f"{ours[0].name} vs {theirs[0].name}",
+                      ours=ours[0].name, theirs=theirs[0].name)], False
+
+    # ---- dex lookups (Ask rules), unless they only restate the team ----
+    raw, confident = await _decide(session, question)
+    from app.agent.tools import REGISTRY
+
+    useful = [
+        r for r in raw
+        if "team" in REGISTRY[r["tool"]].scopes
+        and not (r["tool"] == "get_pokemon" and r["args"].get("name", "").lower() in roster)
+        and not (r["tool"] == "query_pokemon" and _vague_query(r["args"]))
+    ]
+    if not useful:
+        return [], True  # plain: the attached team context answers it
+    return useful, confident and len(useful) == len(raw)
+
+
+def _vague_query(args: dict) -> bool:
+    """A Pokédex query the keyword parser built from incidental words ("my team's best …")."""
+    return not (args.get("types_all") or args.get("stat_filters") or args.get("generation")
+                or args.get("legendary") is not None or args.get("mythical") is not None
+                or args.get("sort_by") not in (None, "base_stat_total"))
 
 
 async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], bool]:

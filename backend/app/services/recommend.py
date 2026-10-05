@@ -42,18 +42,6 @@ class DraftPrefs:
     want_types: list[str] = field(default_factory=list)
 
 
-_DRAFT_KEYWORDS = (
-    "draft", "recommend", "suggest", "who should", "what should", "which pokemon",
-    "fill", "complete", "round out", "build", "add ", "additions", "rest of", "other",
-    "best 5", "best five", "team of", "picks", "options",
-)
-
-
-def is_draft_request(question: str) -> bool:
-    q = question.lower()
-    return any(kw in q for kw in _DRAFT_KEYWORDS)
-
-
 def parse_role(question: str) -> str | None:
     q = question.lower()
     for role, kws in _ROLE_KEYWORDS.items():
@@ -206,6 +194,33 @@ async def recommend_additions(
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return [c for _score, c in scored[:limit]]
+
+
+async def candidate_for(
+    session: AsyncSession, pokemon: Pokemon, analysis: TeamAnalysis
+) -> Candidate:
+    """One named Pokémon as a candidate card (the coach's "should I add X?" answer)."""
+    bs = _base_stats(pokemon)
+    types = [pt.type.identifier for pt in pokemon.types]
+    type_ids = await matchups.ids_for(session, types)
+    shared_weak = [w.type for w in analysis.defensive.shared_weaknesses]
+    dmult = await matchups.defense_multipliers(session, type_ids) if shared_weak else {}
+    omult = (
+        await matchups.offense_multipliers(session, types)
+        if analysis.offensive.uncovered_types else {}
+    )
+    resisted = [t for t in shared_weak if dmult.get(t, 1.0) < 1]
+    covered = [t for t in analysis.offensive.uncovered_types if omult.get(t, 1.0) >= 2]
+    return Candidate(
+        pokemon_id=pokemon.id,
+        dex_number=pokemon.dex_number,
+        name=pokemon.name,
+        types=types,
+        sprite_url=sprite_url(pokemon),
+        role=_classify(bs["speed"], _offense(bs), _bulk(bs)),
+        base_stats=bs,
+        reason=_reason(None, bs, resisted, covered),
+    )
 
 
 def _reason(

@@ -53,3 +53,15 @@ def test_every_case_expects_tools_or_abstains() -> None:
         assert case.expect_tools or case.abstain, case.id
         assert not case.multi_part or len(case.expect_tools) >= 1, case.id
     assert sum(c.multi_part for c in CASES) >= 14
+
+
+async def test_coach_keyword_plans(engine) -> None:
+    from eval.harness import evaluate_coach
+
+    async with async_sessionmaker(engine, expire_on_commit=False)() as session:
+        results = await evaluate_coach(session, use_llm=False)
+    misses = [(r.case.id, r.tools) for r in results if not r.case.abstain and not r.keyword_plan_ok]
+    assert not misses, f"coach keyword planner regressed: {misses}"
+    assert all(r.grounded for r in results), "team context missing"
+    fast = [r for r in results if r.case.fast_path is not None]
+    assert all(r.keyword_confident == r.case.fast_path for r in fast)

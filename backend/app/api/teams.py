@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator
 from dataclasses import asdict
 
@@ -9,12 +10,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.ask import _sources, _sse
-from app.core.config import get_settings
+from app.agent.runner import run_question
+from app.agent.sse import _sse
+from app.agent.tools import AgentContext
 from app.core.database import async_session_factory, get_session
 from app.models.team import MAX_SLOTS
-from app.rag import answer as answer_service
-from app.rag import coach, coach_edits, draft_intent, personalize, team_summary
+from app.rag import personalize, team_summary
 from app.schemas.analysis import DuelOut, TeamAnalysis
 from app.schemas.strategy import TeamStrategy, TeamSummaryOut
 from app.schemas.team import (
@@ -26,15 +27,10 @@ from app.schemas.team import (
     TeamOut,
     TeamUpdate,
 )
-from app.services import recommend, team_analysis, team_strategy
+from app.services import team_analysis, team_strategy
 from app.services import teams as teams_service
 
-
-def _next_empty_slot(team: TeamOut) -> int | None:
-    used = {m.slot for m in team.members}
-    return next((s for s in range(1, MAX_SLOTS + 1) if s not in used), None)
-
-
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/teams", tags=["teams"])
 
 
@@ -140,110 +136,53 @@ async def duel_detail(
 
 @router.post("/{team_id}/ask")
 async def coach_ask(team_id: int, payload: CoachAskRequest) -> StreamingResponse:
-    """SSE coaching over a team: emits `sources`, `delta`* tokens, then `done`.
+    """SSE coaching over a team, planned like Ask (see ``app.agent``).
 
-    Grounds the assistant in the team, its analysis, and (optionally) an opponent.
-    With no LLM key, streams a single extractive brief built from the analysis.
+    Events: ``plan`` (the team context step first), ``step``*, ``view``* (candidates,
+    set-edit proposals, adds, duels and dex views), ``team_updated`` after an explicit
+    add, ``sources``, ``delta``*, ``done``.
     """
-    settings = get_settings()
 
     async def event_stream() -> AsyncIterator[str]:
-        async with async_session_factory() as session:
-            try:
+        planner = None
+        try:
+            async with async_session_factory() as session:
                 team = await teams_service.get_team(session, team_id)
                 if team is None:
                     yield _sse("error", {"message": "Team not found"})
                     return
-                question = payload.question
-
-                # --- conversational add: "add <name>" ---
-                if coach.is_add_command(question):
-                    poke = await coach.resolve_species(session, question)
-                    if poke is not None:
-                        async for evt in _handle_add(session, team, poke.id, poke.name):
-                            yield evt
-                        await personalize.log_question(session, question, "coach")
-                        return
-
                 opponent = None
                 if payload.opponent_id is not None:
                     opponent = await teams_service.get_team(session, payload.opponent_id)
                 analysis = await team_analysis.analyze(session, team, opponent)
-
-                # --- drafting: surface candidate additions ---
-                candidate_chunks = None
-                candidates = []
-                if coach.is_add_command(question) or recommend.is_draft_request(question):
-                    prefs = await draft_intent.extract_draft_prefs(question)
-                    candidates = await recommend.recommend_additions(
-                        session, team, analysis, question, prefs=prefs
-                    )
-                    if candidates:
-                        candidate_chunks = recommend.to_chunks(candidates)
-                        yield _sse("candidates", [c.model_dump() for c in candidates])
-
-                chunks = await coach.build_coach_chunks(
-                    session, question, team, analysis, opponent, candidate_chunks,
-                    report=payload.report,
-                )
-                yield _sse("sources", [s.model_dump() for s in _sources(chunks)])
-                if settings.llm_enabled:
-                    said: list[str] = []
-                    async for delta in answer_service.stream_answer(
-                        question, chunks, coach.COACH_NOTE
-                    ):
-                        said.append(delta)
-                        yield _sse("delta", {"text": delta})
-                    # Set advice in the answer → validated, appliable proposals.
-                    edits = await coach_edits.extract_edits(session, "".join(said), team, opponent)
-                    if edits:
-                        yield _sse("edits", edits)
-                elif candidates:
-                    yield _sse("delta", {"text": coach.compose_extractive_draft(candidates)})
-                elif payload.report:
-                    # No LLM: answer with what the page shows rather than a different summary.
-                    yield _sse("delta", {"text": payload.report})
-                else:
-                    yield _sse("delta", {"text": coach.compose_extractive_coach(analysis)})
-                yield _sse("done", {})
-                await personalize.log_question(session, question, "coach")
-            except Exception as exc:  # noqa: BLE001 — surface as a stream error event
-                yield _sse("error", {"message": f"Coaching failed: {exc}"})
-
-    async def _handle_add(
-        session: AsyncSession, team: TeamOut, pokemon_id: int, name: str
-    ) -> AsyncIterator[str]:
-        slot = _next_empty_slot(team)
-        if slot is None:
-            yield _sse(
-                "delta",
-                {"text": f"Your team is already full (6/6) — clear a slot before adding {name}."},
-            )
-            yield _sse("done", {})
-            return
-        if any(m.pokemon_id == pokemon_id for m in team.members):
-            yield _sse("delta", {"text": f"{name} is already on this team."})
-            yield _sse("done", {})
-            return
-        updated = await teams_service.set_slot(
-            session, team.id, slot, SlotUpdate(pokemon_id=pokemon_id)
-        )
-        team_summary.schedule(team.id)
-        yield _sse("team_updated", updated.model_dump())
-        yield _sse(
-            "delta",
-            {
-                "text": f"Added **{name}** to slot {slot}. Configure its ability, nature, "
-                "EVs and moves from the slot, and ask me for the best spread."
-            },
-        )
-        yield _sse("done", {})
+            ctx = AgentContext(scope="team", team=team, opponent=opponent,
+                               report=payload.report, extra={"analysis": analysis})
+            async for name, data in run_question(payload.question, "team", ctx=ctx):
+                if name == "plan" and planner is None:
+                    planner = data["planner"]
+                if name == "done":
+                    # Log before `done`: the client stops reading at `done`, which would
+                    # cancel anything still running after it.
+                    await _log(payload.question, planner)
+                yield _sse(name, data)
+        except Exception as exc:  # noqa: BLE001 — surface as a stream error event
+            log.exception("coaching failed")
+            yield _sse("error", {"message": f"Coaching failed: {exc}"})
 
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+async def _log(question: str, planner: str | None) -> None:
+    """Record the question for personalization ("coach-llm" / "coach-keyword")."""
+    try:
+        async with async_session_factory() as session:
+            await personalize.log_question(session, question, f"coach-{planner or 'keyword'}")
+    except Exception:  # noqa: BLE001 — history is a nicety; never fail the answer for it
+        log.warning("couldn't log the coach question", exc_info=True)
 
 
 @router.put("/{team_id}", response_model=TeamOut)

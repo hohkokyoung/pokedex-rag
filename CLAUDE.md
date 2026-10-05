@@ -21,14 +21,15 @@ backend/   FastAPI · SQLAlchemy (async) · Alembic · Pydantic
   app/services/    pokemon_query (read queries), builder (picker lookups),
                    teams (CRUD + hydration + validation), stats (competitive
                    stat maths), team_analysis (coverage/weakness/roles/vs)
-  app/agent/       Ask's retrieval planner: tools (registry), ask_tools (read-only
-                   adapters over app/rag + services), names (DB name lookup),
+  app/agent/       the assistant's planner (Ask + team coach): tools (registry with
+                   scopes), ask_tools (read-only dex adapters), team_tools (team
+                   context, recommendations, set edits, add, duel), names (DB lookup),
                    keyword_planner, llm_planner, executor, render (code answers),
                    cache, runner (plan → run → answer as events), views, sse
   app/rag/         embeddings, retrieval (vector), hybrid (FTS + RRF),
                    sql_retrieval (structured), learnset, matchup, similarity,
-                   personalize, answer (Claude/Groq, streaming), coach (team-aware
-                   grounded context), router (team coach only — see below)
+                   personalize, answer (Claude/Groq, streaming), coach (team-context
+                   chunk builders + keyless composers), build_suggest (set coach)
   app/ingest/      run (CSV → DB; incl. moves/learnsets/natures),
                    build_chunks (chunks → embeddings)
   eval/            labeled eval set (expect_tools) + harness (plans, recall,
@@ -64,8 +65,7 @@ args — `legendary`, `types`, `attacker_class` …), and return `ToolResult`: c
 move_list, learnset, learners, learn_check) that the UI draws directly — nothing on the
 frontend parses snippet text. SSE: `plan` (with `planner: llm|keyword`, `cached`) →
 `step`* → `view`* → `sources` (each with `step`/`step_index`) → `delta`* → `done{usage}`;
-there is no `route`. `rag/router.py` survives only for the team coach's dex retrieval
-until the coach moves onto the agent.
+there is no `route`.
 
 Two cross-cutting NL filters live in `app/services/nlfilters.py` (a dep-free leaf
 shared by the keyword planner and the team recommender): **legendary/mythical negation**
@@ -79,32 +79,33 @@ is super-effective vs X, judged from the ingested learnset rather than STAB typi
 each slot has an ability, nature, EV/IV spreads and up to 4 moves from the
 species' legal learnset — plus opponent teams. `team_analysis` is a deterministic
 engine (type coverage, shared weaknesses, role balance, per-slot EV/ability
-suggestions, vs-opponent diff) built only from ingested data; the coach
-(`/api/teams/{id}/ask`) feeds the team + that analysis (+ opponent) into the same
-grounded `RetrievedChunk` → answer path, so advice is cited and abstains honestly
-(e.g. it won't invent competitive tiers/movesets the DB lacks). Moves, learnsets
+suggestions, vs-opponent diff, duels) built only from ingested data. Moves, learnsets
 and natures come from the local PokéAPI CSVs — **never** a runtime PokéAPI call.
 
-**Drafting & the add action** (`app/services/recommend.py`): when the user asks the
-coach to draft/recommend additions, a deterministic recommender ranks real Pokémon.
-Its filters (role, legendary/mythical include-exclude, preferred types) are extracted
-from the question by the LLM (`app/rag/draft_intent.py`) and passed in as `DraftPrefs`.
-It uses **Groq strict `json_schema` structured output** (`answer.quick_complete(json_schema=…)`,
-`response_format` `json_schema`/`strict`, supported by `gpt-oss-120b`) so the JSON is
-shape-guaranteed — this handles open-ended sentiment the keyword parser can't (e.g. "no
-ubers" → exclude). The keyword parsers (`parse_role`/`allow_legendary`) remain the fallback
-when there's no key or the call is rate-limited. `nlfilters` negation is itself
-**sentiment-aware and proximity-based** so that fallback is still good on its own: a
-rejecting token (no/without/skip/hate/fuck/…) in the 1-2 words before "legendar"/"mythical"
-means exclude, so "fuck legendaries" excludes them with no LLM, while "legendary dragons"
-and a trailing "which legendary is not a dragon" still read as include. (role — sweeper/wall/wallbreaker — else patch-holes; legendaries
-excluded by default, current members excluded) and those candidates are (a) injected as
-citable chunks so the coach recommends from real data and (b) emitted to the UI as a
-`candidates` SSE event → recommendation cards with one-click **Add** buttons. The coach
-also acts on a conversational imperative (`add <name>`, distinguished from a "should I
-add …?" question): it resolves the species, fills the next empty slot, and emits a
-`team_updated` SSE event. The UI reloads the team (slots + analysis) after any add.
-Nothing is added without a click or an explicit command.
+**The coach is the same agent, scope `team`** (`/api/teams/{id}/ask` →
+`run_question(scope="team")`; team, opponent, page report and analysis travel in
+`AgentContext`). A built-in `team_context` step (never planned) is prepended to every
+coach plan: page report first (authoritative), then members, analysis, suggestions,
+and — with an opponent — their members and the matchup. The planner only adds *extra*
+steps; an empty plan is valid, and plain team questions fast-path (0 planning calls).
+Team tools: `recommend_additions` (planner fills role/legendary/types → the
+deterministic recommender in `services/recommend.py`; candidate cards with
+Add/Replace/Revert), `propose_set_edit` (wraps `build_suggest` with `attempts=1`; every
+field validated against legal data; was → now card, saved only on Apply, Revert
+restores exactly), `add_member`, `duel`. Most Ask dex tools are also team-scoped (not
+lore search, look-alikes, profile picks or encounters — keeps the team prompt ≤ 10.5k
+chars).
+
+**Writes are gated in code, not prompts.** `add_member` saves only when the runner's
+deterministic `is_imperative_add(question)` agrees ("add Garchomp" yes, "should I add
+Garchomp?" no); otherwise it answers with an Add card. A real add emits
+`team_updated` and the reply offers Undo. Nothing else writes; Apply/Replace/Revert
+are the user's clicks. Coach answers are never cached (the team is mutable). Budget:
+plan ≤ 1, build coach ≤ 1, answer ≤ 1 — a set change alone or an add is answered by
+code (0–1 calls), a draft ≤ 2. Keyless: keyword plans; the answer is the page report,
+an analysis brief or the candidate list, and set changes say they need a key.
+`nlfilters` negation (proximity/sentiment, "fuck legendaries" → exclude) still feeds
+the keyword planner's drafting args.
 
 **Team strategy & summary** (`/teams`): `app/services/team_strategy.py` scores six axes
 (offense/bulk/speed/setup/stall/support) from base stats plus curated move/ability lists —

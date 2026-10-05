@@ -11,6 +11,9 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, TypeAdapter
 
+from app.schemas.analysis import DuelOut
+from app.schemas.recommend import Candidate
+
 
 class PokemonCard(BaseModel):
     """One Pokémon as evidence: art, types, stats, and whatever the step adds."""
@@ -132,6 +135,74 @@ class LearnCheckView(BaseModel):
     chunk_refs: list[int] = Field(default_factory=list)
 
 
+# ---- team coach views -------------------------------------------------------------
+
+
+class SlotRef(BaseModel):
+    slot: int
+    name: str
+
+
+class CandidatesView(BaseModel):
+    """Pokémon the coach suggests adding; each card adds only when clicked."""
+
+    kind: Literal["candidates"] = "candidates"
+    team_id: int
+    candidates: list[Candidate]
+    team_full: bool = False
+    members: list[SlotRef] = Field(default_factory=list)  # for the Replace picker
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
+class BuildSet(BaseModel):
+    moves: list[str] = Field(default_factory=list)
+    ability: str | None = None
+    nature: str | None = None
+    item: str | None = None
+    evs: dict[str, int] = Field(default_factory=dict)  # hp/atk/def/spa/spd/spe
+
+
+class SetEditView(BaseModel):
+    """A proposed set for one member, shown was → now; saved only on Apply."""
+
+    kind: Literal["set_edit"] = "set_edit"
+    side: Literal["ours", "theirs"]
+    team_id: int
+    slot: int
+    name: str
+    sprite_url: str = ""
+    before: BuildSet
+    after: BuildSet
+    why: str = ""
+    # Only the fields that change, in the slot editor's apply shape.
+    fields: dict = Field(default_factory=dict)
+    # The member as it was (ids included), so Revert can restore it exactly.
+    member: dict = Field(default_factory=dict)
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
+class MemberAddedView(BaseModel):
+    """An explicit "add X": what was added where (Undo clears the slot), or why not."""
+
+    kind: Literal["member_added"] = "member_added"
+    team_id: int
+    added: bool
+    slot: int | None = None
+    card: PokemonCard
+    message: str
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
+class DuelView(BaseModel):
+    """One pairing played out turn by turn by the deterministic duel engine."""
+
+    kind: Literal["duel"] = "duel"
+    team_id: int
+    opponent_id: int
+    duel: DuelOut
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
 View = Annotated[
     RankingView
     | PokemonListView
@@ -139,7 +210,11 @@ View = Annotated[
     | MoveListView
     | LearnsetView
     | LearnersView
-    | LearnCheckView,
+    | LearnCheckView
+    | CandidatesView
+    | SetEditView
+    | MemberAddedView
+    | DuelView,
     Field(discriminator="kind"),
 ]
 
@@ -147,4 +222,5 @@ VIEW_ADAPTER: TypeAdapter[View] = TypeAdapter(View)
 
 VIEW_KINDS = (
     "ranking", "pokemon_list", "type_chart", "move_list", "learnset", "learners", "learn_check",
+    "candidates", "set_edit", "member_added", "duel",
 )

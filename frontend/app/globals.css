@@ -2261,6 +2261,33 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
 .ax-plan__res{justify-self:end;text-align:right;display:flex;flex-direction:column;gap:2px;color:var(--ink-dim);font-size:12px;max-width:34ch;}
 .ax-plan__res small{color:var(--faint);font-size:11px;}
 .ax-plan__step.is-empty .ax-plan__res,.ax-plan__step.is-error .ax-plan__res{color:var(--muted);}
+/* compact plan in the team coach's thread */
+.ax-plan.is-compact{margin:6px 0 10px;padding:0 0 8px;font-size:11px;}
+.ax-plan.is-compact .ax-plan__steps{margin-top:8px;gap:4px;}
+.ax-plan.is-compact .ax-plan__step{padding:6px 8px;}
+.ax-plan.is-compact .ax-plan__tool{font-size:12.5px;}
+.ax-plan.is-compact .ax-plan__why{font-size:11.5px;}
+/* team coach: add result, duel, dex views */
+.co-added{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:13.5px;}
+.co-added.is-noop{color:var(--muted);}
+.co-added .t{flex:1;}
+.co-added .rev{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 10px;font:600 12px var(--font-sans),sans-serif;cursor:pointer;}
+.co-added .rev:hover{border-color:var(--accent);color:var(--accent);}
+.co-duel{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:13px;}
+.co-duel-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;}
+.co-duel-h .st{padding:2px 8px;border-radius:6px;font-weight:700;background:var(--surface-2);}
+.co-duel.is-win .co-duel-h .st{background:#2e9e5b;color:#fff;}
+.co-duel.is-lose .co-duel-h .st{background:var(--accent);color:#fff;}
+.co-duel-h small{color:var(--muted);}
+.co-duel-mv{display:flex;flex-direction:column;gap:2px;margin:6px 0;color:var(--ink-dim);}
+.co-duel-mv em{font-style:normal;font-weight:600;color:var(--ink);margin-right:6px;}
+.co-duel-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:12.5px;}
+.co-duel-log li{display:flex;gap:8px;}
+.co-duel-log li.s-b{color:var(--muted);}
+.co-duel-log .tn{font:600 11px var(--font-mono),monospace;color:var(--faint);min-width:24px;}
+.co-duel-log i{font-style:normal;font-weight:600;color:var(--tc);}
+.co-view{margin-top:10px;}
+
 /* one view per plan step in the evidence panel */
 .ax-view + .ax-view{margin-top:22px;}
 .ax-view__head{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:2px;font-size:14px;color:var(--muted);}
@@ -2279,6 +2306,7 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
   .ax-check,.ax-learners,.ax-ls,.ax-learners__bar span{animation:none;}
   .ax-trace__step.is-now .ax-trace__dot{animation:none;}
   .ax-plan__step,.ax-plan__dot,.ax-plan__mark{animation:none !important;}
+  .co-added,.co-duel{animation:none;}
   .ax-plan__mark,.ax-plan__step,.ax-plan__chev{transition:none;}
 }
 

@@ -175,6 +175,46 @@ export type LearnCheckView = ViewBase & {
   how: string | null;
   game: string | null;
 };
+/* Team-coach views. */
+export type BuildSet = {
+  moves: string[];
+  ability: string | null;
+  nature: string | null;
+  item: string | null;
+  evs: Record<string, number>;
+};
+export type CandidatesView = ViewBase & {
+  kind: "candidates";
+  team_id: number;
+  candidates: Candidate[];
+  team_full: boolean;
+  members: { slot: number; name: string }[];
+};
+export type SetEditView = ViewBase & {
+  kind: "set_edit";
+  side: "ours" | "theirs";
+  team_id: number;
+  slot: number;
+  name: string;
+  sprite_url: string;
+  before: BuildSet;
+  after: BuildSet;
+  why: string;
+  /** Only the changed fields, in the slot editor's apply shape. */
+  fields: { moves?: string[]; ability?: string | null; nature?: string | null; item?: string | null; evs?: Record<string, number> };
+  /** The member as it was (ids included), for Revert. */
+  member: Team["members"][number];
+};
+export type MemberAddedView = ViewBase & {
+  kind: "member_added";
+  team_id: number;
+  added: boolean;
+  slot: number | null;
+  card: PokemonCardData;
+  message: string;
+};
+export type DuelView = ViewBase & { kind: "duel"; team_id: number; opponent_id: number; duel: TeamDuel };
+
 export type AskView =
   | RankingView
   | PokemonListView
@@ -182,7 +222,11 @@ export type AskView =
   | MoveListView
   | LearnsetView
   | LearnersView
-  | LearnCheckView;
+  | LearnCheckView
+  | CandidatesView
+  | SetEditView
+  | MemberAddedView
+  | DuelView;
 
 export type AskResponse = {
   answer: string;
@@ -792,9 +836,6 @@ export type StreamHandlers = {
   /** A typed result view from a finished step. */
   onView?: (view: AskView) => void;
   onSources?: (sources: AskSource[]) => void;
-  onCandidates?: (candidates: Candidate[]) => void;
-  /** The coach's set advice as validated per-Pokémon edits (only changed fields). */
-  onEdits?: (edits: CoachEdit[]) => void;
   onTeamUpdated?: (team: Team) => void;
   onDelta?: (text: string) => void;
   onDone?: (done?: DoneEvent) => void;
@@ -886,8 +927,6 @@ async function streamSSE(path: string, body: unknown, handlers: StreamHandlers):
         else if (event === "step") handlers.onStep?.(parsed as StepEvent);
         else if (event === "view") handlers.onView?.(parsed as AskView);
         else if (event === "sources") handlers.onSources?.(parsed as AskSource[]);
-        else if (event === "candidates") handlers.onCandidates?.(parsed as Candidate[]);
-        else if (event === "edits") handlers.onEdits?.(parsed as CoachEdit[]);
         else if (event === "team_updated") handlers.onTeamUpdated?.(parsed as Team);
         else if (event === "delta") handlers.onDelta?.((parsed as { text: string }).text);
       }
@@ -969,13 +1008,3 @@ export function applySlotBuild(
 }
 
 /** One set change the coach recommended, already checked against the slot's legal options. */
-export type CoachEdit = {
-  side: "ours" | "theirs";
-  slot: number;
-  name: string;
-  ability?: string;
-  nature?: string;
-  item?: string;
-  evs?: Record<string, number>;
-  moves?: string[];
-};

@@ -202,8 +202,9 @@ _ROMAN = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6, "vii": 7, "viii":
 
 def _find_stat(text: str) -> str | None:
     # longest phrase first to catch "special attack" before "attack"
+    # Whole words only: "def" must not match "defensive", nor "attack" "attacker".
     for phrase in sorted(_STAT_WORDS, key=len, reverse=True):
-        if phrase in text:
+        if re.search(rf"(?<!\w){re.escape(phrase)}(?!\w)", text):
             return _STAT_WORDS[phrase]
     return None
 

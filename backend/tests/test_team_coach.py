@@ -10,10 +10,18 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import text
 
+from app.agent import team_tools
+from app.agent.tools import AgentContext
 from app.rag import coach
 from app.schemas.team import SlotUpdate, TeamCreate
 from app.services import team_analysis
 from app.services import teams as teams_service
+
+
+async def _context(session, team, analysis, report=None):
+    """The coach's always-attached team context (the agent's built-in step)."""
+    ctx = AgentContext(scope="team", team=team, report=report, extra={"analysis": analysis})
+    return (await team_tools.team_context(session, team_tools.NoArgs(), ctx)).chunks
 
 
 async def test_moves_and_natures_ingested(session) -> None:
@@ -41,7 +49,7 @@ async def test_fire_team_shared_weakness_and_coach_grounding(session) -> None:
         assert "rock" in shared  # Fire/Flying etc. share a rock weakness
         assert "water" in shared
 
-        chunks = await coach.build_coach_chunks(session, "How do I improve?", full, analysis)
+        chunks = await _context(session, full, analysis)
         chunk_types = {c.chunk_type for c in chunks}
         assert "team_member" in chunk_types
         assert "team_analysis" in chunk_types
@@ -101,30 +109,11 @@ async def test_page_report_is_the_coach_first_source(session) -> None:
         full = await teams_service.get_team(session, team.id)
         assert full is not None
         analysis = await team_analysis.analyze(session, full)
-        chunks = await coach.build_coach_chunks(
-            session, "What's my biggest weakness?", full, analysis,
-            report="Defence F: weak spots Ice, Dragon.",
-        )
+        chunks = await _context(session, full, analysis,
+                                report="Defence F: weak spots Ice, Dragon.")
         assert chunks[0].chunk_type == "team_report"
         assert "Ice, Dragon" in chunks[0].content
-        without = await coach.build_coach_chunks(session, "hi", full, analysis)
+        without = await _context(session, full, analysis)
         assert all(c.chunk_type != "team_report" for c in without)
-    finally:
-        await teams_service.delete_team(session, team.id)
-
-
-async def test_coach_edits_only_considered_for_set_advice_about_members(session) -> None:
-    from app.rag import coach_edits
-
-    team = await teams_service.create_team(
-        session, TeamCreate(name="__test_edits__", kind="player")
-    )
-    try:
-        await teams_service.set_slot(session, team.id, 1, SlotUpdate(pokemon_id=445))
-        full = await teams_service.get_team(session, team.id)
-        assert full is not None
-        assert coach_edits.worth_extracting("Give Garchomp a Jolly nature.", full, None)
-        assert not coach_edits.worth_extracting("Your team is weak to Ice.", full, None)
-        assert not coach_edits.worth_extracting("Run a Jolly nature on Pikachu.", full, None)
     finally:
         await teams_service.delete_team(session, team.id)

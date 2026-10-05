@@ -15,7 +15,7 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
-from app.agent import ask_tools  # noqa: F401 — registers the Ask tools
+from app.agent import ask_tools, team_tools  # noqa: F401 — registers the Ask tools
 from app.agent.plan import MAX_STEPS, Plan, Step, build_plan
 from app.agent.tools import Tool, tools_for
 from app.rag import answer as answer_service
@@ -48,6 +48,24 @@ steps: type_matchup(types=["psychic"]); move_info(name="Psychic")
 Q: Which moves beat Garchomp, and what is Fire weak to?
 steps: coverage_vs_types(against="Garchomp", want="moves"); type_matchup(types=["fire"])
 Never supply a Pokémon's types or stats from memory: name it and let a tool look it up."""
+
+_TEAM_RULES = """Coach rules:
+- The user's team, its analysis and (if selected) the opponent matchup are ALREADY \
+attached. Plan only EXTRA lookups or actions; an empty plan is valid and common.
+- add_member ONLY for an explicit command ("add Garchomp"); for "should I add …?" or \
+"who should I add?" use recommend_additions.
+- Set changes for a member ("give X a faster set", "what item should X hold?") -> \
+propose_set_edit with the member's exact name and side ("theirs" for the opponent).
+- Drafting / recommending additions -> recommend_additions with role and filters set."""
+
+_TEAM_EXAMPLES = """Examples (only the args that matter shown):
+Q: What's my team's biggest weakness?
+steps: (none — the team analysis already answers it)
+Q: Draft the rest of my team, no legendaries, I like sweepers
+steps: recommend_additions(role="sweeper", legendary=false)
+Q: Give Garchomp a faster set and tell me what beats Fairy types
+steps: propose_set_edit(member="Garchomp", side="ours", request="a faster set"); \
+coverage_vs_types(targets=["fairy"])"""
 
 
 # ---- schema ---------------------------------------------------------------------------
@@ -91,6 +109,10 @@ def args_schema(model: type[BaseModel]) -> dict:
     return _strict(_inline_refs(model.model_json_schema()))
 
 
+def _scope_tools(scope: str) -> list[Tool]:
+    return tools_for(scope, plannable_only=True)
+
+
 def _step_schema(t: Tool) -> dict:
     return {
         "type": "object",
@@ -114,7 +136,7 @@ def plan_schema(scope: str) -> dict:
         "properties": {
             "steps": {
                 "type": "array",
-                "items": {"anyOf": [_step_schema(t) for t in tools_for(scope)]},
+                "items": {"anyOf": [_step_schema(t) for t in _scope_tools(scope)]},
             },
             "needs_followup": {"type": "boolean"},
         },
@@ -124,12 +146,26 @@ def plan_schema(scope: str) -> dict:
 
 @lru_cache
 def system_prompt(scope: str) -> str:
-    tools = "\n".join(f"- {t.name}: {t.description}" for t in tools_for(scope))
+    tools = "\n".join(f"- {t.name}: {t.description}" for t in _scope_tools(scope))
+    if scope == "team":
+        who = "a Pokémon team coach"
+        rules, examples = f"{_RULES}\n\n{_TEAM_RULES}", _TEAM_EXAMPLES
+    else:
+        who = "a Pokédex assistant"
+        rules, examples = _RULES, _EXAMPLES
     return (
-        "You plan data lookups for a Pokédex assistant. Reply with a plan: up to "
+        f"You plan data lookups for {who}. Reply with a plan: up to "
         f"{MAX_STEPS} steps, each one tool call with its args and a short why.\n\n"
-        f"Tools:\n{tools}\n\n{_RULES}\n\n{_EXAMPLES}"
+        f"Tools:\n{tools}\n\n{rules}\n\n{examples}"
     )
+
+
+def roster_line(team, opponent=None) -> str:
+    """Who's on the teams, so the planner names members exactly (~60 tokens)."""
+    line = "Your team: " + (", ".join(m.name for m in team.members) or "empty")
+    if opponent is not None:
+        line += "; Opponent: " + (", ".join(m.name for m in opponent.members) or "empty")
+    return line
 
 
 def prompt_size(scope: str) -> int:
@@ -149,10 +185,10 @@ async def _call(system: str, user: str, scope: str, max_tokens: int, usage) -> d
     return json.loads(raw[raw.find("{"): raw.rfind("}") + 1])
 
 
-async def plan_llm(question: str, scope: str = "ask", *, usage=None) -> Plan:
+async def plan_llm(question: str, scope: str = "ask", *, usage=None, roster: str = "") -> Plan:
     """The LLM's plan. Raises on provider errors (incl. 429) — the runner falls back."""
-    data = await _call(system_prompt(scope), f"Question: {question}", scope,
-                       PLAN_MAX_TOKENS, usage)
+    user = f"{roster}\nQuestion: {question}" if roster else f"Question: {question}"
+    data = await _call(system_prompt(scope), user, scope, PLAN_MAX_TOKENS, usage)
     return build_plan(
         list(data.get("steps") or []), "llm", scope=scope,
         needs_followup=bool(data.get("needs_followup")),
@@ -168,7 +204,7 @@ def should_replan(plan: Plan, states: dict[str, str]) -> bool:
 
 async def replan(
     question: str, plan: Plan, summaries: dict[str, tuple[str, str]], scope: str = "ask",
-    *, usage=None,
+    *, usage=None, roster: str = "",
 ) -> Plan:
     """Up to 3 added steps; never a repeat of a step that already succeeded."""
     lines = "\n".join(
@@ -178,7 +214,8 @@ async def replan(
         for s in plan.steps
     )
     user = (
-        f"Question: {question}\n\nThis plan already ran:\n{lines}\n\n"
+        (f"{roster}\n" if roster else "")
+        + f"Question: {question}\n\nThis plan already ran:\n{lines}\n\n"
         f"Add at most {MAX_REPLAN_STEPS} NEW steps that fix the errors (e.g. a corrected name) "
         "or fetch what is still missing. Return no steps if nothing would help."
     )

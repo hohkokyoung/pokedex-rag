@@ -5,7 +5,6 @@ Require a populated database; skipped otherwise (see conftest.session)."""
 from __future__ import annotations
 
 from app.models import Pokemon
-from app.rag import coach
 from app.schemas.team import SlotUpdate, TeamCreate
 from app.services import recommend, team_analysis
 from app.services import teams as teams_service
@@ -45,11 +44,3 @@ async def test_recommendations_exclude_team_members(session) -> None:
         assert all(c.pokemon_id != 887 for c in cands)
     finally:
         await teams_service.delete_team(session, team.id)
-
-
-async def test_resolve_species_finds_multiword_name(session) -> None:
-    poke = await coach.resolve_species(session, "please add Iron Hands to my squad")
-    assert poke is not None and poke.name == "Iron Hands"
-    single = await coach.resolve_species(session, "add garchomp now")
-    assert single is not None and single.name == "Garchomp"
-    assert await coach.resolve_species(session, "add xyzzy qwerty") is None

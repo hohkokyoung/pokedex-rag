@@ -173,12 +173,18 @@ CASES: list[EvalCase] = [
 
 @dataclass
 class CoachCase:
-    """A team-coaching question graded against the grounded coach endpoint."""
+    """A team-coaching question graded on the team-scope plan (and, with a key, the answer).
+
+    ``expect_tools`` lists only *extra* steps: the team context step is always there, so a
+    plain team question expects none.
+    """
 
     id: str
     question: str
     with_opponent: bool = False
     abstain: bool = False  # LLM grading only
+    expect_tools: list[ToolExpect] = field(default_factory=list)
+    fast_path: bool | None = None
 
 
 # A fixed Fire-heavy player team + a Rock/Water opponent that punishes it.
@@ -186,8 +192,23 @@ COACH_PLAYER_TEAM: list[int] = [6, 59, 38]  # Charizard, Arcanine, Ninetales
 COACH_OPPONENT_TEAM: list[int] = [9, 76]  # Blastoise, Golem
 
 COACH_CASES: list[CoachCase] = [
-    CoachCase("c1", "What is my team's biggest defensive weakness?"),
+    CoachCase("c1", "What is my team's biggest defensive weakness?", fast_path=True),
     CoachCase("c2", "Best ability and EV spread for my strongest attacker?"),
     CoachCase("c3", "How should I change my team to beat this opponent?", with_opponent=True),
     CoachCase("c4", "What is Charizard's current competitive ban list status?", abstain=True),
+    CoachCase("c5", "add Garchomp", expect_tools=[T("add_member", pokemon="Garchomp")],
+              fast_path=True),
+    CoachCase("c6", "Should I add Garchomp?", expect_tools=[T("add_member", pokemon="Garchomp")],
+              fast_path=True),
+    CoachCase("c7", "Give Charizard a faster set",
+              expect_tools=[T("propose_set_edit", member="Charizard", side="ours")],
+              fast_path=True),
+    CoachCase("c8", "Draft the rest of my team — non-legendary sweepers",
+              expect_tools=[T("recommend_additions", role="sweeper", legendary=False)],
+              fast_path=False),
+    CoachCase("c9", "Can Arcanine learn Flare Blitz?",
+              expect_tools=[T("learnset", pokemon="Arcanine", move="Flare Blitz")],
+              fast_path=True),
+    CoachCase("c10", "Charizard vs Blastoise — who wins?", with_opponent=True,
+              expect_tools=[T("duel", ours="Charizard", theirs="Blastoise")], fast_path=False),
 ]

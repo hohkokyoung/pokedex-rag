@@ -163,8 +163,14 @@ async def suggest_build(
     request: str | None = None,
     current: BuildSuggestion | None = None,
     history: list[CoachTurn] | None = None,
+    attempts: int = 2,
+    usage: answer_service.Usage | None = None,
 ) -> BuildSuggestion:
-    """A fresh set, or — given ``current`` and a ``request`` — that set revised."""
+    """A fresh set, or — given ``current`` and a ``request`` — that set revised.
+
+    ``attempts`` bounds the LLM calls (the agent uses 1, at the larger budget); ``usage``
+    collects their tokens.
+    """
     if not get_settings().llm_enabled:
         raise SuggestError("The coach needs an LLM key to suggest builds.")
     detail = await get_pokemon(session, str(pokemon_id))
@@ -218,10 +224,12 @@ async def suggest_build(
     # A reasoning model can spend its budget thinking over a long learnset and fail the
     # strict-schema check (Groq 400), so retry once with more room.
     data: dict | None = None
-    for budget in (1200, 2400):
+    budgets = (1200, 2400) if attempts > 1 else (2400,)
+    for budget in budgets:
         try:
             raw = await answer_service.quick_complete(
-                SYSTEM, user, max_tokens=budget, json_schema=SCHEMA
+                SYSTEM, user, max_tokens=budget, json_schema=SCHEMA, tool_schema=SCHEMA,
+                usage=usage, retry=attempts > 1,
             )
             data = _extract_json(raw)
             break

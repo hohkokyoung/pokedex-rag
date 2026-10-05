@@ -40,6 +40,9 @@ from app.rag.sql_retrieval import StructuredQuery
 from app.services import encounters as encounters_service
 from app.services import matchups as matchups_service
 
+# Dex lookups serve Ask and the team coach alike.
+ASK_AND_TEAM = ("ask", "team")
+
 STAT_KEYS = ("hp", "attack", "defense", "sp_attack", "sp_defense", "speed")
 _STAT_LABEL = {
     "hp": "HP", "attack": "Attack", "defense": "Defense", "sp_attack": "Sp. Atk",
@@ -116,6 +119,7 @@ class QueryPokemonArgs(StructuredQuery):
 
 @tool(
     "query_pokemon",
+    scopes=ASK_AND_TEAM,
     description="Filter/rank Pokémon by type, generation, legendary/mythical and stats "
     "(rankings, thresholds, counts).",
     args=QueryPokemonArgs,
@@ -162,6 +166,7 @@ class NameArgs(BaseModel):
 
 @tool(
     "get_pokemon",
+    scopes=ASK_AND_TEAM,
     description="One Pokémon's (or form's) profile and Pokédex entries.",
     args=NameArgs,
 )
@@ -391,6 +396,7 @@ class TypeMatchupArgs(BaseModel):
 
 @tool(
     "type_matchup",
+    scopes=ASK_AND_TEAM,
     description="Type chart for 1 type or a dual typing: weaknesses, resistances, immunities, "
     "and what it hits super-effectively.",
     args=TypeMatchupArgs,
@@ -426,6 +432,7 @@ class CoverageArgs(BaseModel):
 
 @tool(
     "coverage_vs_types",
+    scopes=ASK_AND_TEAM,
     description="Pokémon (or moves) that hit defending types, or a named Pokémon, "
     "super-effectively via learnable moves; off_type ranks by stats only.",
     args=CoverageArgs,
@@ -490,6 +497,7 @@ class LearnsetArgs(BaseModel):
 
 @tool(
     "learnset",
+    scopes=ASK_AND_TEAM,
     description="Pokémon+move: can it learn it. Move only: who learns it. Pokémon only: its "
     "moves. game = one game's learnset.",
     args=LearnsetArgs,
@@ -575,6 +583,7 @@ async def learnset_tool(
 
 @tool(
     "move_info",
+    scopes=ASK_AND_TEAM,
     description="One move's type, category, power, accuracy, PP, effect and learner count.",
     args=NameArgs,
     closed_form=True,
@@ -596,6 +605,7 @@ async def move_info(session: AsyncSession, args: NameArgs, ctx: AgentContext) ->
 
 @tool(
     "ability_info",
+    scopes=ASK_AND_TEAM,
     description="One ability's effect and how many Pokémon have it.",
     args=NameArgs,
 )
@@ -620,6 +630,7 @@ async def ability_info(session: AsyncSession, args: NameArgs, ctx: AgentContext)
 
 @tool(
     "item_info",
+    scopes=ASK_AND_TEAM,
     description="One item's category, effect and Fling power.",
     args=NameArgs,
 )

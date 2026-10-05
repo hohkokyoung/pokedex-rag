@@ -106,6 +106,12 @@ def render_step(tool: str, result: ToolResult) -> str | None:
     """This step's answer with step-local citations, or None if it can't be rendered."""
     if tool == "query_pokemon" and "query" in result.data:
         return _query(result)
+    if tool == "propose_set_edit" and "why" in result.data:
+        why = result.data["why"].strip()
+        lead = f"{why} [1]" if why else f"Here's a new set for **{result.data['name']}** [1]."
+        return f"{lead}\n\nProposed for **{result.data['name']}** — press Apply to save it."
+    if tool == "add_member" and "message" in result.data:
+        return f"{result.data['message']} [1]"
     if tool == "learnset":
         if (v := _view(result, LearnCheckView)) is not None:
             return _learn_check(v)

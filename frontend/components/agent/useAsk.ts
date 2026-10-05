@@ -1,54 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { askQuestionStream } from "@/lib/api";
 import {
-  askQuestionStream,
-  type AskSource,
-  type AskView,
-  type Planner,
-  type PlanStep,
-  type StepState,
-  type Usage,
-} from "@/lib/api";
+  EMPTY_RUN,
+  applyDelta,
+  applyDone,
+  applyError,
+  applyPlan,
+  applySources,
+  applyStep,
+  applyView,
+  failureMessage,
+  startRun,
+  type AskRun,
+} from "./runState";
 
-export type Status = "idle" | "streaming" | "done" | "error";
-
-export type StepRun = PlanStep & { state: StepState; summary: string; ms: number; replan: boolean };
-
-/** Everything one asked question streamed back. */
-export type AskRun = {
-  question: string;
-  status: Status;
-  planner: Planner | null;
-  cached: boolean;
-  steps: StepRun[];
-  views: AskView[];
-  sources: AskSource[];
-  answer: string;
-  usage: Usage | null;
-  elapsed: number | null;
-  error: string;
-};
-
-const EMPTY: AskRun = {
-  question: "",
-  status: "idle",
-  planner: null,
-  cached: false,
-  steps: [],
-  views: [],
-  sources: [],
-  answer: "",
-  usage: null,
-  elapsed: null,
-  error: "",
-};
-
-function failure(reason: string): string {
-  return reason === "assistant-not-configured"
-    ? "The assistant isn’t configured. Add ANTHROPIC_API_KEY or GROQ_API_KEY to .env and restart the backend."
-    : "Couldn’t reach the assistant. Check the backend is running, then ask again.";
-}
+export type { AskRun, Status, StepRun } from "./runState";
 
 /**
  * Stream an Ask answer: the plan, each step's progress, typed views, sources and the
@@ -56,7 +24,7 @@ function failure(reason: string): string {
  * (the home tile uses it so re-asking a starter question costs nothing).
  */
 export function useAsk({ cacheRuns = false }: { cacheRuns?: boolean } = {}) {
-  const [run, setRun] = useState<AskRun>(EMPTY);
+  const [run, setRun] = useState<AskRun>(EMPTY_RUN);
   const abortRef = useRef<AbortController | null>(null);
   const done = useRef<Record<string, AskRun>>({});
 
@@ -76,41 +44,22 @@ export function useAsk({ cacheRuns = false }: { cacheRuns?: boolean } = {}) {
     abortRef.current = controller;
     const t0 = performance.now();
     const patch = (fn: (r: AskRun) => AskRun) => setRun((r) => (r.question === q ? fn(r) : r));
-    setRun({ ...EMPTY, question: q, status: "streaming" });
+    setRun(startRun(q));
 
     askQuestionStream(q, {
       signal: controller.signal,
-      onPlan: (p) =>
-        patch((r) => ({
-          ...r,
-          planner: p.replan ? r.planner : p.planner,
-          cached: p.replan ? r.cached : p.cached,
-          steps: [
-            ...r.steps,
-            ...p.steps.map((s) => ({
-              ...s,
-              state: (s.error ? "error" : "pending") as StepState,
-              summary: s.error ?? "",
-              ms: 0,
-              replan: p.replan,
-            })),
-          ],
-        })),
-      onStep: (e) =>
-        patch((r) => ({
-          ...r,
-          steps: r.steps.map((s) => (s.id === e.id ? { ...s, state: e.state, summary: e.summary || s.summary, ms: e.ms } : s)),
-        })),
-      onView: (v) => patch((r) => ({ ...r, views: [...r.views, v] })),
-      onSources: (sources) => patch((r) => ({ ...r, sources })),
-      onDelta: (text) => patch((r) => ({ ...r, answer: r.answer + text })),
+      onPlan: (p) => patch((r) => applyPlan(r, p)),
+      onStep: (e) => patch((r) => applyStep(r, e)),
+      onView: (v) => patch((r) => applyView(r, v)),
+      onSources: (sources) => patch((r) => applySources(r, sources)),
+      onDelta: (text) => patch((r) => applyDelta(r, text)),
       onDone: (d) =>
         patch((r) => {
-          const next = { ...r, status: "done" as Status, usage: d?.usage ?? null, elapsed: (performance.now() - t0) / 1000 };
+          const next = applyDone(r, d, (performance.now() - t0) / 1000);
           if (cacheRuns) done.current[q] = next;
           return next;
         }),
-      onError: (reason) => patch((r) => ({ ...r, status: "error", error: failure(reason) })),
+      onError: (reason) => patch((r) => applyError(r, failureMessage(reason))),
     });
   }
 

@@ -25,6 +25,8 @@ export function ViewBlock({ view, link }: { view: AskView; link: Linking }) {
       return <LearnersStrip view={view} link={link} />;
     case "learn_check":
       return <LearnCheckStrip view={view} link={link} />;
+    default:
+      return null; // team-coach views (candidates, set edits, adds, duels) render in the coach
   }
 }
 
@@ -45,6 +47,8 @@ export function viewCaption(view: AskView): string {
       return `who learns ${view.move.name}`;
     case "learn_check":
       return `${view.pokemon.name} × ${view.move.name}`;
+    default:
+      return "";
   }
 }
 

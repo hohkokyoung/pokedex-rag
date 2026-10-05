@@ -29,7 +29,7 @@ The Ask stream SHALL NOT send a `route` event. The `sources`, `delta` and `error
 - **THEN** the `done` event reports 2 LLM calls with input and output token counts
 
 ### Requirement: Results are streamed as typed views
-A step whose result has a visual form SHALL send a `view` event. The event carries the step id, a view kind, structured data for that kind, and the step-local evidence indices its data came from. Supported kinds are `ranking`, `pokemon_list`, `type_chart`, `move_list`, `learnset`, `learners` and `learn_check`. View data SHALL come from the tool result, not from the LLM answer. Each entry in the `sources` event SHALL identify the step and step-local index it came from, so views can be linked to global source numbers.
+A step whose result has a visual form SHALL send a `view` event. The event carries the step id, a view kind, structured data for that kind, and the step-local evidence indices its data came from. Supported kinds are `ranking`, `pokemon_list`, `type_chart`, `move_list`, `learnset`, `learners`, `learn_check`, and, for the team coach, `candidates`, `set_edit`, `member_added` and `duel`. View data SHALL come from the tool result, not from the LLM answer. Each entry in the `sources` event SHALL identify the step and step-local index it came from, so views can be linked to global source numbers.
 
 #### Scenario: Ranking view
 - **WHEN** a Pokémon query sorted by Speed returns 5 rows
@@ -38,6 +38,10 @@ A step whose result has a visual form SHALL send a `view` event. The event carri
 #### Scenario: Step without a visual
 - **WHEN** a semantic search step returns description passages only
 - **THEN** no `view` event is sent for it, and its passages appear only in sources
+
+#### Scenario: Set-edit view
+- **WHEN** a coach set-edit step proposes a new set for Garchomp
+- **THEN** a `set_edit` view is sent with the team side, slot, the current set and the proposed set (moves, ability, nature, item, EVs) and the fields that change
 
 ### Requirement: Non-streaming Ask returns the plan and views
 The non-streaming Ask response SHALL contain the answer, the `planner`, the executed steps with their final states, the views, the sources, and usage. It SHALL NOT contain a `route`.

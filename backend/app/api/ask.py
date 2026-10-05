@@ -81,12 +81,14 @@ async def ask_stream(payload: AskRequest) -> StreamingResponse:
             async for name, data in run_question(payload.question):
                 if name == "plan" and planner is None:
                     planner = data["planner"]
+                if name == "done":
+                    # Log before `done`: the client stops reading at `done`, which would
+                    # cancel anything still running after it.
+                    await _log(payload.question, planner)
                 yield _sse(name, data)
         except Exception as exc:  # noqa: BLE001 — surface as a stream error event
             log.exception("ask failed")
             yield _sse("error", {"message": f"Generation failed: {exc}"})
-            return
-        await _log(payload.question, planner)
 
     return StreamingResponse(
         event_stream(),

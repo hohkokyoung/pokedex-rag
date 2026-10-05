@@ -1,26 +1,17 @@
-"""Unit tests for coach drafting/add intent parsing (pure, no DB)."""
+"""Coach phrasing rules that stay deterministic: the add gate, role and legendary parsing."""
 
 from __future__ import annotations
 
-from app.rag.coach import is_add_command
-from app.services.recommend import allow_legendary, is_draft_request, parse_role
+from app.agent.keyword_planner import is_imperative_add
+from app.services.recommend import allow_legendary, parse_role
 
 
 def test_add_command_vs_deliberation() -> None:
-    assert is_add_command("add Garchomp to my team") is True
-    assert is_add_command("include Ferrothorn") is True
-    # A question about whether to add is NOT a command.
-    assert is_add_command("should I add Garchomp?") is False
-    assert is_add_command("is it worth adding Blissey?") is False
-    # A recommendation ask is not an add command.
-    assert is_add_command("which type should I add for coverage?") is False
-
-
-def test_draft_request_detection() -> None:
-    assert is_draft_request("help me draft the other best 5") is True
-    assert is_draft_request("recommend a fast sweeper") is True
-    assert is_draft_request("who should I add?") is True
-    assert is_draft_request("what is Pikachu's speed?") is False
+    assert is_imperative_add("add Garchomp to my team") is True
+    assert is_imperative_add("include Ferrothorn") is True
+    assert is_imperative_add("should I add Garchomp?") is False
+    assert is_imperative_add("is it worth adding Blissey?") is False
+    assert is_imperative_add("which type should I add for coverage?") is False
 
 
 def test_parse_role() -> None:

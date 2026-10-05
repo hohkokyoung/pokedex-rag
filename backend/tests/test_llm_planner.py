@@ -155,3 +155,27 @@ async def test_non_legendary_also_excludes_mythicals(monkeypatch):
     a, b = (await llm_planner.plan_llm("q")).steps
     assert (a.parsed.legendary, a.parsed.mythical) == (False, False)
     assert (b.parsed.legendary, b.parsed.mythical) == (None, None)
+
+
+# ---- team scope ---------------------------------------------------------------------------
+
+
+async def test_team_prompt_roster_schema_and_empty_plan(monkeypatch):
+    from types import SimpleNamespace as NS
+
+    calls = _stub(monkeypatch, {"needs_followup": False, "steps": []})
+    team = NS(members=[NS(name="Garchomp"), NS(name="Gyarados")])
+    opp = NS(members=[NS(name="Salamence")])
+    roster = llm_planner.roster_line(team, opp)
+    plan = await llm_planner.plan_llm("What's my weakness?", "team", roster=roster)
+    assert plan.steps == []  # an empty plan is a valid team answer (context only)
+    assert "Your team: Garchomp, Gyarados; Opponent: Salamence" in calls[0]["user"]
+    assert "ALREADY" in calls[0]["system"] and "add_member ONLY" in calls[0]["system"]
+
+    tools = {o["properties"]["tool"]["enum"][0]
+             for o in llm_planner.plan_schema("team")["properties"]["steps"]["items"]["anyOf"]}
+    assert {"recommend_additions", "propose_set_edit", "add_member", "duel", "learnset"} <= tools
+    assert "team_context" not in tools and "semantic_search" not in tools
+    assert "add_member" not in {
+        o["properties"]["tool"]["enum"][0]
+        for o in llm_planner.plan_schema("ask")["properties"]["steps"]["items"]["anyOf"]}

@@ -21,7 +21,6 @@ from app.core.config import get_settings
 from app.models import UserFavorite, UserProfile
 from app.models.user import SOLE_PROFILE_ID
 from app.rag import answer as answer_service
-from app.rag import coach as coach_service
 from app.schemas.team import SlotUpdate, TeamCreate
 from app.services import team_analysis
 from app.services import teams as teams_service
@@ -289,12 +288,38 @@ def llm_available() -> bool:
 class CoachCaseResult:
     case: CoachCase
     grounded: bool
-    citation_ok: bool | None
-    abstained: bool | None
+    keyword_plan_ok: bool
+    keyword_confident: bool
+    planner: str
+    plan_ok: bool
+    citation_ok: bool | None = None
+    abstained: bool | None = None
+    usage: dict[str, int] = field(default_factory=dict)
+    tools: list[str] = field(default_factory=list)
 
 
-async def evaluate_coach(session: AsyncSession, *, use_llm: bool) -> list[CoachCaseResult]:
-    """Exercise the grounded team-coach path against a fixed player + opponent team."""
+async def _coach_ctx(session: AsyncSession, player_id: int, opponent_id: int | None):
+    from app.agent.tools import AgentContext
+
+    team = await teams_service.get_team(session, player_id)
+    opp = await teams_service.get_team(session, opponent_id) if opponent_id else None
+    analysis = await team_analysis.analyze(session, team, opp)
+    return AgentContext(scope="team", team=team, opponent=opp, extra={"analysis": analysis})
+
+
+async def evaluate_coach(
+    session: AsyncSession, *, use_llm: bool, factory: Callable | None = None,
+    plans_only: bool = False,
+) -> list[CoachCaseResult]:
+    """Team-coach cases on the agent (scope "team") against fixed temporary teams.
+
+    Keyless: the keyword plan and the team context only (adds run in card mode, so
+    nothing is written). With an LLM: the full coach path, or ``plans_only`` without the
+    answer call. The temporary teams are always deleted.
+    """
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    factory = factory or async_sessionmaker(session.bind, expire_on_commit=False)
     player = await teams_service.create_team(
         session, TeamCreate(name="__eval_player__", kind="player")
     )
@@ -308,30 +333,47 @@ async def evaluate_coach(session: AsyncSession, *, use_llm: bool) -> list[CoachC
         for i, pid in enumerate(COACH_OPPONENT_TEAM, start=1):
             await teams_service.set_slot(session, opponent.id, i, SlotUpdate(pokemon_id=pid))
 
-        full = await teams_service.get_team(session, player.id)
-        opp_full = await teams_service.get_team(session, opponent.id)
-        assert full is not None and opp_full is not None
-
         for case in COACH_CASES:
-            opp = opp_full if case.with_opponent else None
-            analysis = await team_analysis.analyze(session, full, opp)
-            chunks = await coach_service.build_coach_chunks(
-                session, case.question, full, analysis, opp
-            )
-            grounded = len(chunks) > 0
-            citation_ok = abstained = None
-            if use_llm:
-                try:
-                    answer = await answer_service.generate_answer(
-                        case.question, chunks, coach_service.COACH_NOTE
-                    )
-                    if case.abstain:
-                        abstained = is_abstention(answer)
-                    else:
-                        citation_ok = bool(re.search(r"[\[【]\d+[\]】]", answer))
-                except Exception:  # noqa: BLE001 — LLM grading is best-effort (e.g. rate limits)
-                    pass
-            results.append(CoachCaseResult(case, grounded, citation_ok, abstained))
+            ctx = await _coach_ctx(session, player.id, opponent.id if case.with_opponent else None)
+            kp = await plan_keywords(session, case.question, "team", ctx)
+            kw_ok = plan_matches(case.expect_tools, _steps(kp.plan))
+            r = CoachCaseResult(case, False, kw_ok, kp.confident, "keyword", kw_ok,
+                                tools=[s.tool for s in kp.plan.valid_steps])
+            if use_llm and not plans_only:
+                events = [e async for e in run_question(
+                    case.question, "team", session_factory=factory, ctx=ctx)]
+                out = collect(events)
+                r.planner, r.usage = out.planner, out.usage
+                steps = [(s.tool, s.args) for s in out.steps
+                         if s.state != "error" and s.tool != "team_context"]
+                r.plan_ok = plan_matches(case.expect_tools, steps)
+                r.tools = [s.tool for s in out.steps if s.tool != "team_context"]
+                r.grounded = any(s.step == "ctx" for s in out.sources)
+                if case.abstain:
+                    r.abstained = is_abstention(out.answer)
+                else:
+                    r.citation_ok = bool(re.search(r"[\[【]\d+[\]】]", out.answer))
+            else:
+                usage = answer_service.Usage()
+                if use_llm:  # plans only: real planner selection, no answer call
+                    ctx.extra["usage"] = usage
+                    plan, _ = await agent_runner._choose_plan(
+                        case.question, "team", factory, usage, ctx)
+                    r.planner = plan.planner
+                    r.plan_ok = plan_matches(case.expect_tools, _steps(plan))
+                    r.tools = [s.tool for s in plan.valid_steps]
+                else:
+                    plan = kp.plan
+                plan = agent_runner._with_context(plan, "team")
+                run = agent_runner._Run(case.question, "team", plan, usage, ctx=ctx)
+                async for ev in executor.run(plan, factory, ctx):  # adds: card mode
+                    if ev.result is not None:
+                        run.results[ev.step.id] = ev.result
+                r.grounded = bool(run.results.get("ctx") and run.results["ctx"].chunks)
+                if use_llm:
+                    calls = usage.calls + int(not agent_runner._closed_form(run))
+                    r.usage = {**usage.as_dict(), "llm_calls": calls}
+            results.append(r)
     finally:
         await teams_service.delete_team(session, player.id)
         await teams_service.delete_team(session, opponent.id)

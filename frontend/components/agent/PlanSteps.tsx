@@ -17,6 +17,11 @@ const TOOL_LABEL: Record<string, string> = {
   ability_info: "Look up the ability",
   item_info: "Look up the item",
   encounters: "Find where it lives",
+  team_context: "Read your team",
+  recommend_additions: "Draft candidates",
+  propose_set_edit: "Propose a set",
+  add_member: "Add to the team",
+  duel: "Play out the duel",
 };
 
 const MARK: Record<string, string> = { done: "✓", empty: "∅", error: "!" };
@@ -33,6 +38,7 @@ export function PlanSteps({
   elapsed,
   usage,
   answering,
+  compact = false,
 }: {
   steps: StepRun[];
   planner: Planner | null;
@@ -41,6 +47,8 @@ export function PlanSteps({
   elapsed: number | null;
   usage: Usage | null;
   answering: boolean;
+  /** Tighter spacing for the team coach's thread. */
+  compact?: boolean;
 }) {
   const settled = status === "done" || status === "error";
   // Open while working, folded once the answer is in. A click overrides that only for
@@ -55,14 +63,14 @@ export function PlanSteps({
 
   if (!steps.length) {
     return (
-      <div className="ax-plan is-planning" aria-live="polite">
+      <div className={`ax-plan is-planning ${compact ? "is-compact" : ""}`} aria-live="polite">
         <span className="ax-plan__dot" /> {status === "error" ? "Couldn’t plan" : "Planning the lookups…"}
       </div>
     );
   }
 
   return (
-    <div className={`ax-plan ${open ? "is-open" : ""} ${settled ? "is-settled" : ""}`}>
+    <div className={`ax-plan ${open ? "is-open" : ""} ${settled ? "is-settled" : ""} ${compact ? "is-compact" : ""}`}>
       <button type="button" className="ax-plan__sum" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <span className="ax-plan__dot" />
         <b>
