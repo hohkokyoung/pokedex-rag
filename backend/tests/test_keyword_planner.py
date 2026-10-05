@@ -261,3 +261,16 @@ async def test_learn_method_cue(session, q, method) -> None:
     [step] = kp.plan.steps
     assert step.tool == "learnset" and step.args.get("method") == method
     assert kp.confident is (method is None)
+
+
+@pytest.mark.parametrize("q,want", [
+    ("What do Protect and Substitute do?", [("move_info", "Protect"), ("move_info", "Substitute")]),
+    ("What do Intimidate and Leftovers do?",
+     [("ability_info", "Intimidate"), ("item_info", "Leftovers")]),
+    ("What do Protect and Leftovers do?", [("move_info", "Protect"), ("item_info", "Leftovers")]),
+])
+async def test_every_named_lookup_gets_a_step(session, q, want) -> None:
+    """Seen live on a quota fallback: only Protect was looked up and Substitute dropped."""
+    kp = await plan_keywords(session, q)
+    assert [(s.tool, s.args["name"]) for s in kp.plan.steps] == want
+    assert not kp.confident  # multi-part: the LLM planner still gets a say when available

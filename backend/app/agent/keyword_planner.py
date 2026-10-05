@@ -300,6 +300,18 @@ def _vague_query(args: dict) -> bool:
                 or args.get("sort_by") not in (None, "base_stat_total"))
 
 
+async def _other_info(session: AsyncSession, question: str, *, limit: int,
+                      found: list | None = None) -> list[dict]:
+    """One ability_info / item_info step per ability or item named in the question."""
+    if found is None:
+        found = await names.find_in_text(session, question, ("ability", "item"))
+    return [
+        _step("ability_info" if o.kind == "ability" else "item_info", f"what {o.name} does",
+              name=o.name)
+        for o in found[:max(limit, 0)]
+    ]
+
+
 async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], bool]:
     text = question.lower()
     found = await names.find_in_text(session, question, ("pokemon", "form", "move", "type"))
@@ -340,7 +352,9 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
             )]
             return steps, _simple(question, found, "learners") and not (
                 plain_types or legendary is not None or mythical is not None or how)
-        steps = [_step("move_info", f"what {m.name} does", name=m.name)]
+        # Every named move (and ability/item: "Protect and Leftovers"), one lookup each.
+        steps = [_step("move_info", f"what {x.name} does", name=x.name) for x in moves[:4]]
+        steps += await _other_info(session, question, limit=4 - len(steps))
         if m.name in both:
             steps.append(_step("type_matchup", f"the {m.name} type chart", types=[m.name.lower()]))
         return steps, len(steps) == 1 and _simple(question, found, "move")
@@ -395,10 +409,8 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
     if not found:
         other = await names.find_in_text(session, question, ("ability", "item"))
         if other:
-            o = other[0]
-            tool = "ability_info" if o.kind == "ability" else "item_info"
-            return [_step(tool, f"what {o.name} does", name=o.name)], _simple(
-                question, other, "move")
+            steps = await _other_info(session, question, limit=4, found=other)
+            return steps, len(steps) == 1 and _simple(question, other, "move")
 
     # ---- rankings, thresholds, filters (+ lore = today's hybrid) ----
     sq = sql_retrieval.plan(question)
