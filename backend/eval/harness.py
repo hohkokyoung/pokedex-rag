@@ -6,7 +6,7 @@ from __future__ import annotations
 import asyncio
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,10 +25,13 @@ from app.schemas.team import SlotUpdate, TeamCreate
 from app.services import team_analysis
 from app.services import teams as teams_service
 from eval.dataset import (
+    CALC_CASES,
+    CALC_STATE,
     CASES,
     COACH_CASES,
     COACH_OPPONENT_TEAM,
     COACH_PLAYER_TEAM,
+    CalcCase,
     CoachCase,
     EvalCase,
     ToolExpect,
@@ -377,4 +380,90 @@ async def evaluate_coach(
     finally:
         await teams_service.delete_team(session, player.id)
         await teams_service.delete_team(session, opponent.id)
+    return results
+
+
+# ---- calc coach -----------------------------------------------------------------------
+
+
+@dataclass
+class CalcCaseResult:
+    case: CalcCase
+    grounded: bool
+    keyword_plan_ok: bool
+    keyword_confident: bool
+    planner: str
+    plan_ok: bool
+    citation_ok: bool | None = None
+    abstained: bool | None = None
+    usage: dict[str, int] = field(default_factory=dict)
+    tools: list[str] = field(default_factory=list)
+
+
+async def evaluate_calc(
+    session: AsyncSession, *, use_llm: bool, factory: Callable | None = None,
+    plans_only: bool = False,
+) -> list[CalcCaseResult]:
+    """Calculator-coach cases on the agent (scope "calc") against ``CALC_STATE``.
+
+    Keyless and plans-only runs never execute ``propose_build`` (it is an LLM call): each
+    one is counted as a call instead, so the count stays exact without spending tokens.
+    Nothing is written — the calc coach has no saved state.
+    """
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from app.agent.tools import REGISTRY, AgentContext
+    from app.schemas.calc import CalcAskRequest
+    from app.services.calc_state import resolve_state
+
+    factory = factory or async_sessionmaker(session.bind, expire_on_commit=False)
+    state = await resolve_state(session, CalcAskRequest(question="eval", **CALC_STATE))
+    results: list[CalcCaseResult] = []
+    for case in CALC_CASES:
+        ctx = AgentContext(scope="calc", extra={"calc": state})
+        kp = await plan_keywords(session, case.question, "calc", ctx)
+        kw_ok = plan_matches(case.expect_tools, _steps(kp.plan))
+        r = CalcCaseResult(case, False, kw_ok, kp.confident, "keyword", kw_ok,
+                           tools=[s.tool for s in kp.plan.valid_steps])
+        if use_llm and not plans_only:
+            events = [e async for e in run_question(
+                case.question, "calc", session_factory=factory, ctx=ctx)]
+            out = collect(events)
+            r.planner, r.usage = out.planner, out.usage
+            steps = [(s.tool, s.args) for s in out.steps
+                     if s.state != "error" and s.tool != "calc_context"]
+            r.plan_ok = plan_matches(case.expect_tools, steps)
+            r.tools = [s.tool for s in out.steps if s.tool != "calc_context"]
+            r.grounded = any(s.step == "ctx" for s in out.sources)
+            if case.abstain:
+                r.abstained = is_abstention(out.answer)
+            elif not (r.tools and all(REGISTRY[t].closed_form for t in r.tools)):
+                r.citation_ok = bool(re.search(r"[\[【]\d+[\]】]", out.answer))
+        else:
+            usage = answer_service.Usage()
+            if use_llm:  # plans only: real planner selection, no build/answer call
+                ctx.extra["usage"] = usage
+                plan, _ = await agent_runner._choose_plan(
+                    case.question, "calc", factory, usage, ctx)
+                r.planner = plan.planner
+                r.plan_ok = plan_matches(case.expect_tools, _steps(plan))
+                r.tools = [s.tool for s in plan.valid_steps]
+            else:
+                plan = kp.plan
+            builds = sum(s.tool == "propose_build" for s in plan.valid_steps)
+            plan = agent_runner._with_context(
+                replace(plan, steps=[s for s in plan.steps if s.tool != "propose_build"]),
+                "calc")
+            run = agent_runner._Run(case.question, "calc", plan, usage, ctx=ctx)
+            async for ev in executor.run(plan, factory, ctx):
+                if ev.result is not None:
+                    run.results[ev.step.id] = ev.result
+            r.grounded = bool(run.results.get("ctx") and run.results["ctx"].chunks)
+            if use_llm:
+                rest = [s for s in plan.steps if s.id != "ctx"]
+                closed = (bool(rest) and agent_runner._closed_form(run)) or (
+                    builds and not rest)
+                calls = usage.calls + builds + int(not closed)
+                r.usage = {**usage.as_dict(), "llm_calls": calls}
+        results.append(r)
     return results

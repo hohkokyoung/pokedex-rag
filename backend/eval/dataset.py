@@ -212,3 +212,48 @@ COACH_CASES: list[CoachCase] = [
     CoachCase("c10", "Charizard vs Blastoise — who wins?", with_opponent=True,
               expect_tools=[T("duel", ours="Charizard", theirs="Blastoise")], fast_path=False),
 ]
+
+
+@dataclass
+class CalcCase:
+    """A calculator-coach question graded on the calc-scope plan (and, with a key, the answer).
+
+    Like ``CoachCase``, ``expect_tools`` lists only the steps after the calc context step.
+    """
+
+    id: str
+    question: str
+    expect_tools: list[ToolExpect] = field(default_factory=list)
+    fast_path: bool | None = None
+    abstain: bool = False  # LLM grading only
+
+
+# The calculator state every calc case is asked against: Garchomp (yours, slot 0) aiming
+# Earthquake at Salamence (theirs, slot 2), which aims Dragon Claw back.
+CALC_STATE: dict = {
+    "level": 50,
+    "focus": 0,
+    "slots": [
+        {"slot": 0, "pokemon_id": 445, "nature": "Jolly", "evs": {"atk": 252, "spe": 252},
+         "item": "Life Orb", "ability": "Rough Skin", "move": "Earthquake", "aim": 2},
+        {"slot": 2, "pokemon_id": 373, "nature": "Adamant", "evs": {"atk": 252, "spe": 252},
+         "item": "Choice Band", "ability": "Intimidate", "move": "Dragon Claw", "aim": 0},
+    ],
+}
+
+CALC_CASES: list[CalcCase] = [
+    CalcCase("k1", "Can Garchomp OHKO Salamence with Dragon Claw?",
+             expect_tools=[T("damage_calc", attacker="Garchomp", defender="Salamence",
+                             move="Dragon Claw")], fast_path=True),
+    CalcCase("k2", "Can Garchomp OHKO Salamence with Dragon Claw with Choice Band?",
+             expect_tools=[T("damage_calc", move="Dragon Claw",
+                             changes=[{"key": "item", "value": "Choice Band"}])],
+             fast_path=True),
+    CalcCase("k3", "How much Def does Garchomp need to survive Salamence's Dragon Claw?",
+             expect_tools=[T("survive_threshold", defender="Garchomp")], fast_path=True),
+    CalcCase("k4", "Best build", expect_tools=[T("propose_build")], fast_path=True),
+    CalcCase("k5", "Make it faster", expect_tools=[T("propose_build")], fast_path=True),
+    CalcCase("k6", "Who learns Earthquake?", expect_tools=[T("learnset", move="Earthquake")],
+             fast_path=True),
+    CalcCase("k7", "Who wins this?", fast_path=True),
+]

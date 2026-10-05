@@ -22,6 +22,10 @@ const TOOL_LABEL: Record<string, string> = {
   propose_set_edit: "Propose a set",
   add_member: "Add to the team",
   duel: "Play out the duel",
+  calc_context: "Read the calculator",
+  damage_calc: "Run the damage calc",
+  survive_threshold: "Find the bulk to survive",
+  propose_build: "Draft a build",
 };
 
 const MARK: Record<string, string> = { done: "✓", empty: "∅", error: "!" };
@@ -57,7 +61,7 @@ export function PlanSteps({
   const open = override?.status === status ? override.open : !settled;
   const setOpen = (fn: (o: boolean) => boolean) => setOverride({ status, open: fn(open) });
 
-  const by = cached ? "Cached" : planner === "keyword" ? "Keyword match · no LLM" : planner === "llm" ? "Planned by the LLM" : null;
+  const by = cached ? "Cached" : planner === "keyword" ? "Planned by keywords" : planner === "llm" ? "Planned by the LLM" : null;
   const calls = usage ? `${usage.llm_calls} LLM call${usage.llm_calls === 1 ? "" : "s"}` : null;
   const working = !settled && steps.length > 0 && steps.every((s) => s.state !== "running" && s.state !== "pending");
 

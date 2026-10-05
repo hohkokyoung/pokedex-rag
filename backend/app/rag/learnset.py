@@ -82,6 +82,7 @@ class LearnsetPlan:
     mythical: bool | None = None
     version_group_id: int | None = None  # one game's learnset; None = any game
     game: str | None = None  # that game's display name
+    method: str | None = None  # only this learn method ("level-up", "machine", "tutor", "egg")
 
 
 @dataclass
@@ -161,6 +162,7 @@ async def plan_typed(
     damage_class: str | None = None,
     legendary: bool | None = None,
     mythical: bool | None = None,
+    method: str | None = None,
 ) -> LearnsetPlan:
     """A plan from explicit names and filters. Raises ``UnresolvedName`` for an unknown name.
 
@@ -193,16 +195,19 @@ async def plan_typed(
         mythical=mythical,
         version_group_id=vg.id if vg else None,
         game=vg.name if vg else None,
+        method=method if method in METHOD_LABEL else None,
     )
 
 
-def _learn_rows(version_group_id: int | None):
+def _learn_rows(version_group_id: int | None, method: str | None = None):
     """(pokemon_id, move_id, learn_method, level) — any game, or one game's learnset.
 
     A move learnable several ways in one game keeps the most direct method
-    (level-up, then TM, tutor, egg), matching the any-game table's single row.
+    (level-up, then TM, tutor, egg), matching the any-game table's single row. With
+    ``method``, only that method counts — read per game, since the any-game table keeps
+    one method per move (a level-up learner that also takes the TM would be missed).
     """
-    if version_group_id is None:
+    if version_group_id is None and method is None:
         L = PokemonMove
         return select(
             L.pokemon_id.label("pokemon_id"), L.move_id.label("move_id"),
@@ -212,13 +217,16 @@ def _learn_rows(version_group_id: int | None):
     rank = case(
         {m: i for i, m in enumerate(_METHOD_ORDER)}, value=L.learn_method, else_=literal(9)
     )
+    stmt = select(
+        L.pokemon_id.label("pokemon_id"), L.move_id.label("move_id"),
+        L.learn_method.label("learn_method"), L.level.label("level"),
+    )
+    if version_group_id is not None:
+        stmt = stmt.where(L.version_group_id == version_group_id)
+    if method is not None:
+        stmt = stmt.where(L.learn_method == method)
     return (
-        select(
-            L.pokemon_id.label("pokemon_id"), L.move_id.label("move_id"),
-            L.learn_method.label("learn_method"), L.level.label("level"),
-        )
-        .where(L.version_group_id == version_group_id)
-        .distinct(L.pokemon_id, L.move_id)
+        stmt.distinct(L.pokemon_id, L.move_id)
         .order_by(L.pokemon_id, L.move_id, rank, L.level)
         .subquery()
     )
@@ -247,6 +255,58 @@ def move_chunk(move: Move, move_type: str, learners: int, extra: str = "") -> Re
             "pp": move.pp, "learners": learners, "effect": move.short_effect,
         }},
     )
+
+
+# Short game names for level histories ("Lv 1 in SwSh/BDSP").
+_SHORT_GAME = {
+    "red-blue": "RB", "yellow": "Yellow", "gold-silver": "GS", "crystal": "Crystal",
+    "ruby-sapphire": "RS", "emerald": "Emerald", "firered-leafgreen": "FRLG",
+    "diamond-pearl": "DP", "platinum": "Platinum", "heartgold-soulsilver": "HGSS",
+    "black-white": "BW", "black-2-white-2": "B2W2", "x-y": "XY",
+    "omega-ruby-alpha-sapphire": "ORAS", "sun-moon": "SM", "ultra-sun-ultra-moon": "USUM",
+    "lets-go-pikachu-lets-go-eevee": "LGPE", "sword-shield": "SwSh",
+    "brilliant-diamond-shining-pearl": "BDSP", "legends-arceus": "PLA", "scarlet-violet": "SV",
+}
+
+
+async def _level_history(
+    session: AsyncSession, move_id: int, pokemon_ids: list[int]
+) -> dict[int, list[tuple[int, str, int]]]:
+    """Per Pokémon: (level, game, release order) for every game it learns the move by level-up."""
+    if not pokemon_ids:
+        return {}
+    L = PokemonMoveLearn
+    rows = (
+        await session.execute(
+            select(L.pokemon_id, L.level, VersionGroup.identifier, VersionGroup.sort_order)
+            .join(VersionGroup, VersionGroup.id == L.version_group_id)
+            .where(L.move_id == move_id, L.pokemon_id.in_(pokemon_ids),
+                   L.learn_method == "level-up", L.level > 0)
+        )
+    ).all()
+    out: dict[int, list[tuple[int, str, int]]] = {}
+    for pid, level, game, order in rows:
+        out.setdefault(pid, []).append((level, game, order))
+    return out
+
+
+def _how_by_game(history: list[tuple[int, str, int]] | None) -> str | None:
+    """'by level-up (Lv 1 in SwSh/BDSP; Lv 51–52 in other games)' when the level depends on
+    the game — the any-game table keeps only the lowest level, which reads as "Lv 1"."""
+    levels = sorted({lv for lv, _, _ in history or ()})
+    if len(levels) <= 1:
+        return None
+    newest = max(history, key=lambda r: r[2])[0]
+    games = [_SHORT_GAME.get(g, g) for lv, g, _ in sorted(history, key=lambda r: r[2])
+             if lv == newest]
+    others = [lv for lv in levels if lv != newest]
+    span = f"Lv {others[0]}" if len(others) == 1 else f"Lv {others[0]}–{others[-1]}"
+    return f"by level-up (Lv {newest} in {'/'.join(games)}; {span} in other games)"
+
+
+def _by(method: str) -> str:
+    """'by level-up' / 'by TM' / 'as an egg move'."""
+    return "as an egg move" if method == "egg" else f"by {METHOD_LABEL.get(method, method)}"
 
 
 def _how(method: str | None, level: int | None) -> str:
@@ -300,7 +360,7 @@ async def _move_with_type(
 async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> LearnsetOutcome:
     """Who learns a move: the move, a by-method count, then its best users."""
     move, mtype, total = await _move_with_type(session, p.move_id, p.version_group_id)
-    L = _learn_rows(p.version_group_id)
+    L = _learn_rows(p.version_group_id, p.method)
 
     base = (
         select(Pokemon, L.c.learn_method, L.c.level)
@@ -331,6 +391,7 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
     ).all()
     by_method = {m: n for m, n in counts}
     who = " ".join([str(sum(by_method.values())), *scope, "Pokémon"])
+    only = f" {_by(p.method)}" if p.method else ""
     breakdown = ", ".join(
         f"{by_method[m]} {'as egg moves' if m == 'egg' else 'by ' + METHOD_LABEL.get(m, m)}"
         for m in _METHOD_ORDER
@@ -343,8 +404,8 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
         dex_number=None,
         chunk_type="learners",
         source_ref=move.name,
-        content=f"{who} can learn {move.name}{_in_game(p)}"
-        + (f": {breakdown}." if breakdown else "."),
+        content=f"{who} can learn {move.name}{only}{_in_game(p)}"
+        + (f": {breakdown}." if breakdown and not p.method else "."),
         score=1.0,
     )
 
@@ -365,10 +426,18 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
             .limit(k)
         )
     ).all()
+    history = (
+        await _level_history(session, move.id, [pk.id for pk, m, _ in rows if m == "level-up"])
+        if p.version_group_id is None else {}
+    )
+    hows = {
+        pk.id: (_how_by_game(history.get(pk.id)) if m == "level-up" else None) or _how(m, lv)
+        for pk, m, lv in rows
+    }
     users = []
-    for pokemon, method, level in rows:
+    for pokemon, _method, _level in rows:
         chunk = _row_to_chunk(pokemon)
-        chunk.content += f" Learns {move.name} {_how(method, level)}{_in_game(p)}."
+        chunk.content += f" Learns {move.name} {hows[pokemon.id]}{_in_game(p)}."
         users.append(chunk)
 
     stat_name = {"physical": "Attack", "special": "Special Attack"}.get(move.damage_class)
@@ -386,7 +455,8 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
         {
             "move": move, "move_type": mtype, "move_learners": total,
             "total": sum(by_method.values()), "by_method": by_method, "scope": scope,
-            "game": p.game, "users": [(pk, m, lv) for pk, m, lv in rows],
+            "game": p.game, "users": [(pk, m, lv) for pk, m, lv in rows], "hows": hows,
+            "method": p.method,
         },
     )
 
@@ -394,7 +464,7 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
 async def _learnset(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     """A Pokémon's moves, one chunk per learn method."""
     pokemon = await session.get(Pokemon, p.pokemon_id)
-    L = _learn_rows(p.version_group_id)
+    L = _learn_rows(p.version_group_id, p.method)
     stmt = (
         select(Move, Type.identifier, L.c.learn_method, L.c.level)
         .join(L, L.c.move_id == Move.id)
@@ -468,7 +538,7 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     """Can this Pokémon learn this move? Yes (with how) or no, from the learnset."""
     pokemon = await session.get(Pokemon, p.pokemon_id)
     move, mtype, total = await _move_with_type(session, p.move_id, p.version_group_id)
-    L = _learn_rows(p.version_group_id)
+    L = _learn_rows(p.version_group_id, p.method)
     row = (
         await session.execute(
             select(L.c.learn_method, L.c.level).where(
@@ -477,12 +547,16 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
         )
     ).first()
     how = _how(row[0], row[1]) if row else None
-    verdict = (
-        f"{pokemon.name} can learn {move.name} {how}{_in_game(p)}."
-        if row
-        else f"{pokemon.name} cannot learn {move.name}{_in_game(p)}: it is not in "
-        f"{pokemon.name}'s learnset."
-    )
+    if row and row[0] == "level-up" and p.version_group_id is None:
+        history = await _level_history(session, p.move_id, [p.pokemon_id])
+        how = _how_by_game(history.get(p.pokemon_id)) or how
+    if row:
+        verdict = f"{pokemon.name} can learn {move.name} {how}{_in_game(p)}."
+    elif p.method:
+        verdict = f"{pokemon.name} doesn't learn {move.name} {_by(p.method)}{_in_game(p)}."
+    else:
+        verdict = (f"{pokemon.name} cannot learn {move.name}{_in_game(p)}: it is not in "
+                   f"{pokemon.name}'s learnset.")
     fact = RetrievedChunk(
         id=-(5_000_000 + p.pokemon_id),
         pokemon_id=pokemon.id,
@@ -504,5 +578,5 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     return LearnsetOutcome(
         "pair", chunks, note,
         {"pokemon": pokemon, "move": move, "move_type": mtype, "move_learners": total,
-         "ok": row is not None, "how": how, "game": p.game},
+         "ok": row is not None, "how": how, "game": p.game, "method": p.method},
     )

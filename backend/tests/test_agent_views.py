@@ -7,9 +7,14 @@ import pytest
 from app.agent.views import (
     VIEW_ADAPTER,
     VIEW_KINDS,
+    BuildProposalView,
     BuildSet,
+    CalcApply,
+    CalcRef,
     CandidatesView,
+    DamageView,
     DuelView,
+    HitRange,
     LearnCheckView,
     LearnersView,
     LearnGroup,
@@ -24,8 +29,10 @@ from app.agent.views import (
     RankingView,
     SetEditView,
     SlotRef,
+    SurviveView,
     TypeChartView,
 )
+from app.rag.build_suggest import BuildSuggestion
 from app.schemas.analysis import DuelOut
 from app.schemas.recommend import Candidate
 
@@ -33,6 +40,9 @@ CARD = PokemonCard(ref=0, pokemon_id=6, name="Charizard", dex_number=6, types=["
                    stats={"hp": 78, "speed": 100}, total=534)
 MOVE = MoveRow(ref=0, move_id=89, name="Earthquake", type="ground", damage_class="physical",
                power=100, accuracy=100, pp=10, learners=400)
+GAR = CalcRef(slot=0, name="Garchomp", side=0, dex_number=445)
+HEA = CalcRef(slot=2, name="Heatran", side=1, dex_number=485)
+RANGE = HitRange(min_pct=80.5, max_pct=95.2, ko=2, te=1, ko_text="a guaranteed 2HKO")
 
 SAMPLES = [
     RankingView(stat="speed", total=12, rows=[RankingRow(**CARD.model_dump(), value=100)],
@@ -54,6 +64,14 @@ SAMPLES = [
     MemberAddedView(team_id=1, added=True, slot=4, card=CARD, message="Added"),
     DuelView(team_id=1, opponent_id=2, duel=DuelOut(
         our_slot=1, their_slot=1, our_name="A", their_name="B", outcome="win", first="ours")),
+    DamageView(attacker=GAR, defender=HEA, move=MOVE, current=RANGE, whatif=RANGE,
+               changes=[{"who": "attacker", "key": "item", "value": "Choice Band"}],
+               apply=[CalcApply(slot=0, fields={"item": "Choice Band"})]),
+    SurviveView(defender=HEA, attacker=GAR, move=MOVE, survives=True, stat="def", hp_ev=252,
+                stat_ev=44, nature="Bold", nature_changed=True, range=RANGE, current=RANGE,
+                apply=CalcApply(slot=2, fields={"evs": {"hp": 252, "def": 44}})),
+    BuildProposalView(slot=0, pokemon="Garchomp", build=BuildSuggestion(
+        pokemon="Garchomp", moves=["Earthquake"], evs={"atk": 252}, why="fast")),
 ]
 
 

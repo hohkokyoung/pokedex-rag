@@ -6,7 +6,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, typ
 import { createPortal } from "react-dom";
 import { useKeyNav } from "@/hooks/useKeyNav";
 import { Facts, GradeBadge, StrategyBars, SummaryText, useInfo } from "@/components/TeamCardParts";
-import { defensiveMatchups, superEffectiveHits, typingEff } from "@/lib/typeChart";
+import { defensiveMatchups, superEffectiveHits } from "@/lib/typeChart";
 import TypeMatchups from "@/components/TypeMatchups";
 import { MoveLearnersModal } from "@/components/MoveLearners";
 import Finder from "@/components/Finder";
@@ -18,6 +18,14 @@ import {
   type CalcMon, type CalcMove, type EVs, type PickOpt, type SKey,
 } from "@/components/calc/fields";
 import { renderAnswer } from "@/lib/answerFormat";
+import { RESIST_BERRY, TYPE_BOOST, calcHit, type DcField, type DcResult } from "@/lib/damageCalc";
+import { DamageCard, SurviveCard } from "@/components/calc/CoachCards";
+import { PlanSteps } from "@/components/agent/PlanSteps";
+import { ViewBlock } from "@/components/agent/ViewBlock";
+import type { Linking } from "@/components/agent/views/shared";
+import {
+  applyDelta, applyDone, applyError, applyPlan, applySources, applyStep, applyView, startRun, type AskRun,
+} from "@/components/agent/runState";
 import {
   listPokemon,
   listTeams,
@@ -29,9 +37,12 @@ import {
   getMoveLearners,
   getAbilityHolders,
   listNatures,
-  suggestBuild,
+  calcAskStream,
   type BuildSuggestion,
-  type CoachTurn,
+  type BuildProposalView,
+  type CalcApply,
+  type CalcAskState,
+  type CalcRef,
   assetUrl,
   type MoveResult,
   type MoveLearner,
@@ -47,7 +58,6 @@ import { TYPE_HEX } from "@/lib/pokeTypes";
 /* ---------------- shared data ---------------- */
 const TC = TYPE_HEX;
 const ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
-const eff = typingEff;
 /** Detail link that preserves an alternate form (search results may be forms). */
 const pokeHref = (p: PokemonSummary) =>
   p.form_id ? `/pokedex/${p.dex_number}?form=${p.form_id}` : `/pokedex/${p.dex_number}`;
@@ -604,16 +614,6 @@ function NatureTile() {
 /* ---------------- Damage calculator ---------------- */
 // Curated damage-relevant items & abilities (name → effect flags).
 // Held items the calc models. Type boosters and resist berries are keyed by the move type they touch.
-const TYPE_BOOST: Record<string, string> = {
-  "Silk Scarf": "normal", "Charcoal": "fire", "Mystic Water": "water", "Magnet": "electric", "Miracle Seed": "grass", "Never-Melt Ice": "ice",
-  "Black Belt": "fighting", "Poison Barb": "poison", "Soft Sand": "ground", "Sharp Beak": "flying", "Twisted Spoon": "psychic", "Silver Powder": "bug",
-  "Hard Stone": "rock", "Spell Tag": "ghost", "Dragon Fang": "dragon", "Black Glasses": "dark", "Metal Coat": "steel", "Fairy Feather": "fairy",
-};
-const RESIST_BERRY: Record<string, string> = {
-  "Occa Berry": "fire", "Passho Berry": "water", "Wacan Berry": "electric", "Rindo Berry": "grass", "Yache Berry": "ice", "Chople Berry": "fighting",
-  "Kebia Berry": "poison", "Shuca Berry": "ground", "Coba Berry": "flying", "Payapa Berry": "psychic", "Tanga Berry": "bug", "Charti Berry": "rock",
-  "Kasib Berry": "ghost", "Haban Berry": "dragon", "Colbur Berry": "dark", "Babiri Berry": "steel", "Roseli Berry": "fairy",
-};
 type DcItem = { name: string; side: "a" | "d"; note: string };
 const DC_ITEM_INFO: DcItem[] = [
   { name: "Choice Band", side: "a", note: "Atk ×1.5" }, { name: "Choice Specs", side: "a", note: "SpA ×1.5" },
@@ -630,62 +630,13 @@ const WEATHER = ["None", "Rain", "Sun"];
 const TERRAIN = ["None", "Electric", "Grassy", "Psychic"];
 type DcSet = { mon: CalcMon | null; pre: string; nat: string; ev: EVs; iv: EVs; item: string; abil: string; hp: number };
 // One-tap follow-ups for the calc's coach.
-const COACH_START = ["Best build", "Bulky set", "Fast sweeper", "Special attacker"];
+const COACH_START = ["Best build", "Bulky set", "Fast sweeper"];
 const COACH_QUICK = ["Make it bulkier", "Make it faster", "No Choice item", "Try a special set", "Explain the EVs"];
 const sameBuild = (a: BuildSuggestion, b?: BuildSuggestion) => !!b && JSON.stringify({ ...a, why: "" }) === JSON.stringify({ ...b, why: "" });
 // An EV spread in words, biggest spends first: "252 Atk / 252 Spe / 4 HP".
 const evText = (ev: EVs) => (Object.keys(ev) as SKey[]).filter((k) => ev[k] > 0).sort((x, y) => ev[y] - ev[x]).map((k) => `${ev[k]} ${SABBR[k]}`).join(" / ") || "none";
-type DcField = {
-  level: number; doubles: boolean; spread: boolean; weather: string; terrain: string;
-  reflect: boolean; lightscreen: boolean; crit: boolean; burn: boolean; helpingHand: boolean; friendGuard: boolean;
-};
-type DcResult = { minPct: number; maxPct: number; ko: number; te: number; stab: number; A: number; D: number; base: number; mod: number };
 // hp = current HP as % of max; damage % stays relative to max HP, KO calls use current.
 const newDef = (): DcSet => ({ mon: null, pre: "Bulky", ...BULKY_SET, item: "None", abil: "None", hp: 100 });
-function calcHit(atk: CalcMon, a: DcSet, def: CalcMon, d: DcSet, move: CalcMove, f: DcField): DcResult {
-  const { level } = f;
-  const phys = move.damage_class === "physical";
-  const aK: SKey = phys ? "atk" : "spa"; const dK: SKey = phys ? "def" : "spd";
-  let A = statFull(phys ? atk.stats.attack : atk.stats.sp_attack, level, a.iv[aK], a.ev[aK], natMul(a.nat, aK), false);
-  let D = statFull(phys ? def.stats.defense : def.stats.sp_defense, level, d.iv[dK], d.ev[dK], natMul(d.nat, dK), false);
-  const HP = statFull(def.stats.hp, level, d.iv.hp, d.ev.hp, 1, true);
-  if (a.item === "Choice Band" && phys) A = Math.floor(A * 1.5);
-  if (a.item === "Choice Specs" && !phys) A = Math.floor(A * 1.5);
-  if (a.abil === "Huge Power" && phys) A = Math.floor(A * 2);
-  if (a.abil === "Guts" && f.burn && phys) A = Math.floor(A * 1.5);
-  if (d.item === "Assault Vest" && !phys) D = Math.floor(D * 1.5);
-  if (d.item === "Eviolite") D = Math.floor(D * 1.5);
-  // Helping Hand boosts the move's base power, so it enters before the base-damage floor.
-  const power = f.doubles && f.helpingHand ? Math.floor(move.power * 1.5) : move.power;
-  const base = Math.floor(Math.floor(Math.floor((2 * level) / 5 + 2) * power * A / D) / 50) + 2;
-  const te = eff(move.type, def.types);
-  const stab = atk.types.includes(move.type) ? (a.abil === "Adaptability" ? 2 : 1.5) : 1;
-  let mod = 1;
-  if (f.doubles && f.spread) mod *= 0.75;
-  if (f.weather === "Rain") mod *= move.type === "water" ? 1.5 : move.type === "fire" ? 0.5 : 1;
-  if (f.weather === "Sun") mod *= move.type === "fire" ? 1.5 : move.type === "water" ? 0.5 : 1;
-  if (f.terrain === "Electric" && move.type === "electric") mod *= 1.3;
-  if (f.terrain === "Grassy" && move.type === "grass") mod *= 1.3;
-  if (f.terrain === "Psychic" && move.type === "psychic") mod *= 1.3;
-  if (f.crit) mod *= 1.5;
-  if (f.burn && phys && a.abil !== "Guts") mod *= 0.5;
-  if (!f.crit) { if (phys && f.reflect) mod *= f.doubles ? 0.667 : 0.5; if (!phys && f.lightscreen) mod *= f.doubles ? 0.667 : 0.5; }
-  if (f.doubles && f.friendGuard) mod *= 0.75;
-  if (a.item === "Life Orb") mod *= 1.3;
-  if (a.item === "Muscle Band" && phys) mod *= 1.1;
-  if (a.item === "Wise Glasses" && !phys) mod *= 1.1;
-  if (a.item === "Expert Belt" && te > 1) mod *= 1.2;
-  if (TYPE_BOOST[a.item] === move.type) mod *= 1.2;
-  if (RESIST_BERRY[d.item] === move.type && te > 1) mod *= 0.5;
-  if (a.abil === "Technician" && move.power <= 60) mod *= 1.5;
-  if (a.abil === "Tinted Lens" && te < 1) mod *= 2;
-  if (d.abil === "Thick Fat" && (move.type === "fire" || move.type === "ice")) mod *= 0.5;
-  if (d.abil === "Multiscale" && d.hp >= 100) mod *= 0.5;
-  if ((d.abil === "Solid Rock" || d.abil === "Filter") && te > 1) mod *= 0.75;
-  const total = base * stab * te * mod;
-  const maxDmg = Math.floor(total), minDmg = Math.floor(total * 0.85);
-  return { minPct: HP ? minDmg / HP * 100 : 0, maxPct: HP ? maxDmg / HP * 100 : 0, ko: te === 0 || minDmg <= 0 ? 0 : Math.ceil((HP * d.hp) / 100 / minDmg), te, stab, A, D, base, mod: stab * te * mod };
-}
 // Doubles targeting, from the move's PokéAPI `move_targets` identifier.
 type TgKind = "sel" | "rand" | "foes" | "all" | "ally";
 const tgKind = (t?: string | null): TgKind =>
@@ -791,6 +742,38 @@ function useAbilityOpts(mon: CalcMon | null): PickOpt[] {
 type DcHit = { from: number; to: number; r: DcResult; ff: boolean };
 type TurnHit = DcHit & { ko: "yes" | "maybe" | null; sash: boolean };
 
+// Damage / survive cards in the coach thread have no citations to link to.
+const NO_LINK: Linking = { n: () => null, hot: null, cited: new Set<number>(), hover: () => ({}) };
+
+/** Stream one calc-coach question into its turn (outside the component: it reads the clock). */
+function streamCalcCoach(
+  question: string,
+  state: CalcAskState,
+  patch: (fn: (t: AskRun) => AskRun) => void,
+  onBuild: (v: BuildProposalView) => void,
+): AbortController {
+  const ctrl = new AbortController();
+  const t0 = performance.now();
+  calcAskStream(question, state, {
+    signal: ctrl.signal,
+    onPlan: (p) => patch((t) => applyPlan(t, p)),
+    onStep: (e) => patch((t) => applyStep(t, e)),
+    onView: (v) => {
+      patch((t) => applyView(t, v));
+      if (v.kind === "build_proposal") onBuild(v);
+    },
+    onSources: (s) => patch((t) => applySources(t, s)),
+    onDelta: (d) => patch((t) => applyDelta(t, d)),
+    onDone: (d) => patch((t) => applyDone(t, d, (performance.now() - t0) / 1000)),
+    onError: (reason) =>
+      patch((t) =>
+        applyError(t, reason === "assistant-not-configured" ? "The coach needs an LLM API key for that."
+          : reason.startsWith("Coaching failed") ? reason : "The coach couldn't answer — try again."),
+      ),
+  });
+  return ctrl;
+}
+
 function DamageCalcTile() {
   const [level, setLevel] = useState(100);
   const [doubles, setDoubles] = useState(false);
@@ -808,20 +791,26 @@ function DamageCalcTile() {
   const [reflect, setReflect] = useState(false); const [lightscreen, setLightscreen] = useState(false);
   const [crit, setCrit] = useState(false); const [burn, setBurn] = useState(false);
   const [friendGuard, setFriendGuard] = useState(false);
-  // The coach's proposed build for one slot. `prev` holds what it replaced once applied, for Revert.
-  // The coach's proposed build for one slot, and the conversation that shaped it. `prev` is the set
-  // before the coach's first Apply (what Revert restores); `applied` says the current proposal is in.
+  // The coach's conversation about one slot, and the build it proposed there (from a `build_proposal`
+  // view). `prev` is the set before the coach's first Apply (what Revert restores); `applied` says the
+  // current proposal is in. Each turn is one streamed agent run (plan steps, views, answer).
   const [coach, setCoach] = useState<{
-    slot: number; monId: number; loading?: boolean; err?: string; build?: BuildSuggestion; pick?: string;
-    prev?: { set: DcSet; idx: number }; applied?: boolean; thread: CoachTurn[]; asking?: string;
+    id: number; slot: number; monId: number; turns: AskRun[]; build?: BuildSuggestion; pick?: string;
+    prev?: { set: DcSet; idx: number }; applied?: boolean;
   } | null>(null);
+  // Damage / survive cards applied into the calc: "<turn>:<view>" → the slots as they were, for Revert.
+  const [cardPrev, setCardPrev] = useState<Record<string, Record<number, DcSet>>>({});
   const [coachInput, setCoachInput] = useState("");
   const coachChatRef = useRef<HTMLDivElement | null>(null);
+  const coachAbort = useRef<AbortController | null>(null);
+  const coachSeq = useRef(0);
+  useEffect(() => () => coachAbort.current?.abort(), []);
+  const lastTurn = coach?.turns.at(-1);
   // Keep the newest message in view as the conversation grows.
   useEffect(() => {
     const el = coachChatRef.current;
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: reduced() ? "auto" : "smooth" });
-  }, [coach?.thread.length, coach?.asking, coach?.err]);
+  }, [coach?.turns.length, lastTurn?.answer.length, lastTurn?.views.length, lastTurn?.status]);
   const mv0 = useCalcMoves(sets[0].mon), mv1 = useCalcMoves(sets[1].mon), mv2 = useCalcMoves(sets[2].mon), mv3 = useCalcMoves(sets[3].mon);
   const mvs = [mv0, mv1, mv2, mv3];
   const ab0 = useAbilityOpts(sets[0].mon), ab1 = useAbilityOpts(sets[1].mon), ab2 = useAbilityOpts(sets[2].mon), ab3 = useAbilityOpts(sets[3].mon);
@@ -943,18 +932,6 @@ function DamageCalcTile() {
 
   const mathHit = hits.find((h) => h.from === f && h.r.te !== 0) ?? hits.find((h) => h.r.te !== 0);
   const mathMove = mathHit ? mvs[mathHit.from].move : undefined;
-  // A first ask: a fresh build for the focused Pokémon, shaped by whatever the message asks for.
-  const runCoach = (text?: string) => {
-    const a = sets[f].mon; if (!a) return;
-    const slot = f, monId = a.id, same = (c: typeof coach) => c?.slot === slot && c.monId === monId;
-    const ask = text?.trim() || `Best build for ${a.name}`;
-    // A fresh ask starts a new conversation, but keeps the Revert point if a build is already applied.
-    setCoach((c) => ({ slot, monId, loading: true, asking: ask, thread: [], prev: same(c) ? c?.prev : undefined, applied: same(c) ? c?.applied : undefined }));
-    setCoachInput("");
-    suggestBuild(a.formId ? a.dex : a.id, a.formId, text?.trim() ? { request: ask, history: [] } : undefined)
-      .then((build) => setCoach((c) => (same(c) ? { ...c!, loading: false, asking: undefined, build, pick: undefined, applied: false, thread: [{ ask, reply: build.why }] } : c)))
-      .catch((e: Error) => setCoach((c) => (same(c) ? { ...c!, loading: false, asking: undefined, err: e.message } : c)));
-  };
   // A proposal only stands while its slot still holds the same Pokémon.
   const cb = coach && sets[coach.slot]?.mon?.id === coach.monId ? coach : null;
   const cSet = cb ? sets[cb.slot] : null, cMoves = cb ? mvs[cb.slot] : null;
@@ -982,24 +959,75 @@ function DamageCalcTile() {
     cMoves.setIdx(cb.prev.idx);
     setCoach({ ...cb, prev: undefined, applied: false });
   };
-  // A follow-up revises the current proposal (or just answers, leaving it as is).
-  const followUp = (text: string) => {
-    const ask = text.trim(), mon = cSet?.mon;
-    if (!ask || !cb?.build || cb.asking || !mon) return;
-    const { slot, monId } = cb, same = (c: typeof coach) => c?.slot === slot && c.monId === monId;
-    setCoach({ ...cb, asking: ask, err: undefined });
-    setCoachInput("");
-    suggestBuild(mon.formId ? mon.dex : mon.id, mon.formId, { current: cb.build, request: ask, history: cb.thread })
-      .then((build) => setCoach((c) => (same(c) ? {
-        ...c!, asking: undefined, thread: [...c!.thread, { ask, reply: build.why }],
-        // A new set goes back to pending; a reply that leaves the set alone keeps it applied.
-        ...(sameBuild(build, c!.build) ? {} : { build, pick: undefined, applied: false }),
-      } : c)))
-      .catch((e: Error) => setCoach((c) => (same(c) ? { ...c!, asking: undefined, err: e.message } : c)));
-  };
-  // The coach box talks about the focused Pokémon: a follow-up once it has a build, else a first ask.
+  // The coach box talks about the focused Pokémon; its conversation carries on while that holds.
   const cv = cb && cb.slot === f ? cb : null;
-  const sendCoach = (text: string) => (cv?.build ? followUp(text) : runCoach(text));
+  const coachBusy = !!cv?.turns.some((t) => t.status === "streaming");
+  // Damage questions about the focused matchup, answered by the calc itself (no LLM).
+  const foe = sets[f].mon ? aimOf(f) : undefined, foeMon = foe !== undefined ? sets[foe].mon : null;
+  const calcChips = sets[f].mon && foeMon && foe !== undefined ? [
+    ...(mvs[f].move && mvs[f].move.power > 0 ? [`Can ${sets[f].mon.name} OHKO ${foeMon.name}?`] : []),
+    ...(mvs[foe].move && mvs[foe].move.power > 0 ? [`How much bulk does ${sets[f].mon.name} need to survive ${foeMon.name}'s ${mvs[foe].move.name}?`] : []),
+  ] : [];
+  // The calculator as the coach sees it; types, stats and move data are re-read server-side.
+  const calcState = (c: typeof cv): CalcAskState => ({
+    level, doubles,
+    field: { weather, terrain, reflect, lightscreen, crit, burn, friend_guard: friendGuard },
+    slots: active.filter((i) => sets[i].mon).map((i) => {
+      const s = sets[i], m = s.mon!;
+      return {
+        slot: i, pokemon_id: m.formId ? m.dex : m.id, form_id: m.formId ?? null, name: m.name, nature: s.nat, evs: s.ev, ivs: s.iv,
+        item: s.item, ability: s.abil, hp: s.hp, move: mvs[i].move?.name ?? null, aim: aimOf(i),
+      };
+    }),
+    focus: f,
+    hits: hits.flatMap((h) => {
+      const m = mvs[h.from].move;
+      return m ? [{ attacker: h.from, target: h.to, move: m.name, min_pct: h.r.minPct, max_pct: h.r.maxPct, ko: h.r.ko, te: h.r.te }] : [];
+    }),
+    proposal: c?.build ? { slot: c.slot, build: c.build, thread: c.turns.filter((t) => t.status === "done").map((t) => ({ ask: t.question, reply: t.answer })) } : null,
+  });
+  // One question → one streamed turn. A build proposal (for any slot) becomes the card above the chat;
+  // a new set goes back to pending, while a reply that leaves the set alone keeps it applied.
+  const sendCoach = (text: string) => {
+    const q = text.trim(), a = sets[f].mon;
+    if (!q || !a || coachBusy) return;
+    const id = cv?.id ?? ++coachSeq.current, idx = cv ? cv.turns.length : 0, state = calcState(cv);
+    setCoach(cv ? { ...cv, turns: [...cv.turns, startRun(q)] } : { id, slot: f, monId: a.id, turns: [startRun(q)] });
+    setCoachInput("");
+    const patch = (fn: (t: AskRun) => AskRun) =>
+      setCoach((c) => (c?.id === id && c.turns[idx] ? { ...c, turns: c.turns.map((t, j) => (j === idx ? fn(t) : t)) } : c));
+    const takeBuild = (v: BuildProposalView) => {
+      const mon = sets[v.slot]?.mon; if (!mon) return;
+      setCoach((c) => {
+        if (c?.id !== id) return c;
+        if (v.slot !== c.slot || mon.id !== c.monId) return { ...c, slot: v.slot, monId: mon.id, build: v.build, pick: undefined, applied: false, prev: undefined };
+        return sameBuild(v.build, c.build) ? c : { ...c, build: v.build, pick: undefined, applied: false };
+      });
+      if (v.slot !== f) setFocus(v.slot);
+    };
+    coachAbort.current?.abort();
+    coachAbort.current = streamCalcCoach(q, state, patch, takeBuild);
+  };
+  // Apply a damage / survive card's fields into the calc (never a saved team); Revert puts the slots back.
+  const liveRef = (r: CalcRef) => sets[r.slot]?.mon?.name === r.name;
+  const applyCard = (key: string, aps: CalcApply[]) => {
+    const before: Record<number, DcSet> = {};
+    for (const { slot, fields: p } of aps) {
+      const cur = sets[slot]; if (!cur.mon) continue;
+      before[slot] = cur;
+      patchSet(slot, {
+        ...(p.item !== undefined && { item: p.item }), ...(p.ability !== undefined && { abil: p.ability }),
+        ...(p.nature !== undefined && { nat: p.nature }), ...(p.evs && { ev: { ...cur.ev, ...p.evs } }),
+        ...(p.hp !== undefined && { hp: p.hp }), pre: "Custom",
+      });
+    }
+    setCardPrev((m) => ({ ...m, [key]: before }));
+  };
+  const revertCard = (key: string) => {
+    const before = cardPrev[key]; if (!before) return;
+    for (const [slot, set] of Object.entries(before)) patchSet(Number(slot), set);
+    setCardPrev((m) => Object.fromEntries(Object.entries(m).filter(([k]) => k !== key)));
+  };
   const chip = (on: boolean, set: (v: boolean) => void, label: string, hint: string) => (
     <label className={on ? "on" : ""} title={hint}><input type="checkbox" checked={on} onChange={(e) => set(e.target.checked)} />{label}</label>
   );
@@ -1250,22 +1278,46 @@ function DamageCalcTile() {
           })(cv, cSet) : (
             <div className="dc-coach-h"><span className="t">Ask the coach about <b>{s.mon.name}</b></span></div>
           )}
-          {cv && (cv.thread.length > 0 || cv.asking || cv.err) && (
+          {cv && cv.turns.length > 0 && (
             <div className="dc-coach-chat" ref={coachChatRef} data-lenis-prevent>
-              {cv.thread.map((t, j) => (
-                <div key={j} className={j < cv.thread.length - 1 || cv.asking ? "turn old" : "turn"}>
-                  <p className="you">{t.ask}</p>
+              {cv.turns.map((t, j) => (
+                <div key={j} className={j < cv.turns.length - 1 ? "turn old" : "turn"}>
+                  <p className="you">{t.question}</p>
+                  <PlanSteps
+                    key={`${cv.id}-${j}`}
+                    compact
+                    steps={t.steps}
+                    planner={t.planner}
+                    cached={t.cached}
+                    status={t.status}
+                    elapsed={t.elapsed}
+                    usage={t.usage}
+                    answering={t.answer.length > 0}
+                  />
                   {/* Same light Markdown as the Ask answers and the team coach. */}
-                  {t.reply && <div className="coach">{renderAnswer(t.reply)}</div>}
+                  {t.answer ? <div className="coach">{renderAnswer(t.answer)}</div>
+                    : t.status === "streaming" ? <p className="coach wait">Coach is thinking…</p> : null}
+                  {t.status === "error" && <p className="coach err">{t.error}</p>}
+                  {t.views.map((v, k) => {
+                    const key = `${cv.id}:${j}:${k}`, acts = { applied: key in cardPrev, onRevert: () => revertCard(key) };
+                    switch (v.kind) {
+                      case "damage":
+                        return <DamageCard key={k} view={v} {...acts} live={liveRef(v.attacker) && liveRef(v.defender)} onApply={() => applyCard(key, v.apply)} />;
+                      case "survive":
+                        return <SurviveCard key={k} view={v} {...acts} live={liveRef(v.defender)} onApply={() => v.apply && applyCard(key, [v.apply])} />;
+                      case "build_proposal":
+                        return null; // shown as the build card above
+                      default:
+                        return <div key={k} className="dc-cv"><ViewBlock view={v} link={NO_LINK} /></div>;
+                    }
+                  })}
                 </div>
               ))}
-              {cv.asking && <div className="turn"><p className="you">{cv.asking}</p><p className="coach wait">Coach is thinking…</p></div>}
-              {cv.err && <p className="coach err">{cv.err}</p>}
             </div>
           )}
           <div className="dc-coach-quick">
-            {(cv?.build ? COACH_QUICK : COACH_START).map((q) => (
-              <button key={q} onClick={() => sendCoach(q)} disabled={!!cv?.asking}>{q}</button>
+            {[...(cv?.build ? COACH_QUICK : COACH_START), ...calcChips].map((q) => (
+              <button key={q} onClick={() => sendCoach(q)} disabled={coachBusy}>{q}</button>
             ))}
           </div>
           <form className="dc-coach-in" onSubmit={(e) => { e.preventDefault(); sendCoach(coachInput); }}>
@@ -1274,9 +1326,9 @@ function DamageCalcTile() {
               onChange={(e) => setCoachInput(e.target.value)}
               placeholder={cv?.build ? `Ask a follow-up, e.g. "swap ${cv.build.moves.at(-1) ?? "a move"} for a priority move"` : `What should ${s.mon.name} do? e.g. "a bulky set for doubles"`}
               aria-label="Message the coach"
-              disabled={!!cv?.asking}
+              disabled={coachBusy}
             />
-            <button type="submit" disabled={!!cv?.asking || !coachInput.trim()}>Send</button>
+            <button type="submit" disabled={coachBusy || !coachInput.trim()}>Send</button>
           </form>
         </div>
       )}

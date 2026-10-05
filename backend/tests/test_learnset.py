@@ -135,3 +135,42 @@ async def test_plan_typed_unresolved(session) -> None:
     with pytest.raises(learnset.UnresolvedName) as e:
         await learnset.plan_typed(session, move="Notamove")
     assert e.value.kind == "move"
+
+
+def test_how_by_game_names_the_newest_level() -> None:
+    from app.rag.learnset import _how_by_game
+
+    hist = [(52, "ruby-sapphire", 7), (51, "omega-ruby-alpha-sapphire", 18),
+            (1, "sword-shield", 22), (1, "brilliant-diamond-shining-pearl", 25)]
+    assert _how_by_game(hist) == "by level-up (Lv 1 in SwSh/BDSP; Lv 51–52 in other games)"
+    assert _how_by_game([(52, "ruby-sapphire", 7), (52, "x-y", 17)]) is None  # one level
+    assert _how_by_game(None) is None
+
+
+async def test_any_game_level_is_game_aware(session) -> None:
+    """The any-game table keeps the lowest level ("Lv 1"); answers say which games."""
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    eq = await session.scalar(select(Move.id).where(Move.name == "Earthquake"))
+    swampert = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Swampert"))
+    out = await retrieve_typed(session, LearnsetPlan(None, eq, ["water"], None), k=8)
+    assert out.data["hows"][swampert].startswith("by level-up (Lv 1 in SwSh")
+    out = await retrieve_typed(session, LearnsetPlan(swampert, eq, [], None))
+    assert "in other games" in out.data["how"]
+
+
+async def test_method_filter(session) -> None:
+    """ "by levelling only" drops TM learners; a TM filter reads per game (a level-up
+    learner that also takes the TM counts)."""
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    eq = await session.scalar(select(Move.id).where(Move.name == "Earthquake"))
+    lv = await retrieve_typed(session, LearnsetPlan(None, eq, ["water"], None, method="level-up"))
+    assert set(lv.data["by_method"]) == {"level-up"}
+    assert "Seismitoad" not in {pk.name for pk, _m, _l in lv.data["users"]}
+    tm = await retrieve_typed(session, LearnsetPlan(None, eq, ["water"], None, method="machine"))
+    allw = await retrieve_typed(session, LearnsetPlan(None, eq, ["water"], None))
+    assert tm.data["total"] > allw.data["by_method"]["machine"]  # Swampert also takes the TM
+    seismitoad = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Seismitoad"))
+    pair = await retrieve_typed(session, LearnsetPlan(seismitoad, eq, [], None, method="level-up"))
+    assert not pair.data["ok"] and "doesn't learn Earthquake by level-up" in pair.chunks[0].content

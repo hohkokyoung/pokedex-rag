@@ -245,3 +245,60 @@ async def test_profile_answers_are_not_cached(monkeypatch, session_factory):
     await _run("Recommend a Pokémon for me", session_factory)
     await _run("Recommend a Pokémon for me", session_factory)
     assert llm.answer_calls == 2
+
+
+# ---- constraints the tools can't express ---------------------------------------------
+
+
+async def test_unhandled_constraint_is_said_up_front(monkeypatch, session_factory):
+    """A constraint no tool arg covers isn't dropped silently: the answer opens with it."""
+    _settings(monkeypatch)
+    plan = _plan(("query_pokemon", {"sort_by": "base_stat_total", "limit": 5}))
+    plan["unhandled"] = ["only Pokémon available in Scarlet/Violet"]
+    llm = LLM(monkeypatch, plans=[plan])
+    events, text = await _run("Top 5 by base stat total that are in Scarlet/Violet",
+                              session_factory)
+    assert _first(events, "plan")["unhandled"] == ["only Pokémon available in Scarlet/Violet"]
+    assert text.startswith("*Note: this part couldn't be applied — only Pokémon available in")
+    assert "**Arceus** has the highest base stat total" in text  # still answered, by code
+    assert (llm.plan_calls, llm.answer_calls) == (1, 0)
+
+
+async def test_no_gap_note_without_unhandled(monkeypatch, session_factory):
+    _settings(monkeypatch)
+    LLM(monkeypatch, plans=[_plan(("query_pokemon", {"sort_by": "base_stat_total", "limit": 5}))])
+    events, text = await _run("Top 5 Pokémon by base stat total", session_factory)
+    assert "unhandled" not in _first(events, "plan") and not text.startswith("*Note")
+
+
+def test_schema_requires_unhandled():
+    from app.agent import llm_planner
+
+    for scope in ("ask", "team", "calc"):
+        schema = llm_planner.plan_schema(scope)
+        assert "unhandled" in schema["required"]
+        assert schema["properties"]["unhandled"] == {"type": "array", "items": {"type": "string"}}
+
+
+async def test_nothing_expressible_abstains_instead_of_falling_back(monkeypatch, session_factory):
+    """Empty LLM plan + unhandled (seen live: "evolve by trading") → an honest 'can't', not the
+    keyword plan's broader lookup answered as if it were the question."""
+    _settings(monkeypatch)
+    llm = LLM(monkeypatch, plans=[{"needs_followup": False, "steps": [],
+                                   "unhandled": ["evolution method (trade)"]}])
+    events, text = await _run("Which Pokémon that evolve by trading have the highest Attack?",
+                              session_factory)
+    assert _first(events, "plan")["planner"] == "llm"
+    assert text == ("I can't answer that from the Pokédex data — no lookup can apply: "
+                    "evolution method (trade).")
+    assert (llm.plan_calls, llm.answer_calls) == (1, 0)
+    assert not _first(events, "done").get("fallback")
+
+
+async def test_ask_empty_plan_without_unhandled_falls_back(monkeypatch, session_factory):
+    """Only coach scopes (or an explicit 'can't express it') accept an empty plan."""
+    _settings(monkeypatch)
+    llm = LLM(monkeypatch, plans=[{"needs_followup": False, "steps": [], "unhandled": []}])
+    events, _ = await _run("Which Pokémon are the most stylish, honestly?", session_factory)
+    assert _first(events, "plan")["planner"] == "keyword" and _first(events, "done")["fallback"]
+    assert llm.plan_calls == 1

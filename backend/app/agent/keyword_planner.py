@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent import (
     ask_tools,  # noqa: F401 — registers the tools validated below
+    calc_tools,  # noqa: F401
     names,
     team_tools,  # noqa: F401
 )
@@ -45,6 +46,22 @@ _ENCOUNTER = re.compile(r"\b(where (can|do|to) i (find|catch|get)|catch|encounte
 _WEAK = re.compile(r"\b(weak(ness|nesses)?|resist(s|ance|ances)?|immune|immunit(y|ies)|"
                    r"effective|strong against|good against|type chart|matchups?)\b")
 _LEARNERS = re.compile(r"\b(who|which|what)\b.*\b(learns?|gets?|can use|knows?)\b")
+# "by levelling only", "via TM", "egg moves", "move tutor" → the learnset's method filter.
+_METHOD_CUES = (
+    ("level-up", re.compile(r"\b(level(?:l?ing)?[- ]?up|by level(?:l?ing)?|level(?:l?ing|s)?|"
+                            r"lvl)\b")),
+    ("machine", re.compile(r"\b(tms?|technical machines?|trs?)\b")),
+    ("egg", re.compile(r"\b(egg moves?|breed(?:ing)?|eggs?)\b")),
+    ("tutor", re.compile(r"\b(tutors?|move tutor)\b")),
+)
+
+
+def _learn_method(text: str) -> str | None:
+    """The one learn method the question restricts to, if it names exactly one."""
+    hits = [m for m, rx in _METHOD_CUES if rx.search(text)]
+    return hits[0] if len(hits) == 1 else None
+
+
 _CLASS = re.compile(r"\b(physical|special)\b")
 _COUNTER = re.compile(r"\b(beats?|counters?|against|super[- ]effective|weak to|deal with|"
                       r"check(s)?|wall(s)?)\b")
@@ -69,9 +86,116 @@ async def plan_keywords(
         # A plain team question has no extra steps: the attached team context answers it.
         ok = len(plan.valid_steps) == len(plan.steps) <= 1
         return KeywordPlan(plan, confident and ok)
+    if scope == "calc" and ctx is not None and ctx.extra.get("calc") is not None:
+        raw, confident = await _decide_calc(session, question, ctx.extra["calc"])
+        plan = build_plan(raw[:MAX_KEYWORD_STEPS], "keyword", scope=scope)
+        ok = len(plan.valid_steps) == len(plan.steps) <= 1
+        return KeywordPlan(plan, confident and ok)
     raw, confident = await _decide(session, question)
     plan = build_plan(raw[:MAX_KEYWORD_STEPS], "keyword", scope=scope)
     return KeywordPlan(plan, confident and len(plan.valid_steps) == 1)
+
+
+# ---- damage-calculator phrasings ------------------------------------------------------
+
+_KO = re.compile(r"\b(o\s*hko|[2-6]\s*hko|ko|one[- ]?shot|two[- ]?shot|kill|how much damage|"
+                 r"how much does|does .+ do to|damage (does|from|to))\b")
+_SURVIVE = re.compile(r"\b(survive|live through|tank|withstand)\b")
+_BUILD = re.compile(r"\b(best build|build|best set|moveset|spread)\b|^\s*make it\b|"
+                    r"\b(bulkier|faster|stronger|sweeper|special attacker|physical attacker)\b|"
+                    r"\b(bulky|fast|offensive|defensive|special|physical|mixed|support) set\b")
+# With a proposal on the table, an imperative tweak revises it ("no Choice item", "swap X for Y").
+_REVISE = re.compile(r"^\s*(no|without|swap|replace|use|drop|give|try|change|switch|more|less|"
+                     r"keep|go|max)\b|\binstead\b")
+_WITH = re.compile(r"\bwith (an? |the )?(.+?)(?:\?|$|,| and | instead)")
+
+
+def _calc_members(question: str, st) -> list:
+    """Calculator Pokémon named in the question, in order of appearance."""
+    low = question.lower()
+    found = [(low.find(m.name.lower()), m) for m in st.members if m.name.lower() in low]
+    return [m for _, m in sorted(found, key=lambda x: x[0])]
+
+
+async def _changes(session: AsyncSession, question: str) -> list[dict]:
+    """What-if changes from 'with <item | nature | EVs>' (attacker side)."""
+    from app.services import damage_calc
+
+    m = _WITH.search(question)
+    if not m:
+        return []
+    phrase = m.group(2).strip()
+    out: list[dict] = []
+    items = await names.find_in_text(session, phrase, ("item",))
+    if items:
+        out.append({"who": "attacker", "key": "item", "value": items[0].name})
+    nat = next((n for n in damage_calc.NATURES if re.search(rf"\b{n.lower()}\b", phrase.lower())),
+               None)
+    if nat:
+        out.append({"who": "attacker", "key": "nature", "value": nat})
+    if re.search(r"\d+\s*(hp|atk|attack|def|defen[cs]e|spa|spd|spe|speed)\b", phrase.lower()):
+        try:
+            damage_calc.parse_evs(phrase)
+            out.append({"who": "attacker", "key": "evs", "value": phrase})
+        except damage_calc.ChangeError:
+            pass
+    return out
+
+
+async def _decide_calc(session: AsyncSession, question: str, st) -> tuple[list[dict], bool]:
+    text = question.lower()
+    named = _calc_members(question, st)
+    moves = [m for m in await names.find_in_text(session, question, ("move",))
+             if m.name.lower() not in {x.name.lower() for x in st.members}]
+    move = moves[0].name if moves else None
+    cues = sum(bool(r.search(text)) for r in (_KO, _SURVIVE, _BUILD))
+    single = cues == 1 and len(named) <= 2 and len(moves) <= 1
+
+    def before(cue: re.Pattern, m) -> bool:
+        hit = cue.search(text)
+        return hit is not None and text.find(m.name.lower()) < hit.start()
+
+    if _SURVIVE.search(text):
+        dfn = next((m for m in named if before(_SURVIVE, m)), None)
+        atk = next((m for m in named if m is not dfn), None)
+        return [_step("survive_threshold", "the bulk needed to survive the hit",
+                      defender=dfn.name if dfn else None, attacker=atk.name if atk else None,
+                      move=move)], single
+
+    if _KO.search(text):
+        atk = next((m for m in named if before(_KO, m)), None)
+        dfn = next((m for m in named if m is not atk), None)
+        if atk is None and dfn is not None and dfn.side == 0:
+            atk, dfn = dfn, None  # "how much does Garchomp do" names the attacker
+        changes = await _changes(session, question)
+        steps = [_step("damage_calc", "the hit's damage and KO chance",
+                       attacker=atk.name if atk else None, defender=dfn.name if dfn else None,
+                       move=move, changes=changes)]
+        if _BUILD.search(text):
+            steps.append(_step("propose_build", "a new build", request=question[:300]))
+        return steps, single
+
+    if _BUILD.search(text):
+        who = named[0].name if named else None
+        return [_step("propose_build", "a build for the Pokémon", pokemon=who,
+                      request=question[:300])], single
+
+    if st.proposal is not None and _REVISE.search(text):
+        return [_step("propose_build", "revise the proposed build", request=question[:300])], True
+
+    raw, confident = await _decide(session, question)
+    from app.agent.tools import REGISTRY
+
+    roster = {m.name.lower() for m in st.members}
+    useful = [
+        r for r in raw
+        if "calc" in REGISTRY[r["tool"]].scopes
+        and not (r["tool"] == "get_pokemon" and r["args"].get("name", "").lower() in roster)
+        and not (r["tool"] == "query_pokemon" and _vague_query(r["args"]))
+    ]
+    if not useful:
+        return [], True  # plain: the attached calculator state answers it
+    return useful, confident and len(useful) == len(raw)
 
 
 # ---- team coach phrasings -------------------------------------------------------------
@@ -198,21 +322,24 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
     if mons and moves:
         p, m = mons[0], moves[0]
         if p.kind == "pokemon":
+            how = _learn_method(text)
             return [_step("learnset", f"check {p.name} × {m.name}",
-                          pokemon=p.name, move=m.name)], _simple(question, found, "pair")
+                          pokemon=p.name, move=m.name, method=how)], (
+                _simple(question, found, "pair") and how is None)
 
     # ---- a move ----
     if moves and not mons:
         m = moves[0]
         if learn_cue or _LEARNERS.search(text):
             cls = _CLASS.search(text)
+            how = _learn_method(text)
             steps = [_step(
                 "learnset", f"who learns {m.name}", move=m.name, types=plain_types,
                 legendary=legendary, mythical=mythical,
-                damage_class=cls.group(1) if cls else None,
+                damage_class=cls.group(1) if cls else None, method=how,
             )]
             return steps, _simple(question, found, "learners") and not (
-                plain_types or legendary is not None or mythical is not None)
+                plain_types or legendary is not None or mythical is not None or how)
         steps = [_step("move_info", f"what {m.name} does", name=m.name)]
         if m.name in both:
             steps.append(_step("type_matchup", f"the {m.name} type chart", types=[m.name.lower()]))
@@ -240,7 +367,8 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
         if moves_cue and p.kind == "pokemon":
             cls = _CLASS.search(text)
             return [_step("learnset", f"{p.name}'s moves", pokemon=p.name, types=plain_types,
-                          damage_class=cls.group(1) if cls else None)], False
+                          damage_class=cls.group(1) if cls else None,
+                          method=_learn_method(text))], False
         steps = [_step("get_pokemon", f"{p.name}'s profile", name=p.name)]
         if lore:
             steps.append(_step("semantic_search", "descriptions and lore", query=question))

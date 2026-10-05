@@ -5,7 +5,7 @@
 DB_URL ?= postgresql+asyncpg://pokedex:pokedex@localhost:5433/pokedex
 BACKEND = cd backend && DATABASE_URL=$(DB_URL)
 
-.PHONY: up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites data test lint
+.PHONY: damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites data test lint
 
 up:            ## Build and start the full stack
 	docker compose up --build -d
@@ -78,6 +78,9 @@ data: migrate ingest items learnsets encounters enrich chart sprites variant-spr
 
 test:          ## Run backend tests
 	cd backend && DATABASE_URL=$(DB_URL) uv run pytest -q
+
+damage-fixtures: ## Regenerate the damage reference cases (after changing frontend/lib/damageCalc.ts)
+	cd frontend && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-resolve.mjs scripts/damage-fixtures.ts
 
 eval:          ## Run the RAG evaluation report
 	$(BACKEND) uv run python -m eval.run

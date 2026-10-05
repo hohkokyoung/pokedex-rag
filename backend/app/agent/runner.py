@@ -35,7 +35,8 @@ log = logging.getLogger(__name__)
 PLAN_TIMEOUT = 10.0
 MAX_ANSWER_CHUNKS = 12
 MAX_TEAM_ANSWER_CHUNKS = 16
-CONTEXT_STEP = "ctx"  # the team coach's always-attached team context
+CONTEXT_STEP = "ctx"  # a coach's always-attached context step
+CONTEXT_TOOLS = {"team": "team_context", "calc": "calc_context"}
 
 Event = tuple[str, object]
 
@@ -61,15 +62,26 @@ def _plan_event(steps: list[Step], plan: Plan, *, replan: bool = False) -> dict:
         "cached": plan.cached,
         "replan": replan,
         "steps": [{**s.public(), **({"error": s.error} if s.error else {})} for s in steps],
+        **({"unhandled": plan.unhandled} if plan.unhandled and not replan else {}),
     }
 
 
+def _gap_note(plan: Plan) -> str | None:
+    """Say what the plan couldn't filter by, so a broader answer isn't read as the asked one."""
+    if not plan.unhandled:
+        return None
+    return (f"*Note: this part couldn't be applied — {'; '.join(plan.unhandled)}. The "
+            "results below answer a broader question.*\n\n")
+
+
 def _cacheable(scope: str) -> bool:
-    """Ask answers depend only on static data; coach answers depend on the (mutable) team."""
+    """Ask answers depend only on static data; coach answers depend on mutable state."""
     return scope == "ask"
 
 
 def _roster(ctx: AgentContext | None) -> str:
+    if ctx is not None and ctx.extra.get("calc") is not None:
+        return llm_planner.calc_roster_line(ctx.extra["calc"])
     if ctx is None or ctx.team is None:
         return ""
     return llm_planner.roster_line(ctx.team, ctx.opponent)
@@ -100,9 +112,10 @@ async def _choose_plan(
         kind = "rate-limited" if answer_service.is_rate_limited(exc) else type(exc).__name__
         log.info("LLM planning failed (%s); using the keyword plan", kind)
         return kp.plan, True
-    # Team scope: an empty plan is a real answer (the team context covers it). Otherwise a
-    # plan with no valid steps falls back to the keyword plan.
-    empty_ok = scope == "team" and not plan.steps
+    # Coach scopes: an empty plan is a real answer (the context covers it). So is one that
+    # says nothing can express the question (``unhandled``): falling back would answer a
+    # broader question as if it were this one. Otherwise no valid steps → the keyword plan.
+    empty_ok = (scope in CONTEXT_TOOLS or bool(plan.unhandled)) and not plan.steps
     if not plan.valid_steps and not empty_ok:
         log.info("LLM plan had no valid steps; using the keyword plan")
         return kp.plan, True
@@ -112,10 +125,12 @@ async def _choose_plan(
 
 
 def _with_context(plan: Plan, scope: str) -> Plan:
-    """Prepend the team context step (built in, never planned) for the coach."""
-    if scope != "team" or any(s.tool == "team_context" for s in plan.steps):
+    """Prepend the coach's context step (built in, never planned): the team or calculator."""
+    tool = CONTEXT_TOOLS.get(scope)
+    if tool is None or any(s.tool == tool for s in plan.steps):
         return plan
-    ctx_step = make_step(CONTEXT_STEP, "team_context", {}, "read your team", scope="team")
+    why = "read your team" if scope == "team" else "read the calculator"
+    ctx_step = make_step(CONTEXT_STEP, tool, {}, why, scope=scope)
     plan.steps.insert(0, ctx_step)
     return plan
 
@@ -191,6 +206,10 @@ def _closed_form(run: _Run) -> bool:
 
 def _note(run: _Run) -> str | None:
     parts = [r.note for s in run.plan.steps if (r := run.results.get(s.id)) and r.note]
+    if run.plan.unhandled:
+        parts.append("NOTE: The lookups could NOT apply: " + "; ".join(run.plan.unhandled)
+                     + ". The answer already opens with a line saying so; don't claim the "
+                     "results satisfy it.")
     done = [
         f"{s.tool} ({run.results[s.id].summary})"
         for s in run.plan.steps if s.id in run.results and run.results[s.id].status != "error"
@@ -203,18 +222,24 @@ def _note(run: _Run) -> str | None:
 
 def _no_llm_answer(run: _Run, chunks: list[RetrievedChunk], offsets) -> str:
     """The answer from data alone (no key, or the answer call failed)."""
-    if run.scope != "team":
+    if run.scope not in CONTEXT_TOOLS:
         return answer_service.compose_extractive_answer(chunks)
     from app.rag import coach
 
     parts = [t for tool, r, off in offsets
-             if tool != "team_context" and r.status != "error"
+             if tool not in CONTEXT_TOOLS.values() and r.status != "error"
              and (t := render.render_step(tool, r)) is not None]
+    actions = {"propose_set_edit": "suggest a set", "duel": "play the duel",
+               "propose_build": "suggest a build", "damage_calc": "calculate that",
+               "survive_threshold": "work out the bulk needed"}
     for s in run.plan.steps:  # say why an action didn't happen (e.g. needs an LLM key)
         r = run.results.get(s.id)
-        if r is not None and r.status == "error" and s.tool in ("propose_set_edit", "duel"):
-            what = "suggest a set" if s.tool == "propose_set_edit" else "play the duel"
-            parts.append(f"Couldn't {what}: {r.summary}.")
+        if r is not None and r.status == "error" and s.tool in actions:
+            parts.append(f"Couldn't {actions[s.tool]}: {r.summary}.")
+    if run.scope == "calc":
+        if not parts:  # plain question, no LLM: the calculator's own numbers
+            parts = [c.content for c in chunks if c.chunk_type == "calc_hits"][:1]
+        return "\n\n".join(parts) or answer_service.compose_extractive_answer(chunks)
     candidates = [c for r in run.results.values() for v in r.views
                   if getattr(v, "kind", "") == "candidates" for c in v.candidates]
     if candidates:
@@ -228,16 +253,31 @@ def _no_llm_answer(run: _Run, chunks: list[RetrievedChunk], offsets) -> str:
 
 
 async def _answer(run: _Run) -> AsyncIterator[Event]:
+    """The answer events, opening with the plan's gap note (if any) on the first delta."""
+    if run.plan.unhandled and not run.plan.steps and run.scope not in CONTEXT_TOOLS:
+        # Nothing could be looked up: say what's missing instead of guessing (no LLM call).
+        yield "sources", []
+        yield "delta", {"text": "I can't answer that from the Pokédex data — no lookup can "
+                        f"apply: {'; '.join(run.plan.unhandled)}."}
+        return
+    note = _gap_note(run.plan)
+    async for name, data in _answer_body(run):
+        if name == "delta" and note:
+            data, note = {"text": note + data["text"]}, None
+        yield name, data
+
+
+async def _answer_body(run: _Run) -> AsyncIterator[Event]:
     settings = get_settings()
     if _closed_form(run):
         chunks, refs, offsets = _evidence(run, cap=None)
-        text = render.render_all([o for o in offsets if o[0] != "team_context"])
+        text = render.render_all([o for o in offsets if o[0] not in CONTEXT_TOOLS.values()])
         if text is not None:
             yield "sources", [s.model_dump() for s in _sources(chunks, refs)]
             yield "delta", {"text": text}
             return
 
-    cap = MAX_TEAM_ANSWER_CHUNKS if run.scope == "team" else MAX_ANSWER_CHUNKS
+    cap = MAX_TEAM_ANSWER_CHUNKS if run.scope in CONTEXT_TOOLS else MAX_ANSWER_CHUNKS
     chunks, refs, offsets = _evidence(run, cap=cap)
     yield "sources", [s.model_dump() for s in _sources(chunks, refs)]
     if not settings.llm_enabled:

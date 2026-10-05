@@ -178,3 +178,86 @@ async def test_team_draft_duel_lookup_and_plain(session, team_ctx) -> None:
 
     kp, steps = await _team_plan(session, team_ctx, "What's my team's biggest weakness?")
     assert steps == [] and kp.confident
+
+
+# ---- calc scope -------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def calc_ctx(session):
+    from app.agent.tools import AgentContext
+    from app.schemas.calc import CalcAskRequest
+    from app.services.calc_state import resolve_state
+
+    st = await resolve_state(session, CalcAskRequest(question="q", slots=[
+        {"slot": 0, "pokemon_id": 445, "move": "Earthquake", "aim": 2},
+        {"slot": 2, "pokemon_id": 485, "move": "Flamethrower", "aim": 0},
+    ]))
+    return AgentContext(scope="calc", extra={"calc": st})
+
+
+async def _calc_plan(session, ctx, q):
+    kp = await plan_keywords(session, q, "calc", ctx)
+    assert all(s.error is None for s in kp.plan.steps), [s.error for s in kp.plan.steps]
+    return kp, [(s.tool, {k: v for k, v in s.args.items() if v not in (None, [], False)})
+                for s in kp.plan.steps]
+
+
+async def test_calc_damage_and_whatif(session, calc_ctx) -> None:
+    kp, steps = await _calc_plan(session, calc_ctx, "Can Garchomp OHKO Heatran?")
+    assert steps == [("damage_calc", {"attacker": "Garchomp", "defender": "Heatran"})]
+    assert kp.confident
+    kp, steps = await _calc_plan(session, calc_ctx, "Can Garchomp OHKO Heatran with Choice Band?")
+    assert steps[0][1]["changes"] == [{"who": "attacker", "key": "item", "value": "Choice Band"}]
+    assert kp.confident
+
+
+async def test_calc_survive_build_dex_plain(session, calc_ctx) -> None:
+    kp, steps = await _calc_plan(
+        session, calc_ctx, "How much Def does Heatran need to survive Garchomp's Earthquake?")
+    assert steps == [("survive_threshold", {"defender": "Heatran", "attacker": "Garchomp",
+                                            "move": "Earthquake"})] and kp.confident
+    for q in ("Best build", "Make it bulkier", "Bulky set", "Fast sweeper"):
+        kp, steps = await _calc_plan(session, calc_ctx, q)
+        assert steps[0][0] == "propose_build" and kp.confident, q
+    kp, steps = await _calc_plan(session, calc_ctx, "Who learns Earthquake?")
+    assert steps == [("learnset", {"move": "Earthquake"})]
+    kp, steps = await _calc_plan(session, calc_ctx, "Who wins this?")
+    assert steps == [] and kp.confident
+
+
+async def test_calc_mixed_is_not_confident(session, calc_ctx) -> None:
+    kp, steps = await _calc_plan(
+        session, calc_ctx, "Can Garchomp OHKO Heatran with Choice Band, and a bulkier set?")
+    assert [t for t, _ in steps] == ["damage_calc", "propose_build"] and not kp.confident
+
+
+async def test_calc_revisions_need_a_proposal(session, calc_ctx) -> None:
+    """A bare tweak ("no Choice item") revises the build on the table, else it's plain."""
+    import dataclasses
+
+    from app.schemas.calc import CalcProposal
+
+    kp, steps = await _calc_plan(session, calc_ctx, "No Choice item")
+    assert steps == [] and kp.confident
+    st = calc_ctx.extra["calc"]
+    calc_ctx.extra["calc"] = dataclasses.replace(st, proposal=CalcProposal(slot=0, build={
+        "pokemon": "Garchomp", "moves": ["Earthquake"], "evs": {"atk": 252}, "why": "fast"}))
+    for q in ("No Choice item", "Swap Fire Fang for Stone Edge", "Use Rocky Helmet instead"):
+        kp, steps = await _calc_plan(session, calc_ctx, q)
+        assert [t for t, _ in steps] == ["propose_build"] and kp.confident, q
+    kp, steps = await _calc_plan(session, calc_ctx, "Explain the EVs")
+    assert steps == [] and kp.confident
+
+
+@pytest.mark.parametrize("q,method", [
+    ("which pokemon learns earthquake by levelling only but is a water type", "level-up"),
+    ("which water types get earthquake from a TM", "machine"),
+    ("who learns earthquake as an egg move", "egg"),
+    ("who learns earthquake", None),
+])
+async def test_learn_method_cue(session, q, method) -> None:
+    kp = await plan_keywords(session, q)
+    [step] = kp.plan.steps
+    assert step.tool == "learnset" and step.args.get("method") == method
+    assert kp.confident is (method is None)

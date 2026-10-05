@@ -15,15 +15,17 @@ frontend/  Next.js 16 · React 19 · TS · Tailwind v4 · GSAP · Lenis · Vanta
 backend/   FastAPI · SQLAlchemy (async) · Alembic · Pydantic
   app/api/         health, pokemon (read), ask (RAG + SSE), profile,
                    builder (legal moves/abilities/natures), teams (CRUD +
-                   /analysis + /ask coach SSE)
+                   /analysis + /ask coach SSE), calc (/api/calc/ask coach SSE)
   app/models/      pokemon (relational), knowledge (pgvector chunks), user,
                    moves (moves + learnsets + natures), team (teams, members)
   app/services/    pokemon_query (read queries), builder (picker lookups),
                    teams (CRUD + hydration + validation), stats (competitive
-                   stat maths), team_analysis (coverage/weakness/roles/vs)
-  app/agent/       the assistant's planner (Ask + team coach): tools (registry with
-                   scopes), ask_tools (read-only dex adapters), team_tools (team
-                   context, recommendations, set edits, add, duel), names (DB lookup),
+                   stat maths), team_analysis (coverage/weakness/roles/vs),
+                   damage_calc (the home calc's maths, ported), calc_state
+  app/agent/       the assistant's planner (Ask + team coach + calc coach): tools
+                   (registry with scopes), ask_tools (read-only dex adapters),
+                   team_tools (team context, recommendations, set edits, add, duel),
+                   calc_tools (calc context, damage, survival, builds), names (DB lookup),
                    keyword_planner, llm_planner, executor, render (code answers),
                    cache, runner (plan → run → answer as events), views, sse
   app/rag/         embeddings, retrieval (vector), hybrid (FTS + RRF),
@@ -33,7 +35,7 @@ backend/   FastAPI · SQLAlchemy (async) · Alembic · Pydantic
   app/ingest/      run (CSV → DB; incl. moves/learnsets/natures),
                    build_chunks (chunks → embeddings)
   eval/            labeled eval set (expect_tools) + harness (plans, recall,
-                   LLM calls/tokens, answers) + coach path
+                   LLM calls/tokens, answers) + team-coach and calc-coach paths
 data/raw/pokeapi/  CSV dataset (git-ignored)   data/sprites/  artwork (git-ignored)
 ```
 
@@ -107,6 +109,29 @@ an analysis brief or the candidate list, and set changes say they need a key.
 `nlfilters` negation (proximity/sentiment, "fuck legendaries" → exclude) still feeds
 the keyword planner's drafting args.
 
+**The damage calculator's coach is the same agent, scope `calc`** (`POST /api/calc/ask`).
+The page sends the calculator's state with each question (sets, chosen moves, aims,
+field, the hits it shows, and the coach's current build proposal + thread);
+`calc_state.resolve_state` re-reads types, base stats (forms included) and move data from
+the DB, so client stats are never trusted. A built-in `calc_context` step (never planned)
+is prepended. Tools: `damage_calc` ("can X OHKO Y?", what-ifs via typed `changes` —
+item/ability/nature/EVs/HP/field), `survive_threshold` (least HP + Def/SpD EVs from the
+*free* EVs, then a bulk nature; says "already survives" with no Apply), `propose_build`
+(wraps `build_suggest`, `attempts=1`, current proposal + thread), plus the team-scope dex
+tools. Damage and survival are closed-form (0 LLM calls); a build is 1 call (its `why`
+is the answer). The keyword planner knows the calc phrasings (OHKO/survive/build, `with
+<item/nature/EVs>`, and — with a proposal on the table — imperative tweaks like "no
+Choice item"). Nothing is saved: cards Apply into the calculator only, with Revert.
+Calc answers are never cached.
+
+**One damage formula, two languages.** `frontend/lib/damageCalc.ts` (the browser) and
+`backend/app/services/damage_calc.py` (the coach) are kept equal by reference cases:
+`make damage-fixtures` runs `frontend/scripts/damage-fixtures.ts` under Node type
+stripping and writes `backend/tests/fixtures/damage_cases.json` (~250 hand-picked +
+seeded cases); `tests/test_damage_calc.py` checks the port against every one. Change the
+TS maths → port the change to Python → regenerate the fixtures → `make test`. Team duels
+(`services/battle.py`) are a separate engine and stay that way.
+
 **Team strategy & summary** (`/teams`): `app/services/team_strategy.py` scores six axes
 (offense/bulk/speed/setup/stall/support) from base stats plus curated move/ability lists —
 set moves count fully, learnable ones partly (`now` vs `potential`), and TM staples
@@ -125,6 +150,7 @@ make test      # backend pytest
 make eval      # eval report (LLM if keyed; paced to Groq TPM — spends tokens)
                # cd backend && uv run python -m eval.run --keyless  (no LLM)
 make lint      # ruff + eslint
+make damage-fixtures  # regenerate the calc's TS→Python reference cases (Node ≥ 22.18)
 ```
 
 Backend runs in Docker; the data pipeline scripts run on the **host** against the

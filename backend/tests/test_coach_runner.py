@@ -217,14 +217,6 @@ async def test_team_answers_are_never_cached(monkeypatch, session_factory, teams
     assert llm.answer_calls == 2
 
 
-def test_ask_still_rejects_empty_plans():
-    """Ask keeps falling back when the LLM returns no steps (see test_agent_runner)."""
-    import inspect
-
-    src = inspect.getsource(runner._choose_plan)
-    assert 'empty_ok = scope == "team"' in src
-
-
 @pytest.mark.parametrize("q", ["add Dragonite", "Should I add Dragonite?"])
 def test_gate_is_deterministic(q):
     from app.agent.keyword_planner import is_imperative_add

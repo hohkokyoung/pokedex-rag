@@ -1357,6 +1357,20 @@ html[data-home] ::selection{background:var(--red);color:#fff;}
 .dc-coach-set button i{width:8px;height:8px;border-radius:50%;}
 .dc-coach-set button.on{border-color:var(--ink);font-weight:600;}
 .dc-coach-set button:disabled{cursor:default;color:var(--dim);}
+/* The calc coach's damage / survival cards (inline in the thread, Apply writes into the calc only). */
+.dc-coach-chat .dc-cc{align-self:stretch;background:#fff;border:1px solid var(--line2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.dc-cc-h{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;}
+.dc-cc-h .acts button{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-radius:8px;padding:6px 10px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);}
+.dc-cc-h .acts button.ok{background:var(--red);border-color:var(--red);color:#fff;}
+.dc-cc-h .acts button:disabled{opacity:.45;cursor:default;}
+.dc-cc-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;font-size:13px;}
+.dc-cc-row .dc-k{min-width:92px;}
+.dc-cc-row.was{color:var(--dim);}
+.dc-cc-row em{font-style:normal;font-size:12px;color:var(--dim);}
+.dc-cc-row em.ko,.dc-cc-row .ko{color:var(--red);font-weight:600;}
+.dc-cc-row .ok{color:var(--ok);font-weight:600;}
+.dc-coach-chat .ax-plan{align-self:flex-start;max-width:100%;}
+.dc-coach-chat .dc-cv{align-self:stretch;}
 /* reverse learnset, inside the lookup move detail */
 /* Preview of the highlighted row: fixed height so the card never grows or jumps. */
 .lc-movedet--fixed{height:204px;overflow:hidden;display:flex;flex-direction:column;padding:11px 12px;}
@@ -2072,6 +2086,8 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
 .ax-answer{min-height:60px;}
 .ax-verdict{margin:0;font-family:var(--font-display),sans-serif;font-weight:600;font-size:clamp(1.45rem,3vw,2.05rem);line-height:1.25;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty;max-width:34ch;}
 .ax-verdict b{color:var(--accent);font-weight:700;}
+/* What the plan could not filter by (plan.unhandled): said before the verdict, never as it. */
+.ax-gap{margin:0 0 12px;padding:8px 12px;border-left:3px solid #f0b429;background:rgba(240,180,41,.1);border-radius:0 8px 8px 0;font-size:14px;line-height:1.5;color:var(--ink);}
 .ax-answer.is-abstain .ax-verdict{color:var(--muted);}
 .ax-p{margin:14px 0 0;font-size:1.08rem;line-height:1.65;color:var(--ink-dim);max-width:62ch;}
 .ax-p b{color:var(--ink);font-weight:600;}

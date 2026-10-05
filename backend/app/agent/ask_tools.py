@@ -40,8 +40,8 @@ from app.rag.sql_retrieval import StructuredQuery
 from app.services import encounters as encounters_service
 from app.services import matchups as matchups_service
 
-# Dex lookups serve Ask and the team coach alike.
-ASK_AND_TEAM = ("ask", "team")
+# Dex lookups serve Ask and both coaches (team and calculator) alike.
+ASK_AND_TEAM = ("ask", "team", "calc")
 
 STAT_KEYS = ("hp", "attack", "defense", "sp_attack", "sp_defense", "speed")
 _STAT_LABEL = {
@@ -397,8 +397,8 @@ class TypeMatchupArgs(BaseModel):
 @tool(
     "type_matchup",
     scopes=ASK_AND_TEAM,
-    description="Type chart for 1 type or a dual typing: weaknesses, resistances, immunities, "
-    "and what it hits super-effectively.",
+    description="Type chart for a type or dual typing: weaknesses, resistances, immunities, "
+    "super-effective hits.",
     args=TypeMatchupArgs,
     closed_form=True,
 )
@@ -433,8 +433,8 @@ class CoverageArgs(BaseModel):
 @tool(
     "coverage_vs_types",
     scopes=ASK_AND_TEAM,
-    description="Pokémon (or moves) that hit defending types, or a named Pokémon, "
-    "super-effectively via learnable moves; off_type ranks by stats only.",
+    description="Pokémon or moves hitting types (or a named Pokémon) super-effectively via "
+    "learnable moves; off_type ranks by stats only.",
     args=CoverageArgs,
 )
 async def coverage_vs_types(
@@ -493,13 +493,14 @@ class LearnsetArgs(BaseModel):
     damage_class: Literal["physical", "special", "status"] | None = None
     legendary: bool | None = None
     mythical: bool | None = None
+    method: Literal["level-up", "machine", "tutor", "egg"] | None = None
 
 
 @tool(
     "learnset",
     scopes=ASK_AND_TEAM,
-    description="Pokémon+move: can it learn it. Move only: who learns it. Pokémon only: its "
-    "moves. game = one game's learnset.",
+    description="Pokémon+move: can it learn it; move: who learns it; Pokémon: its moves. "
+    "game/method narrow it (machine = TM).",
     args=LearnsetArgs,
 )
 async def learnset_tool(
@@ -520,7 +521,7 @@ async def learnset_tool(
         plan = await learnset.plan_typed(
             session, pokemon=pm.name if pm else None, move=mm.name if mm else None,
             game=args.game, types=args.types, damage_class=args.damage_class,
-            legendary=args.legendary, mythical=args.mythical,
+            legendary=args.legendary, mythical=args.mythical, method=args.method,
         )
     except learnset.UnresolvedName as e:
         return _unresolved(e.kind, e.name)
@@ -534,7 +535,7 @@ async def learnset_tool(
         p = (await _pokemon_by_id(session, [d["pokemon"].id]))[d["pokemon"].id]
         view = LearnCheckView(
             pokemon=_card_from_pokemon(p, 0), move=_move_row(out.chunks[1], 1),
-            ok=d["ok"], how=d["how"], game=d["game"], chunk_refs=[0, 1],
+            ok=d["ok"], how=d["how"], game=d["game"], method=d["method"], chunk_refs=[0, 1],
         )
         verdict = f"yes, {d['how']}" if d["ok"] else "no"
         return ToolResult(
@@ -544,10 +545,10 @@ async def learnset_tool(
 
     if out.kind == "learners":
         users = list(enumerate(out.chunks[2:], start=2))
-        how = {pk.id: learnset._how(m, lv) for pk, m, lv in d["users"]}
+        how = d["hows"]
         view = LearnersView(
             move=_move_row(out.chunks[0], 0), total=d["total"], by_method=d["by_method"],
-            scope=d["scope"], game=d["game"],
+            scope=d["scope"], game=d["game"], method=d["method"],
             rows=[_card_from_row(c, i, via=how.get(c.pokemon_id)) for i, c in users],
             chunk_refs=list(range(len(out.chunks))),
         )
@@ -584,7 +585,7 @@ async def learnset_tool(
 @tool(
     "move_info",
     scopes=ASK_AND_TEAM,
-    description="One move's type, category, power, accuracy, PP, effect and learner count.",
+    description="A move's type, category, power, accuracy, PP, effect and learner count.",
     args=NameArgs,
     closed_form=True,
 )
@@ -606,7 +607,7 @@ async def move_info(session: AsyncSession, args: NameArgs, ctx: AgentContext) ->
 @tool(
     "ability_info",
     scopes=ASK_AND_TEAM,
-    description="One ability's effect and how many Pokémon have it.",
+    description="An ability's effect and holder count.",
     args=NameArgs,
 )
 async def ability_info(session: AsyncSession, args: NameArgs, ctx: AgentContext) -> ToolResult:
@@ -631,7 +632,7 @@ async def ability_info(session: AsyncSession, args: NameArgs, ctx: AgentContext)
 @tool(
     "item_info",
     scopes=ASK_AND_TEAM,
-    description="One item's category, effect and Fling power.",
+    description="An item's category, effect and Fling power.",
     args=NameArgs,
 )
 async def item_info(session: AsyncSession, args: NameArgs, ctx: AgentContext) -> ToolResult:

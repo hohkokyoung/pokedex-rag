@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, TypeAdapter
 
+from app.rag.build_suggest import BuildSuggestion
 from app.schemas.analysis import DuelOut
 from app.schemas.recommend import Candidate
 
@@ -119,6 +120,7 @@ class LearnersView(BaseModel):
     by_method: dict[str, int] = Field(default_factory=dict)
     scope: list[str] = Field(default_factory=list)  # e.g. ["Fire-type", "non-legendary"]
     game: str | None = None
+    method: str | None = None  # only this learn method was asked for
     rows: list[PokemonCard]
     chunk_refs: list[int] = Field(default_factory=list)
 
@@ -131,6 +133,7 @@ class LearnCheckView(BaseModel):
     move: MoveRow
     ok: bool
     how: str | None = None  # "by level-up at Lv 1"
+    method: str | None = None  # only this learn method was asked for
     game: str | None = None
     chunk_refs: list[int] = Field(default_factory=list)
 
@@ -203,6 +206,69 @@ class DuelView(BaseModel):
     chunk_refs: list[int] = Field(default_factory=list)
 
 
+# ---- calc coach views ---------------------------------------------------------------
+
+
+class CalcRef(BaseModel):
+    slot: int
+    name: str
+    side: int  # 0 = the user's, 1 = the opponent's
+    dex_number: int | None = None
+
+
+class HitRange(BaseModel):
+    min_pct: float
+    max_pct: float
+    ko: int  # hits to KO from current HP (0 = no damage)
+    te: float = 1
+    ko_text: str = ""
+
+
+class CalcApply(BaseModel):
+    """Calculator fields to set on one slot when the user clicks Apply."""
+
+    slot: int
+    fields: dict  # item / ability / nature / evs (full spread)
+
+
+class DamageView(BaseModel):
+    kind: Literal["damage"] = "damage"
+    attacker: CalcRef
+    defender: CalcRef
+    move: MoveRow
+    current: HitRange
+    whatif: HitRange | None = None
+    changes: list[dict] = Field(default_factory=list)
+    apply: list[CalcApply] = Field(default_factory=list)
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
+class SurviveView(BaseModel):
+    kind: Literal["survive"] = "survive"
+    defender: CalcRef
+    attacker: CalcRef
+    move: MoveRow
+    survives: bool
+    stat: Literal["def", "spd"]
+    hp_ev: int
+    stat_ev: int
+    nature: str
+    nature_changed: bool
+    range: HitRange
+    current: HitRange
+    apply: CalcApply | None = None
+    already: bool = False  # the current set already survives: nothing to apply
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
+class BuildProposalView(BaseModel):
+    kind: Literal["build_proposal"] = "build_proposal"
+    slot: int
+    pokemon: str
+    build: BuildSuggestion
+    chunk_refs: list[int] = Field(default_factory=list)
+
+
 View = Annotated[
     RankingView
     | PokemonListView
@@ -214,7 +280,10 @@ View = Annotated[
     | CandidatesView
     | SetEditView
     | MemberAddedView
-    | DuelView,
+    | DuelView
+    | DamageView
+    | SurviveView
+    | BuildProposalView,
     Field(discriminator="kind"),
 ]
 
@@ -222,5 +291,5 @@ VIEW_ADAPTER: TypeAdapter[View] = TypeAdapter(View)
 
 VIEW_KINDS = (
     "ranking", "pokemon_list", "type_chart", "move_list", "learnset", "learners", "learn_check",
-    "candidates", "set_edit", "member_added", "duel",
+    "candidates", "set_edit", "member_added", "duel", "damage", "survive", "build_proposal",
 )

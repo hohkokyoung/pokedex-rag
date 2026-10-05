@@ -8,6 +8,12 @@ import { useKeyNav } from "@/hooks/useKeyNav";
 import { assetUrl, getFormMoves, getPokemon, getPokemonMoves, listPokemon } from "@/lib/api";
 import { TYPE_HEX } from "@/lib/pokeTypes";
 import type { Ability, PokemonSummary } from "@/lib/types";
+import { NAT, SABBR, natMul, statFull, type EVs, type SKey } from "@/lib/damageCalc";
+
+// The pure stat maths lives in lib/damageCalc (shared with the backend's port); re-exported
+// here so calculator UI imports stay in one place.
+export { NAT, SABBR, natMul, statFull };
+export type { EVs, SKey };
 
 const TC = TYPE_HEX;
 
@@ -17,13 +23,7 @@ export function Tag({ t }: { t: string }) {
   return <span className="lc-tt" style={{ background: TC[t] }}>{t}</span>;
 }
 
-export const NAT: [string, string | null, string | null][] = [
-  ["Hardy",null,null],["Lonely","Atk","Def"],["Brave","Atk","Spe"],["Adamant","Atk","SpA"],["Naughty","Atk","SpD"],
-  ["Bold","Def","Atk"],["Docile",null,null],["Relaxed","Def","Spe"],["Impish","Def","SpA"],["Lax","Def","SpD"],
-  ["Timid","Spe","Atk"],["Hasty","Spe","Def"],["Serious",null,null],["Jolly","Spe","SpA"],["Naive","Spe","SpD"],
-  ["Modest","SpA","Atk"],["Mild","SpA","Def"],["Quiet","SpA","Spe"],["Bashful",null,null],["Rash","SpA","SpD"],
-  ["Calm","SpD","Atk"],["Gentle","SpD","Def"],["Sassy","SpD","Spe"],["Careful","SpD","SpA"],["Quirky",null,null],
-];
+
 
 export type Stats = import("@/lib/types").Stats;
 /**
@@ -35,18 +35,10 @@ export type CalcMon = {
   formId?: number | null; sprite?: string; abilities?: Ability[];
 };
 export type CalcMove = { name: string; type: string; damage_class: string; power: number; target: string | null; priority: number; accuracy: number | null; effect: string | null };
-export type SKey = "hp" | "atk" | "def" | "spa" | "spd" | "spe";
-export type EVs = Record<SKey, number>;
+
 export const ZERO_EV: EVs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-export const SABBR: Record<SKey, string> = { hp: "HP", atk: "Atk", def: "Def", spa: "SpA", spd: "SpD", spe: "Spe" };
-export const natMul = (name: string, key: SKey): number => {
-  const r = NAT.find((x) => x[0] === name); if (!r || key === "hp") return 1;
-  return r[1] === SABBR[key] ? 1.1 : r[2] === SABBR[key] ? 0.9 : 1;
-};
-export const statFull = (base: number, level: number, iv: number, ev: number, nm: number, isHP: boolean) => {
-  const core = Math.floor((2 * base + iv + Math.floor(ev / 4)) * level / 100);
-  return isHP ? core + level + 10 : Math.floor((core + 5) * nm);
-};
+
+
 
 export const ALL_IV: EVs = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
 export const EV_COLOR: Record<SKey, string> = { hp: "#5DCAA5", atk: "#E24B4A", def: "#85B7EB", spa: "#EF9F27", spd: "#B25EC4", spe: "#F0619A" };

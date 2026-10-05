@@ -105,7 +105,11 @@ export type PlanStep = {
   error?: string;
 };
 
-export type PlanEvent = { planner: Planner; cached: boolean; replan: boolean; steps: PlanStep[] };
+export type PlanEvent = {
+  planner: Planner; cached: boolean; replan: boolean; steps: PlanStep[];
+  /** Constraints the question stated that no tool could apply (the answer opens with a note). */
+  unhandled?: string[];
+};
 export type StepEvent = { id: string; state: StepState; summary: string; ms: number };
 export type Usage = { llm_calls: number; input_tokens: number; output_tokens: number };
 export type DoneEvent = { usage?: Usage; fallback?: boolean };
@@ -215,6 +219,43 @@ export type MemberAddedView = ViewBase & {
 };
 export type DuelView = ViewBase & { kind: "duel"; team_id: number; opponent_id: number; duel: TeamDuel };
 
+/** A calculator slot: 0–1 are yours, 2–3 the opponent's. */
+export type CalcRef = { slot: number; name: string; side: 0 | 1; dex_number: number | null };
+export type HitRange = { min_pct: number; max_pct: number; ko: number; te: number; ko_text: string };
+/** Fields to write into one calculator slot (Apply); never a saved team. */
+export type CalcApply = {
+  slot: number;
+  fields: { item?: string; ability?: string; nature?: string; evs?: Record<string, number>; hp?: number };
+};
+export type DamageView = ViewBase & {
+  kind: "damage";
+  attacker: CalcRef;
+  defender: CalcRef;
+  move: MoveRowData;
+  current: HitRange;
+  whatif: HitRange | null;
+  changes: { who: string; key: string; value: string }[];
+  apply: CalcApply[];
+};
+export type SurviveView = ViewBase & {
+  kind: "survive";
+  defender: CalcRef;
+  attacker: CalcRef;
+  move: MoveRowData;
+  survives: boolean;
+  stat: "def" | "spd";
+  hp_ev: number;
+  stat_ev: number;
+  nature: string;
+  nature_changed: boolean;
+  range: HitRange;
+  current: HitRange;
+  apply: CalcApply | null;
+  /** The current set already survives: nothing to apply. */
+  already: boolean;
+};
+export type BuildProposalView = ViewBase & { kind: "build_proposal"; slot: number; pokemon: string; build: BuildSuggestion };
+
 export type AskView =
   | RankingView
   | PokemonListView
@@ -226,7 +267,10 @@ export type AskView =
   | CandidatesView
   | SetEditView
   | MemberAddedView
-  | DuelView;
+  | DuelView
+  | DamageView
+  | SurviveView
+  | BuildProposalView;
 
 export type AskResponse = {
   answer: string;
@@ -826,6 +870,40 @@ export function coachAskStream(
   report?: string,
 ): Promise<void> {
   return streamSSE(`/api/teams/${teamId}/ask`, { question, opponent_id: opponentId, report: report || null }, handlers);
+}
+
+/** The calculator as the coach sees it; stats, types and move data are re-read server-side. */
+export type CalcSlotState = {
+  slot: number;
+  pokemon_id: number;
+  form_id?: number | null;
+  name?: string;
+  nature: string;
+  evs: Record<string, number>;
+  ivs: Record<string, number>;
+  item: string;
+  ability: string;
+  /** Current HP, % of max. */
+  hp: number;
+  move: string | null;
+  aim: number | null;
+};
+export type CalcAskState = {
+  level: number;
+  doubles: boolean;
+  field: {
+    weather: string; terrain: string; reflect: boolean; lightscreen: boolean;
+    crit: boolean; burn: boolean; friend_guard: boolean;
+  };
+  slots: CalcSlotState[];
+  focus: number;
+  hits: { attacker: number; target: number; move: string; min_pct: number; max_pct: number; ko: number; te: number }[];
+  proposal: { slot: number; build: BuildSuggestion; thread: CoachTurn[] } | null;
+};
+
+/** Stream the calculator coach (damage, survival, builds, dex) over SSE. Nothing is saved. */
+export function calcAskStream(question: string, state: CalcAskState, handlers: StreamHandlers): Promise<void> {
+  return streamSSE("/api/calc/ask", { question, ...state }, handlers);
 }
 
 export type StreamHandlers = {

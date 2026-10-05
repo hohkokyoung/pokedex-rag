@@ -210,7 +210,7 @@ def _changed(before: BuildSet, after: BuildSet) -> dict:
 @tool(
     "propose_set_edit",
     scopes=TEAM,
-    description="Propose a new set for one member (saved only if the user applies it).",
+    description="A new set for one member (saved only on Apply).",
     args=SetEditArgs,
     closed_form=True,
 )
@@ -358,7 +358,7 @@ class DuelArgs(BaseModel):
 @tool(
     "duel",
     scopes=TEAM,
-    description="Play one of our members against one opponent member, turn by turn.",
+    description="Play our member vs an opponent member, turn by turn.",
     args=DuelArgs,
 )
 async def duel(session: AsyncSession, args: DuelArgs, ctx: AgentContext) -> ToolResult:

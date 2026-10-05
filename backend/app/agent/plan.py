@@ -38,6 +38,8 @@ class Plan:
     planner: Planner
     needs_followup: bool = False
     cached: bool = False
+    # Parts of the question no tool arg could express (LLM plans only), said in the answer.
+    unhandled: list[str] = field(default_factory=list)
 
     @property
     def valid_steps(self) -> list[Step]:
@@ -98,7 +100,7 @@ def make_step(
 def build_plan(
     raw_steps: list[dict], planner: Planner, *, scope: str = "ask",
     needs_followup: bool = False, id_prefix: str = "s", taken: set[str] | None = None,
-    limit: int = MAX_STEPS,
+    limit: int = MAX_STEPS, unhandled: list[str] | None = None,
 ) -> Plan:
     """Validate raw ``{id, tool, args, why, after}`` dicts into a Plan (at most ``limit``)."""
     steps: list[Step] = []
@@ -115,4 +117,5 @@ def build_plan(
         )
         known.add(sid)
         steps.append(step)
-    return Plan(steps=steps, planner=planner, needs_followup=needs_followup)
+    gaps = [str(u).strip()[:80] for u in (unhandled or []) if str(u).strip()][:3]
+    return Plan(steps=steps, planner=planner, needs_followup=needs_followup, unhandled=gaps)

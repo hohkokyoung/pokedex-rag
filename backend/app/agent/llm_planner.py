@@ -15,7 +15,7 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
-from app.agent import ask_tools, team_tools  # noqa: F401 — registers the Ask tools
+from app.agent import ask_tools, calc_tools, team_tools  # noqa: F401 — registers the Ask tools
 from app.agent.plan import MAX_STEPS, Plan, Step, build_plan
 from app.agent.tools import Tool, tools_for
 from app.rag import answer as answer_service
@@ -25,18 +25,19 @@ REPLAN_MAX_TOKENS = 800
 MAX_REPLAN_STEPS = 3
 
 _RULES = """Rules:
-- Use the fewest steps that fully answer the question: one step per distinct piece of \
-information. Most questions need 1 step; multi-part questions need one per part.
-- Put filters (types, legendary/mythical, physical/special, game, stat thresholds) in \
+- Use the fewest steps: one per distinct piece of information. Most questions need 1 \
+step; multi-part ones need one per part.
+- Put filters (types, legendary/mythical, physical/special, game, learn method, stat \
+thresholds) in \
 the tool's own args. Never chain steps to filter: steps cannot see each other's results, \
 so leave "after" empty unless order matters.
-- Use exact Pokémon, move, ability and item names as the user wrote them.
+- Use Pokémon, move, ability and item names as written.
 - Set a filter ONLY when the question states it; leave every other filter null or empty. \
 legendary: false only for "non-legendary" / "no legendaries"; null means no constraint. \
 Types are lowercase.
-- Questions that aren't about Pokémon: one semantic_search step with the question.
 - needs_followup is false unless the answer clearly needs another lookup you can't plan \
-yet."""
+yet.
+- unhandled: stated constraints no tool arg can express, else []."""
 
 _EXAMPLES = """Examples (only the args that matter shown):
 Q: Which Pokémon has the highest Attack?
@@ -49,14 +50,16 @@ Q: Which moves beat Garchomp, and what is Fire weak to?
 steps: coverage_vs_types(against="Garchomp", want="moves"); type_matchup(types=["fire"])
 Never supply a Pokémon's types or stats from memory: name it and let a tool look it up."""
 
+_LORE_RULE = "\n- Questions that aren't about Pokémon: one semantic_search step with the question."
+
 _TEAM_RULES = """Coach rules:
-- The user's team, its analysis and (if selected) the opponent matchup are ALREADY \
-attached. Plan only EXTRA lookups or actions; an empty plan is valid and common.
+- The team, its analysis and any opponent matchup are ALREADY attached: plan only \
+EXTRA lookups or actions; an empty plan is valid and common.
 - add_member ONLY for an explicit command ("add Garchomp"); for "should I add …?" or \
 "who should I add?" use recommend_additions.
 - Set changes for a member ("give X a faster set", "what item should X hold?") -> \
 propose_set_edit with the member's exact name and side ("theirs" for the opponent).
-- Drafting / recommending additions -> recommend_additions with role and filters set."""
+- Drafting additions -> recommend_additions with role and filters set."""
 
 _TEAM_EXAMPLES = """Examples (only the args that matter shown):
 Q: What's my team's biggest weakness?
@@ -109,6 +112,35 @@ def args_schema(model: type[BaseModel]) -> dict:
     return _strict(_inline_refs(model.model_json_schema()))
 
 
+_CALC_RULES = """Calculator rules:
+- The calculator's state (sets, field, the hits it shows) is ALREADY attached. Plan only \
+extra calculations or lookups; an empty plan is valid.
+- Damage / KO questions -> damage_calc; "with X" -> changes [{who, key, value}] \
+(attacker unless the defender's item/EVs are meant). Survival -> survive_threshold. \
+Builds and "make it …" -> propose_build with the user's words as request.
+- Name calculator Pokémon exactly as listed; omit names to use the focused Pokémon."""
+
+_CALC_EXAMPLES = """Examples (only the args that matter shown):
+Q: Can Garchomp OHKO Salamence with Choice Band?
+steps: damage_calc(attacker="Garchomp", defender="Salamence", \
+changes=[{who:"attacker", key:"item", value:"Choice Band"}])
+Q: How much Def does Salamence need to survive Earthquake?
+steps: survive_threshold(defender="Salamence", move="Earthquake")
+Q: Make it bulkier and tell me what Garchomp's Earthquake does now
+steps: propose_build(request="make it bulkier"); damage_calc(attacker="Garchomp")"""
+
+
+def calc_roster_line(st) -> str:
+    """The calculator's Pokémon, sides and moves, so the planner names them exactly."""
+    def one(m) -> str:
+        return f"{m.name} [{m.move.name if m.move else 'no move'}]"
+    yours = ", ".join(one(m) for m in st.members if m.side == 0) or "none"
+    foes = ", ".join(one(m) for m in st.members if m.side == 1) or "none"
+    focus = st.by_slot(st.focus)
+    return (f"Calculator (Lv {st.level}, {'doubles' if st.doubles else 'singles'}): yours "
+            f"{yours}; foe {foes}" + (f"; focused {focus.name}" if focus else ""))
+
+
 def _scope_tools(scope: str) -> list[Tool]:
     return tools_for(scope, plannable_only=True)
 
@@ -139,8 +171,9 @@ def plan_schema(scope: str) -> dict:
                 "items": {"anyOf": [_step_schema(t) for t in _scope_tools(scope)]},
             },
             "needs_followup": {"type": "boolean"},
+            "unhandled": {"type": "array", "items": {"type": "string"}},
         },
-        "required": ["steps", "needs_followup"],
+        "required": ["steps", "needs_followup", "unhandled"],
     }
 
 
@@ -150,9 +183,13 @@ def system_prompt(scope: str) -> str:
     if scope == "team":
         who = "a Pokémon team coach"
         rules, examples = f"{_RULES}\n\n{_TEAM_RULES}", _TEAM_EXAMPLES
+    elif scope == "calc":
+        who = "a damage calculator's coach"
+        rules, examples = f"{_RULES}\n\n{_CALC_RULES}", _CALC_EXAMPLES
     else:
         who = "a Pokédex assistant"
-        rules, examples = _RULES, _EXAMPLES
+        # Only Ask has lore search; the coach scopes answer off-topic questions from context.
+        rules, examples = _RULES + _LORE_RULE, _EXAMPLES
     return (
         f"You plan data lookups for {who}. Reply with a plan: up to "
         f"{MAX_STEPS} steps, each one tool call with its args and a short why.\n\n"
@@ -192,6 +229,7 @@ async def plan_llm(question: str, scope: str = "ask", *, usage=None, roster: str
     return build_plan(
         list(data.get("steps") or []), "llm", scope=scope,
         needs_followup=bool(data.get("needs_followup")),
+        unhandled=list(data.get("unhandled") or []),
     )
 
 

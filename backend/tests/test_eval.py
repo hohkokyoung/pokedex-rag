@@ -65,3 +65,15 @@ async def test_coach_keyword_plans(engine) -> None:
     assert all(r.grounded for r in results), "team context missing"
     fast = [r for r in results if r.case.fast_path is not None]
     assert all(r.keyword_confident == r.case.fast_path for r in fast)
+
+
+async def test_calc_keyword_plans(engine) -> None:
+    from eval.harness import evaluate_calc
+
+    async with async_sessionmaker(engine, expire_on_commit=False)() as session:
+        results = await evaluate_calc(session, use_llm=False)
+    misses = [(r.case.id, r.tools) for r in results if not r.case.abstain and not r.keyword_plan_ok]
+    assert not misses, f"calc keyword planner regressed: {misses}"
+    assert all(r.grounded for r in results), "calc context missing"
+    fast = [r for r in results if r.case.fast_path is not None]
+    assert all(r.keyword_confident == r.case.fast_path for r in fast)

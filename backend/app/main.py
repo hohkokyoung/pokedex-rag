@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api import ask, builder, health, pokemon, profile, teams
+from app.api import ask, builder, calc, health, pokemon, profile, teams
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -51,6 +51,7 @@ app.include_router(ask.router)
 app.include_router(profile.router)
 app.include_router(builder.router)
 app.include_router(teams.router)
+app.include_router(calc.router)
 
 
 @app.get("/api/ask/status", tags=["ask"])

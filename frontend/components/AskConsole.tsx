@@ -246,14 +246,18 @@ export function Answer({
   const byName = new Map(sources.filter((s) => s.pokemon_name).map((s) => [s.pokemon_name!.toLowerCase(), s]));
   const cursor = streaming ? <span className="ax-cursor" aria-hidden /> : null;
   const last = blocks.length - 1;
+  // A leading "*Note: I couldn't filter by …*" (constraints the tools can't apply) is a notice,
+  // not the verdict — the verdict is the paragraph after it.
+  const gap = blocks[0]?.kind === "p" && /^\*Note: [\s\S]+\*$/.test(blocks[0].text.trim()) ? 0 : -1;
+  const verdictAt = gap === 0 ? 1 : 0;
 
   return (
     <div className={`ax-answer ${abstained ? "is-abstain" : ""}`} aria-live="polite">
       {blocks.map((b, i) => {
         if (b.kind === "p") {
           return (
-            <p key={i} className={i === 0 ? "ax-verdict" : "ax-p"}>
-              {renderInline(b.text, cite, `p${i}-`)}
+            <p key={i} className={i === gap ? "ax-gap" : i === verdictAt ? "ax-verdict" : "ax-p"} role={i === gap ? "note" : undefined}>
+              {i === gap ? b.text.trim().replace(/^\*|\*$/g, "") : renderInline(b.text, cite, `p${i}-`)}
               {i === last && cursor}
             </p>
           );
