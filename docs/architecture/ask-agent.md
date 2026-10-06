@@ -140,7 +140,10 @@ shape. Groq uses `json_schema` mode, Anthropic a forced tool call; SDK retries a
 The prompt lists tool names + one-line descriptions, rules ("set a filter only when
 the question states it", "use names as written", "never supply a Pokémon's stats from
 memory"), and four examples. It must stay under `PROMPT_BUDGET` (11k characters,
-~2.75k tokens) for Groq's free-tier tokens-per-minute limit.
+~2.75k tokens) for Groq's free-tier tokens-per-minute limit; a test fails any scope
+that goes over. **The budget is nearly full** (Oct 2026: ask ~9.8k, team ~10.6k, calc
+~10.4k) — a new tool in team or calc scope will likely need a shorter description or
+another tool trimmed. Check with `llm_planner.prompt_size(scope)`.
 
 The plan also has `unhandled`: constraints no argument can express ("cute"). The
 answer opens by saying they weren't applied.

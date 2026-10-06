@@ -60,3 +60,12 @@ team — I like sweepers, non-legendary".
 - With an opponent picked, the coach also knows the matchup and can play a **duel**.
 
 How it works: [../architecture/team-coach.md](../architecture/team-coach.md).
+
+## Code
+
+`/teams` → `components/TeamsBrowser.tsx`; `/teams/[id]` → `components/TeamWorkbench.tsx`
+(slots in `SlotEditor.tsx`, report in `TeamReport.tsx`, coach in `TeamCoach.tsx`).
+Backend: `api/teams.py` (CRUD, analysis, strategy, summary, duel, coach) and
+`api/builder.py` (the moves / abilities / items / natures the slot editor offers →
+`services/builder.py`, Z-moves in `services/zmoves.py`). Engines and grades:
+[team-coach.md](../architecture/team-coach.md).

@@ -10,8 +10,9 @@ no LLM needed to find the data:
   - both named     "can blaziken learn earthquake?"  → a yes/no from the data
 
 Names are matched against the whole Pokémon and move lists (hyphens, apostrophes
-and possessives normalised), so it runs before the LLM router, which doesn't know
-this route.
+and possessives normalised). The agent's ``learnset`` tool (``app/agent/ask_tools.py``)
+calls ``plan_typed`` / ``retrieve_typed`` with typed arguments; only the keyword
+planner reads question text here (``find_game_in_text``, the learn cues).
 """
 
 from __future__ import annotations

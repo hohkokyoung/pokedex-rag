@@ -40,7 +40,8 @@ page's own report and the analysis travel in `AgentContext`.
 - The planner only adds *extra* steps. An empty plan is valid, and plain team
   questions take the fast path (0 planning calls).
 - Most Ask dex tools are available here; lore search, look-alikes, profile picks and
-  encounters are not (keeps the planning prompt ≤ 10.5k characters).
+  encounters are not (keeps the planning prompt under `PROMPT_BUDGET` — see
+  [ask-agent.md](ask-agent.md#llm-planner-llm_plannerpy)).
 
 | Tool | Does | Writes? |
 |---|---|---|

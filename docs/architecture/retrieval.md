@@ -38,6 +38,10 @@ tool's `views` and lists chunks as sources. **Code-rendered answers** read `valu
 | `matchup.py` | "what is Fire weak to?", "special attackers that cover Dragon" | The ingested type chart; coverage is **movepool-based** — a Pokémon covers a type if it can *learn* a super-effective damaging move (special-only when asked for), not just by its own typing. |
 | `personalize.py` | "recommend a Pokémon for me" | Your favourites and preferred types (single local profile). |
 
+Don't confuse `rag/matchup.py` (finds *attackers* that cover a type via their movepool)
+with `services/matchups.py` (the type-chart maths: a typing's weaknesses, resistances,
+immunities — used by `type_matchup`, the Pokédex and the team engines).
+
 Name lookups go through `app/agent/names.py`: exact match first, then the closest
 spelling by `difflib` ratio ≥ 0.85 ("garchmop" → Garchomp, but "pikachu" ↛ Pichu). A
 fuzzy match is labelled in the step summary ("closest match for …").

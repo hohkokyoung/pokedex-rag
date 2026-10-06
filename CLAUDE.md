@@ -10,7 +10,7 @@ changing it:
 | Retrieval (SQL, learnsets, matchups, vectors) | `docs/architecture/retrieval.md` | `openspec/specs/assistant/` |
 | Team builder & coach | `docs/architecture/team-coach.md` | `openspec/specs/team-coach/` |
 | Damage calc & its coach | `docs/architecture/damage-calc.md` | `openspec/specs/calc-coach/` |
-| What each page does | `docs/product/` | |
+| What each page does + its code | `docs/product/` | |
 | Dev setup, data pipeline, eval | `docs/guides/` | |
 
 ## What this is
@@ -62,7 +62,8 @@ in this environment — overridable in `.env`).
 - **Keyless works.** Every LLM feature has a fallback (keyword plan, code-rendered or
   extractive answer). A 429 or timeout means fall back — never retry in a loop.
 - **LLM budget.** ≤ 3 calls per Ask question (plan, re-plan, answer); fast-path
-  closed-form questions use 0. Planning prompt ~2.4k input tokens (`PROMPT_BUDGET`).
+  closed-form questions use 0. Planning prompt ≤ `PROMPT_BUDGET` (11k chars) per
+  scope, and it's nearly full — see `docs/architecture/ask-agent.md` before adding a tool.
   LLM: Anthropic Claude (preferred) or Groq `gpt-oss-120b` via the async SDKs
   (`app/rag/answer.py`); this environment runs Groq, so keep calls Groq-friendly.
 - **Team summary never blocks a page.** `GET /summary` must not call the LLM; it's
@@ -84,6 +85,22 @@ in this environment — overridable in `.env`).
   change per shippable phase.
 - **Docs:** when behaviour described in `docs/` changes, update that page in the same
   commit. Each fact has one home — link, don't copy.
+
+## Making a change
+
+- **Bug fix: failing test first.** Write a test that reproduces the bug through the
+  real code path, run it and see it fail, then fix. If it won't fail, you haven't found
+  the bug yet.
+- **Feature: each spec scenario becomes a test** (keyless where possible) before or
+  with its code, during `/opsx:apply`.
+- **Done means verified.** For API or UI changes, hit the endpoint or check the page —
+  a saved file isn't proof (see the anon-volume gotcha below).
+- **A Stop hook enforces lint/tests** (`.claude/hooks/verify.sh`): when backend `*.py`
+  changed it runs ruff + pytest; frontend `*.ts(x)` → `tsc --noEmit` + eslint. A
+  failure blocks the end of the turn; fix it, or if it can't be fixed, say so plainly.
+  It checks the whole working tree, so another session's broken edits block you too.
+- `.env` files and `openspec/changes/archive/` are denied to reads — don't work around
+  it; ask the user if a past decision matters.
 
 ## Gotchas
 

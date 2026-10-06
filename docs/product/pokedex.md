@@ -29,3 +29,16 @@ The first type sets the page's accent colour.
 | Evolution | the chain with levels/conditions |
 | Dex entries | every game's entry, grouped by generation |
 | Where to find | encounter locations per game: wild areas (method, level, rate, conditions) and raid dens. Data ends at Sword/Shield |
+
+## Code
+
+| Part | Frontend | Backend |
+|---|---|---|
+| Catalog list, search, filters | `components/PokedexBrowser.tsx` | `GET /pokemon` → `api/pokemon.py` → `services/pokemon_query.py` (generations via `services/versions.py`) |
+| Detail page | `components/PokemonDetailView.tsx` | `GET /pokemon/{id_or_name}` → `services/pokemon_query.py` |
+| Moveset, move learners | `MovesetPanel.tsx`, `MoveLearners.tsx` | `api/builder.py` → `services/builder.py` |
+| Where to find | `EncountersPanel.tsx` | `GET /pokemon/{id}/encounters` → `services/encounters.py` |
+
+The catalog's filters are **not** the Ask filters: Ask's "Gen 4 Fire types" goes through
+`rag/sql_retrieval.py` ([retrieval.md](../architecture/retrieval.md)). A bug on this page
+lives in `services/pokemon_query.py`.

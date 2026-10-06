@@ -1,4 +1,6 @@
-"""Deterministic answers for the structured (SQL) route — no LLM.
+"""Deterministic answers for ``query_pokemon`` (SQL) results — no LLM.
+
+Called by ``app/agent/render.py`` when a plan's steps are all closed-form.
 
 The planner's ``StructuredQuery`` already says exactly what was asked (which
 stat, which direction, which filters) and the rows come straight from the

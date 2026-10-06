@@ -64,4 +64,7 @@ make lint             # ruff + eslint
 make damage-fixtures  # after changing frontend/lib/damageCalc.ts (Node ≥ 22.18)
 ```
 
+Claude Code runs lint and tests itself at the end of any turn that changed code (a Stop
+hook — see "Making a change" in `CLAUDE.md`).
+
 Evaluation: [eval.md](eval.md).
