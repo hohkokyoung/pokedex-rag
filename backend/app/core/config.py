@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # --- RAG: LLM providers ---
     # Preferred: Anthropic Claude. Fallback: Groq (free tier, OpenAI-compatible).
     anthropic_api_key: str = ""
-    anthropic_model: str = "claude-opus-5"
+    anthropic_model: str = "claude-opus-5-5"
 
     groq_api_key: str = ""
     groq_model: str = "openai/gpt-oss-120b"
