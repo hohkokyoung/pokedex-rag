@@ -247,6 +247,13 @@ async def evaluate(
     return results
 
 
+async def _pace(usage: dict, tpm: int) -> None:
+    """Wait out the tokens just spent, so the next case measures plans, not rate limits."""
+    spent = usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+    if tpm and spent:
+        await asyncio.sleep(60 * spent / tpm)
+
+
 def summarize(results: list[CaseResult]) -> dict:
     def rate(vals: list[bool | None]) -> float | None:
         xs = [v for v in vals if v is not None]
@@ -299,6 +306,7 @@ class CoachCaseResult:
     abstained: bool | None = None
     usage: dict[str, int] = field(default_factory=dict)
     tools: list[str] = field(default_factory=list)
+    fallback: bool = False  # an LLM call failed (e.g. a 429) and the keyword plan stood in
 
 
 async def _coach_ctx(session: AsyncSession, player_id: int, opponent_id: int | None):
@@ -312,7 +320,7 @@ async def _coach_ctx(session: AsyncSession, player_id: int, opponent_id: int | N
 
 async def evaluate_coach(
     session: AsyncSession, *, use_llm: bool, factory: Callable | None = None,
-    plans_only: bool = False,
+    plans_only: bool = False, tpm: int = 0,
 ) -> list[CoachCaseResult]:
     """Team-coach cases on the agent (scope "team") against fixed temporary teams.
 
@@ -347,6 +355,7 @@ async def evaluate_coach(
                     case.question, "team", session_factory=factory, ctx=ctx)]
                 out = collect(events)
                 r.planner, r.usage = out.planner, out.usage
+                r.fallback = bool(next(d for n, d in events if n == "done").get("fallback"))
                 steps = [(s.tool, s.args) for s in out.steps
                          if s.state != "error" and s.tool != "team_context"]
                 r.plan_ok = plan_matches(case.expect_tools, steps)
@@ -360,7 +369,7 @@ async def evaluate_coach(
                 usage = answer_service.Usage()
                 if use_llm:  # plans only: real planner selection, no answer call
                     ctx.extra["usage"] = usage
-                    plan, _ = await agent_runner._choose_plan(
+                    plan, r.fallback = await agent_runner._choose_plan(
                         case.question, "team", factory, usage, ctx)
                     r.planner = plan.planner
                     r.plan_ok = plan_matches(case.expect_tools, _steps(plan))
@@ -376,6 +385,7 @@ async def evaluate_coach(
                 if use_llm:
                     calls = usage.calls + int(not agent_runner._closed_form(run))
                     r.usage = {**usage.as_dict(), "llm_calls": calls}
+            await _pace(r.usage, tpm)
             results.append(r)
     finally:
         await teams_service.delete_team(session, player.id)
@@ -398,11 +408,12 @@ class CalcCaseResult:
     abstained: bool | None = None
     usage: dict[str, int] = field(default_factory=dict)
     tools: list[str] = field(default_factory=list)
+    fallback: bool = False  # an LLM call failed (e.g. a 429) and the keyword plan stood in
 
 
 async def evaluate_calc(
     session: AsyncSession, *, use_llm: bool, factory: Callable | None = None,
-    plans_only: bool = False,
+    plans_only: bool = False, tpm: int = 0,
 ) -> list[CalcCaseResult]:
     """Calculator-coach cases on the agent (scope "calc") against ``CALC_STATE``.
 
@@ -430,6 +441,7 @@ async def evaluate_calc(
                 case.question, "calc", session_factory=factory, ctx=ctx)]
             out = collect(events)
             r.planner, r.usage = out.planner, out.usage
+            r.fallback = bool(next(d for n, d in events if n == "done").get("fallback"))
             steps = [(s.tool, s.args) for s in out.steps
                      if s.state != "error" and s.tool != "calc_context"]
             r.plan_ok = plan_matches(case.expect_tools, steps)
@@ -443,7 +455,7 @@ async def evaluate_calc(
             usage = answer_service.Usage()
             if use_llm:  # plans only: real planner selection, no build/answer call
                 ctx.extra["usage"] = usage
-                plan, _ = await agent_runner._choose_plan(
+                plan, r.fallback = await agent_runner._choose_plan(
                     case.question, "calc", factory, usage, ctx)
                 r.planner = plan.planner
                 r.plan_ok = plan_matches(case.expect_tools, _steps(plan))
@@ -465,5 +477,6 @@ async def evaluate_calc(
                     builds and not rest)
                 calls = usage.calls + builds + int(not closed)
                 r.usage = {**usage.as_dict(), "llm_calls": calls}
+        await _pace(r.usage, tpm)
         results.append(r)
     return results

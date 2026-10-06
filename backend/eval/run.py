@@ -39,9 +39,9 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
         results = await evaluate(session, use_llm=use_llm, factory=factory, tpm=tpm,
                                  plans_only=plans_only)
         coach_results = await evaluate_coach(session, use_llm=use_llm, factory=factory,
-                                             plans_only=plans_only)
+                                             plans_only=plans_only, tpm=tpm)
         calc_results = await evaluate_calc(session, use_llm=use_llm, factory=factory,
-                                           plans_only=plans_only)
+                                           plans_only=plans_only, tpm=tpm)
     await engine.dispose()
 
     mode = "OFF — keyword planner only" if not use_llm else "plans only" if plans_only else "ON"
@@ -82,7 +82,8 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
     for r in coach_results:
         fast = "·" if r.case.fast_path is None else _mark(r.keyword_confident == r.case.fast_path)
         print(
-            f"{r.case.id:<5}{r.planner:<9}{_mark(r.keyword_plan_ok):<4}{_mark(r.plan_ok):<4}"
+            f"{r.case.id:<5}{r.planner + ('!' if r.fallback else ''):<9}"
+            f"{_mark(r.keyword_plan_ok):<4}{_mark(r.plan_ok):<4}"
             f"{fast:<5}{_mark(r.grounded):<5}{str(r.usage.get('llm_calls', '')):<6}"
             f"{_mark(r.citation_ok):<5}{_mark(r.abstained):<5} {r.case.question}"
             f"  → {', '.join(r.tools) or '(team context only)'}"
@@ -90,6 +91,7 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
     graded = [r for r in coach_results if not r.case.abstain]
     kw = [r.keyword_plan_ok for r in graded]
     print(f"\n  coach keyword_plan_accuracy: {_pct(sum(kw) / len(kw) if kw else None)}")
+    print(f"  coach fallbacks (429/errors): {sum(r.fallback for r in coach_results)}")
     calls = [r.usage["llm_calls"] for r in coach_results if r.usage]
     if calls:
         print(f"  coach avg_llm_calls       : {sum(calls) / len(calls):.2f}")
@@ -103,7 +105,8 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
     for r in calc_results:
         fast = "·" if r.case.fast_path is None else _mark(r.keyword_confident == r.case.fast_path)
         print(
-            f"{r.case.id:<5}{r.planner:<9}{_mark(r.keyword_plan_ok):<4}{_mark(r.plan_ok):<4}"
+            f"{r.case.id:<5}{r.planner + ('!' if r.fallback else ''):<9}"
+            f"{_mark(r.keyword_plan_ok):<4}{_mark(r.plan_ok):<4}"
             f"{fast:<5}{_mark(r.grounded):<5}{str(r.usage.get('llm_calls', '')):<6}"
             f"{_mark(r.citation_ok):<5}{_mark(r.abstained):<5} {r.case.question}"
             f"  → {', '.join(r.tools) or '(calc context only)'}"
@@ -114,6 +117,7 @@ async def main(keyless: bool, tpm: int, plans_only: bool) -> None:
     fast = [r.keyword_confident == r.case.fast_path for r in calc_results
             if r.case.fast_path is not None]
     print(f"  calc fast_path_agreement   : {_pct(sum(fast) / len(fast) if fast else None)}")
+    print(f"  calc fallbacks (429/errors): {sum(r.fallback for r in calc_results)}")
     calls = [r.usage["llm_calls"] for r in calc_results if r.usage]
     if calls:
         print(f"  calc avg_llm_calls         : {sum(calls) / len(calls):.2f}")

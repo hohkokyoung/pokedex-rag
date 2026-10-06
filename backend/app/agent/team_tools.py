@@ -358,7 +358,7 @@ class DuelArgs(BaseModel):
 @tool(
     "duel",
     scopes=TEAM,
-    description="Play our member vs an opponent member, turn by turn.",
+    description="Who wins: our member vs an opponent member, turn by turn.",
     args=DuelArgs,
 )
 async def duel(session: AsyncSession, args: DuelArgs, ctx: AgentContext) -> ToolResult:

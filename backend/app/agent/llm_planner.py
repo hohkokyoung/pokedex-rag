@@ -50,7 +50,11 @@ Q: Which moves beat Garchomp, and what is Fire weak to?
 steps: coverage_vs_types(against="Garchomp", want="moves"); type_matchup(types=["fire"])
 Never supply a Pokémon's types or stats from memory: name it and let a tool look it up."""
 
-_LORE_RULE = "\n- Questions that aren't about Pokémon: one semantic_search step with the question."
+_LORE_RULE = (
+    "\n- What a named move, ability or item does: move_info / ability_info / item_info, one "
+    "step per name — never semantic_search (it searches Pokémon lore, not effects)."
+    "\n- Questions that aren't about Pokémon: one semantic_search step with the question."
+)
 
 _TEAM_RULES = """Coach rules:
 - The team, its analysis and any opponent matchup are ALREADY attached: plan only \
