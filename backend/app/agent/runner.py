@@ -16,11 +16,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
+import time
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
 
 from app.agent import cache, executor, llm_planner, render
-from app.agent.keyword_planner import is_imperative_add, plan_keywords
+from app.agent import trace as plan_trace
+from app.agent.keyword_planner import KeywordPlan, is_imperative_add, plan_keywords
 from app.agent.plan import Plan, Step, make_step
 from app.agent.results import ToolResult
 from app.agent.sse import _sources
@@ -54,6 +56,11 @@ class _Run:
     fallback: bool = False  # an LLM call failed and something cheaper stood in
     profile: bool = False  # a step read the user's profile (never cache the answer)
     ctx: AgentContext | None = None
+    # For the trace: how the answer was produced, and what a re-plan added or why it failed.
+    answer_tier: str | None = None  # code | llm | no-llm | abstain
+    answer_fallback: str | None = None  # why the LLM answer was replaced (rate-limited | <Type>)
+    replan_steps: list[Step] = field(default_factory=list)
+    replan_error: str | None = None
 
 
 def _plan_event(steps: list[Step], plan: Plan, *, replan: bool = False) -> dict:
@@ -87,21 +94,44 @@ def _roster(ctx: AgentContext | None) -> str:
     return llm_planner.roster_line(ctx.team, ctx.opponent)
 
 
+@dataclass
+class PlanChoice:
+    """The plan to run, and how it was chosen (recorded in the question's trace)."""
+
+    plan: Plan
+    fell_back: bool = False  # the LLM was asked but the keyword plan stood in
+    keyword: KeywordPlan | None = None  # None only for a cached plan
+    llm_plan: Plan | None = None  # the LLM's plan, also when it was rejected
+    skip_llm: str | None = None  # "fast-path" | "no-llm" — why the LLM wasn't asked
+    # rate-limited | timeout | provider-error:<Type> | no-valid-steps
+    fallback_reason: str | None = None
+
+
+def _failure(exc: BaseException) -> str:
+    if answer_service.is_rate_limited(exc):
+        return "rate-limited"
+    if isinstance(exc, (asyncio.TimeoutError, TimeoutError)):
+        return "timeout"
+    return f"provider-error:{type(exc).__name__}"
+
+
 async def _choose_plan(
     question: str, scope: str, session_factory: Callable, usage: answer_service.Usage,
     ctx: AgentContext | None = None,
-) -> tuple[Plan, bool]:
-    """(plan, fell_back): the cheapest plan that will do."""
+) -> PlanChoice:
+    """The cheapest plan that will do, and why it was picked."""
     settings = get_settings()
     cached = cache.plans.get(scope, question) if _cacheable(scope) else None
     if cached is not None:
         cached.cached = True
-        return cached, False
+        return PlanChoice(cached)
 
     async with session_factory() as session:
         kp = await plan_keywords(session, question, scope, ctx)
-    if not (settings.llm_enabled and settings.ask_agent_enabled) or kp.confident:
-        return kp.plan, False
+    if not (settings.llm_enabled and settings.ask_agent_enabled):
+        return PlanChoice(kp.plan, keyword=kp, skip_llm="no-llm")
+    if kp.confident:
+        return PlanChoice(kp.plan, keyword=kp, skip_llm="fast-path")
 
     try:
         plan = await asyncio.wait_for(
@@ -109,19 +139,20 @@ async def _choose_plan(
             PLAN_TIMEOUT,
         )
     except Exception as exc:  # noqa: BLE001 — incl. 429 and timeouts: fall back, no retry
-        kind = "rate-limited" if answer_service.is_rate_limited(exc) else type(exc).__name__
-        log.info("LLM planning failed (%s); using the keyword plan", kind)
-        return kp.plan, True
+        reason = _failure(exc)
+        log.info("LLM planning failed (%s); using the keyword plan", reason)
+        return PlanChoice(kp.plan, fell_back=True, keyword=kp, fallback_reason=reason)
     # Coach scopes: an empty plan is a real answer (the context covers it). So is one that
     # says nothing can express the question (``unhandled``): falling back would answer a
     # broader question as if it were this one. Otherwise no valid steps → the keyword plan.
     empty_ok = (scope in CONTEXT_TOOLS or bool(plan.unhandled)) and not plan.steps
     if not plan.valid_steps and not empty_ok:
         log.info("LLM plan had no valid steps; using the keyword plan")
-        return kp.plan, True
+        return PlanChoice(kp.plan, fell_back=True, keyword=kp, llm_plan=plan,
+                          fallback_reason="no-valid-steps")
     if _cacheable(scope):
         cache.plans.put(scope, question, plan)
-    return plan, False
+    return PlanChoice(plan, keyword=kp, llm_plan=plan)
 
 
 def _with_context(plan: Plan, scope: str) -> Plan:
@@ -256,6 +287,7 @@ async def _answer(run: _Run) -> AsyncIterator[Event]:
     """The answer events, opening with the plan's gap note (if any) on the first delta."""
     if run.plan.unhandled and not run.plan.steps and run.scope not in CONTEXT_TOOLS:
         # Nothing could be looked up: say what's missing instead of guessing (no LLM call).
+        run.answer_tier = "abstain"
         yield "sources", []
         yield "delta", {"text": "I can't answer that from the Pokédex data — no lookup can "
                         f"apply: {'; '.join(run.plan.unhandled)}."}
@@ -273,6 +305,7 @@ async def _answer_body(run: _Run) -> AsyncIterator[Event]:
         chunks, refs, offsets = _evidence(run, cap=None)
         text = render.render_all([o for o in offsets if o[0] not in CONTEXT_TOOLS.values()])
         if text is not None:
+            run.answer_tier = "code"
             yield "sources", [s.model_dump() for s in _sources(chunks, refs)]
             yield "delta", {"text": text}
             return
@@ -281,10 +314,12 @@ async def _answer_body(run: _Run) -> AsyncIterator[Event]:
     chunks, refs, offsets = _evidence(run, cap=cap)
     yield "sources", [s.model_dump() for s in _sources(chunks, refs)]
     if not settings.llm_enabled:
+        run.answer_tier = "no-llm"
         yield "delta", {"text": _no_llm_answer(run, chunks, offsets)}
         return
 
     streamed = False
+    run.answer_tier = "llm"
     try:
         async for delta in answer_service.stream_answer(
             run.question, chunks, _note(run), usage=run.usage
@@ -295,6 +330,7 @@ async def _answer_body(run: _Run) -> AsyncIterator[Event]:
         kind = "rate-limited" if answer_service.is_rate_limited(exc) else type(exc).__name__
         log.info("LLM answer failed (%s); answering from the data", kind)
         run.fallback = True
+        run.answer_tier, run.answer_fallback = "no-llm", kind
         sep = "\n\n---\n\n" if streamed else ""
         yield "delta", {"text": sep + _no_llm_answer(run, chunks, offsets)}
 
@@ -307,6 +343,7 @@ async def run_question(
     ctx: AgentContext | None = None,
 ) -> AsyncIterator[Event]:
     """Yield ``(event, data)`` pairs for one question."""
+    t0 = time.perf_counter()
     ctx = ctx or AgentContext(scope=scope)
     usage = answer_service.Usage()
     ctx.extra["usage"] = usage  # tools that call an LLM (the build coach) count here
@@ -319,12 +356,13 @@ async def run_question(
             if name == "plan" and not data.get("replan"):
                 data = {**data, "cached": True}
             yield name, data
+        ctx.extra["trace"] = plan_trace.cached(scope, (time.perf_counter() - t0) * 1000)
         yield "done", {"usage": answer_service.Usage().as_dict(), "fallback": False}
         return
 
-    plan, fell_back = await _choose_plan(question, scope, session_factory, usage, ctx)
-    plan = _with_context(plan, scope)
-    run = _Run(question, scope, plan, usage, fallback=fell_back, ctx=ctx)
+    choice = await _choose_plan(question, scope, session_factory, usage, ctx)
+    plan = _with_context(choice.plan, scope)
+    run = _Run(question, scope, plan, usage, fallback=choice.fell_back, ctx=ctx)
 
     async def emit(name: str, data: object) -> Event:
         run.events.append((name, data))
@@ -344,10 +382,12 @@ async def run_question(
                                    roster=_roster(ctx)),
                 PLAN_TIMEOUT,
             )
-        except Exception:  # noqa: BLE001 — the first plan's evidence still answers
+        except Exception as exc:  # noqa: BLE001 — the first plan's evidence still answers
             log.info("re-plan failed; answering with what the first plan found", exc_info=True)
             run.fallback = True
+            run.replan_error = _failure(exc)
             added = Plan(steps=[], planner="llm")
+        run.replan_steps = list(added.steps)
         if added.steps:
             plan.steps.extend(added.steps)
             yield await emit("plan", _plan_event(added.steps, plan, replan=True))
@@ -360,4 +400,8 @@ async def run_question(
     if _cacheable(scope) and not (run.fallback or run.profile):
         cache.answers.put(scope, question, run.events)
     log.info("ask %r planner=%s usage=%s", question, plan.planner, usage.as_dict())
+    try:  # the trace is a record of the run; building it must never cost the answer
+        ctx.extra["trace"] = plan_trace.build(choice, run, (time.perf_counter() - t0) * 1000)
+    except Exception:  # noqa: BLE001
+        log.warning("couldn't build the plan trace", exc_info=True)
     yield "done", {"usage": usage.as_dict(), "fallback": run.fallback}

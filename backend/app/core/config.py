@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     # Ask plans its retrieval with the LLM when a key is set. False = the keyword
     # planner answers every question (the quick switch if LLM planning misbehaves).
     ask_agent_enabled: bool = True
+    # How many of the newest question_log rows keep their plan trace (older ones keep
+    # just the question, which personalization still reads).
+    trace_retention: int = 2000
 
     @property
     def llm_provider(self) -> str:

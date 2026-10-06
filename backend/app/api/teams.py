@@ -10,12 +10,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent import trace as plan_trace
 from app.agent.runner import run_question
 from app.agent.sse import _sse
 from app.agent.tools import AgentContext
 from app.core.database import async_session_factory, get_session
 from app.models.team import MAX_SLOTS
-from app.rag import personalize, team_summary
+from app.rag import team_summary
 from app.schemas.analysis import DuelOut, TeamAnalysis
 from app.schemas.strategy import TeamStrategy, TeamSummaryOut
 from app.schemas.team import (
@@ -163,7 +164,7 @@ async def coach_ask(team_id: int, payload: CoachAskRequest) -> StreamingResponse
                 if name == "done":
                     # Log before `done`: the client stops reading at `done`, which would
                     # cancel anything still running after it.
-                    await _log(payload.question, planner)
+                    await _log(payload.question, planner, ctx.extra.get("trace"))
                 yield _sse(name, data)
         except Exception as exc:  # noqa: BLE001 — surface as a stream error event
             log.exception("coaching failed")
@@ -176,13 +177,9 @@ async def coach_ask(team_id: int, payload: CoachAskRequest) -> StreamingResponse
     )
 
 
-async def _log(question: str, planner: str | None) -> None:
-    """Record the question for personalization ("coach-llm" / "coach-keyword")."""
-    try:
-        async with async_session_factory() as session:
-            await personalize.log_question(session, question, f"coach-{planner or 'keyword'}")
-    except Exception:  # noqa: BLE001 — history is a nicety; never fail the answer for it
-        log.warning("couldn't log the coach question", exc_info=True)
+async def _log(question: str, planner: str | None, trace: dict | None = None) -> None:
+    """Record the question and its plan trace ("coach-llm" / "coach-keyword")."""
+    await plan_trace.record(question, f"coach-{planner or 'keyword'}", trace)
 
 
 @router.put("/{team_id}", response_model=TeamOut)

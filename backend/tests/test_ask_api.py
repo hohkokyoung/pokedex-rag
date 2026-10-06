@@ -18,16 +18,15 @@ def _wire(monkeypatch, session_factory):
     """Run the endpoints on the per-test engine, keyless unless a test stubs an LLM."""
     cache.plans.clear()
     cache.answers.clear()
-    monkeypatch.setattr(ask_api, "async_session_factory", session_factory)
 
-    async def no_log(question, planner):  # keep test questions out of the real history
+    async def no_log(question, planner, trace=None):  # keep test questions out of the history
         logged.append((question, planner))
 
     logged: list = []
     monkeypatch.setattr(ask_api, "_log", no_log)
     monkeypatch.setattr(
         ask_api, "run_question",
-        lambda q: runner.run_question(q, session_factory=session_factory),
+        lambda q, ctx=None: runner.run_question(q, session_factory=session_factory, ctx=ctx),
     )
     monkeypatch.setattr(runner, "get_settings",
                         lambda: Settings(anthropic_api_key="", groq_api_key=""))
@@ -109,3 +108,20 @@ async def test_non_streaming_llm_planned(monkeypatch) -> None:
     assert [v["kind"] for v in body["views"]] == ["type_chart", "move_list"]
     assert [s["step"] for s in body["sources"]] == ["a", "b"]
     assert body["usage"]["llm_calls"] == 1  # closed-form: rendered by code
+
+
+@pytest.mark.parametrize("path", ["/api/ask/stream", "/api/ask"])
+async def test_route_logs_its_trace(monkeypatch, path) -> None:
+    got: list = []
+
+    async def log(question, planner, trace=None):
+        got.append((question, planner, trace))
+
+    monkeypatch.setattr(ask_api, "_log", log)
+    async with _client() as c:
+        r = await c.post(path, json={"question": "Can Garchomp learn Earthquake?"})
+    assert r.status_code == 200
+    [(q, planner, trace)] = got
+    assert (q, planner, trace["scope"], trace["planner"]) == (
+        "Can Garchomp learn Earthquake?", "keyword", "ask", "keyword")
+    assert trace["steps"][0]["tool"] == "learnset"

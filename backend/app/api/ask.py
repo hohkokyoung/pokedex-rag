@@ -8,23 +8,19 @@ from collections.abc import AsyncIterator
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
+from app.agent import trace as plan_trace
 from app.agent.runner import run_question
 from app.agent.sse import _sources, _sse  # noqa: F401 — re-exported for teams.py
-from app.core.database import async_session_factory
-from app.rag import personalize
+from app.agent.tools import AgentContext
 from app.schemas.ask import AskRequest, AskResponse, PlanStepOut, Source
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["ask"])
 
 
-async def _log(question: str, planner: str | None) -> None:
-    """Record the question for personalization ("agent-llm" / "agent-keyword")."""
-    try:
-        async with async_session_factory() as session:
-            await personalize.log_question(session, question, f"agent-{planner or 'keyword'}")
-    except Exception:  # noqa: BLE001 — history is a nicety; never fail the answer for it
-        log.warning("couldn't log the question", exc_info=True)
+async def _log(question: str, planner: str | None, trace: dict | None = None) -> None:
+    """Record the question and its plan trace ("agent-llm" / "agent-keyword")."""
+    await plan_trace.record(question, f"agent-{planner or 'keyword'}", trace)
 
 
 def collect(events: list[tuple[str, object]]) -> AskResponse:
@@ -65,9 +61,10 @@ def collect(events: list[tuple[str, object]]) -> AskResponse:
 
 @router.post("/ask", response_model=AskResponse)
 async def ask(payload: AskRequest) -> AskResponse:
-    events = [e async for e in run_question(payload.question)]
+    ctx = AgentContext(scope="ask")
+    events = [e async for e in run_question(payload.question, ctx=ctx)]
     out = collect(events)
-    await _log(payload.question, out.planner)
+    await _log(payload.question, out.planner, ctx.extra.get("trace"))
     return out
 
 
@@ -77,14 +74,15 @@ async def ask_stream(payload: AskRequest) -> StreamingResponse:
 
     async def event_stream() -> AsyncIterator[str]:
         planner = None
+        ctx = AgentContext(scope="ask")
         try:
-            async for name, data in run_question(payload.question):
+            async for name, data in run_question(payload.question, ctx=ctx):
                 if name == "plan" and planner is None:
                     planner = data["planner"]
                 if name == "done":
                     # Log before `done`: the client stops reading at `done`, which would
                     # cancel anything still running after it.
-                    await _log(payload.question, planner)
+                    await _log(payload.question, planner, ctx.extra.get("trace"))
                 yield _sse(name, data)
         except Exception as exc:  # noqa: BLE001 — surface as a stream error event
             log.exception("ask failed")

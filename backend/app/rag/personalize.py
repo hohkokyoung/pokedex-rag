@@ -59,8 +59,10 @@ async def load_profile(session: AsyncSession) -> tuple[list[str], list[Pokemon]]
     return preferred, favorites
 
 
-async def log_question(session: AsyncSession, question: str, route: str) -> None:
-    session.add(QuestionLog(question=question, route=route))
+async def log_question(
+    session: AsyncSession, question: str, route: str, trace: dict | None = None
+) -> None:
+    session.add(QuestionLog(question=question, route=route, trace=trace))
     await session.commit()
 
 

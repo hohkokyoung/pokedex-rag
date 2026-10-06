@@ -198,7 +198,8 @@ async def _plans_only_case(case: EvalCase, factory: Callable) -> CaseResult:
     async with factory() as s:
         kp = await plan_keywords(s, case.question)
     usage = answer_service.Usage()
-    plan, fell_back = await agent_runner._choose_plan(case.question, "ask", factory, usage)
+    choice = await agent_runner._choose_plan(case.question, "ask", factory, usage)
+    plan, fell_back = choice.plan, choice.fell_back
     run = agent_runner._Run(case.question, "ask", plan, usage, fallback=fell_back)
     async for ev in executor.run(plan, factory):
         if ev.result is not None:
@@ -369,8 +370,9 @@ async def evaluate_coach(
                 usage = answer_service.Usage()
                 if use_llm:  # plans only: real planner selection, no answer call
                     ctx.extra["usage"] = usage
-                    plan, r.fallback = await agent_runner._choose_plan(
+                    choice = await agent_runner._choose_plan(
                         case.question, "team", factory, usage, ctx)
+                    plan, r.fallback = choice.plan, choice.fell_back
                     r.planner = plan.planner
                     r.plan_ok = plan_matches(case.expect_tools, _steps(plan))
                     r.tools = [s.tool for s in plan.valid_steps]
@@ -455,8 +457,9 @@ async def evaluate_calc(
             usage = answer_service.Usage()
             if use_llm:  # plans only: real planner selection, no build/answer call
                 ctx.extra["usage"] = usage
-                plan, r.fallback = await agent_runner._choose_plan(
+                choice = await agent_runner._choose_plan(
                     case.question, "calc", factory, usage, ctx)
+                plan, r.fallback = choice.plan, choice.fell_back
                 r.planner = plan.planner
                 r.plan_ok = plan_matches(case.expect_tools, _steps(plan))
                 r.tools = [s.tool for s in plan.valid_steps]

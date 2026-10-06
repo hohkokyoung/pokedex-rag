@@ -46,3 +46,6 @@ class QuestionLog(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), index=True
     )
+    # How the question was planned and answered (see ``app.agent.trace``); only the newest
+    # ``TRACE_RETENTION`` rows keep one, older rows keep just the question.
+    trace: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), nullable=True)

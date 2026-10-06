@@ -68,3 +68,19 @@ Claude Code runs lint and tests itself at the end of any turn that changed code 
 hook — see "Making a change" in `CLAUDE.md`).
 
 Evaluation: [eval.md](eval.md).
+
+## Plan traces
+
+Every question you ask records how it was planned and answered (see
+[the Ask agent](../architecture/ask-agent.md#6-plan-traces-tracepy)). To review them:
+
+```bash
+make traces                       # the 20 most recent questions
+make traces ARGS="--fallback"     # only ones where the LLM planner or answer fell back
+make traces ARGS="--scope team --planner llm --limit 50"
+make traces ARGS="--id 612"       # one trace in full (plans, steps, usage)
+```
+
+The same data is at `GET http://localhost:8001/api/traces` (`?scope=&planner=&fallback=true&limit=`)
+and `GET /api/traces/{id}`. Both are read-only; nothing here calls an LLM.
+

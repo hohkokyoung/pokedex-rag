@@ -27,7 +27,7 @@ def logged(monkeypatch, session_factory):
                         lambda: Settings(anthropic_api_key="", groq_api_key=""))
     seen: list = []
 
-    async def log(question, planner):
+    async def log(question, planner, trace=None):
         seen.append(("log", question, planner))
 
     monkeypatch.setattr(calc_api, "_log", log)
@@ -73,3 +73,16 @@ async def test_bad_request_is_422(logged) -> None:
         r = await c.post("/api/calc/ask", json={"question": "hi", "slots": [{"slot": 9,
                                                                              "pokemon_id": 1}]})
     assert r.status_code == 422
+
+
+async def test_route_logs_its_trace(logged, monkeypatch) -> None:
+    got: list = []
+
+    async def log(question, planner, trace=None):
+        got.append(trace)
+
+    monkeypatch.setattr(calc_api, "_log", log)
+    await _ask("Can Garchomp OHKO Heatran?")
+    [trace] = got
+    assert (trace["scope"], trace["planner"]) == ("calc", "keyword")
+    assert [s["tool"] for s in trace["steps"]] == ["calc_context", "damage_calc"]

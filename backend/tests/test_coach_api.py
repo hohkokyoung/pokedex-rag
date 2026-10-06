@@ -30,7 +30,7 @@ async def team_id(monkeypatch, session_factory):
                         lambda: Settings(anthropic_api_key="", groq_api_key=""))
     logged: list = []
 
-    async def no_log(question, planner):
+    async def no_log(question, planner, trace=None):
         logged.append((question, planner))
 
     monkeypatch.setattr(teams_api, "_log", no_log)
@@ -72,7 +72,7 @@ async def test_question_is_logged_before_done(team_id, monkeypatch) -> None:
     """The client stops reading at `done`; logging must already have happened by then."""
     order: list[str] = []
 
-    async def log(question, planner):
+    async def log(question, planner, trace=None):
         order.append("log")
 
     monkeypatch.setattr(teams_api, "_log", log)
@@ -85,3 +85,18 @@ async def test_question_is_logged_before_done(team_id, monkeypatch) -> None:
     monkeypatch.setattr(teams_api, "_sse", sse)
     await _ask(team_id, "Can Garchomp learn Swords Dance?")
     assert order.index("log") < order.index("done")
+
+
+async def test_route_logs_its_trace(team_id, monkeypatch) -> None:
+    got: list = []
+
+    async def log(question, planner, trace=None):
+        got.append(trace)
+
+    monkeypatch.setattr(teams_api, "_log", log)
+    await _ask(team_id, "What's my team's biggest weakness?")
+    [trace] = got
+    assert (trace["scope"], trace["planner"]) == ("team", "keyword")
+    assert trace["steps"][0]["tool"] == "team_context"
+    # The context step is the runner's, not the planner's: executed, but not "planned".
+    assert "team_context" not in [s["tool"] for s in trace["keyword"]["steps"]]

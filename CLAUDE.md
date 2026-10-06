@@ -41,6 +41,7 @@ make eval      # eval report (LLM if keyed; paced to Groq TPM — spends tokens)
                # cd backend && uv run python -m eval.run --keyless  (no LLM)
 make lint      # ruff + eslint
 make damage-fixtures  # regenerate the calc's TS→Python reference cases (Node ≥ 22.18)
+make traces    # how recent questions were planned (ARGS="--fallback" / "--id N")
 ```
 
 Backend runs in Docker; the data pipeline scripts run on the **host** against the
@@ -83,6 +84,9 @@ in this environment — overridable in `.env`).
   for high-impact moments (stat bars, artwork). Respect `prefers-reduced-motion`.
 - Feature work goes through OpenSpec (`openspec/`): propose → apply → archive, one
   change per shippable phase.
+- Every answered question stores a plan trace (`app/agent/trace.py`). When the runner
+  gains a decision (a new fallback or answer path), record it there — see
+  `docs/architecture/ask-agent.md` §6.
 - **Docs:** when behaviour described in `docs/` changes, update that page in the same
   commit. Each fact has one home — link, don't copy.
 
