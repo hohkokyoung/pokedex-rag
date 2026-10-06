@@ -196,3 +196,19 @@ class _SpySession:
 async def test_tools_are_read_only(session, name, args) -> None:
     t = REGISTRY[name]
     await t.handler(_SpySession(session), t.args.model_validate(args), AgentContext())
+
+
+async def test_query_pokemon_game_filter(session) -> None:
+    """ "in Scarlet/Violet" is a real filter (the game's learnset data), not Generation 9."""
+    r = await run(session, "query_pokemon", sort_by="base_stat_total", limit=5,
+                  game="Scarlet/Violet")
+    assert r.data["query"].game == "Scarlet / Violet" and r.data["total"] > 500
+    r = await run(session, "query_pokemon", sort_by="attack", game="Let's Go")
+    assert r.data["total"] == 153  # the 151 + Meltan and Melmetal
+    gen5_grass = {"types_all": ["grass"], "generation": 5, "limit": 25}
+    every = {c.pokemon_name for c in (await run(session, "query_pokemon", **gen5_grass)).chunks}
+    swsh = {c.pokemon_name for c in
+            (await run(session, "query_pokemon", **gen5_grass, game="SwSh")).chunks}
+    assert "Snivy" in every and "Snivy" not in swsh and swsh < every  # Snivy isn't in SwSh
+    r = await run(session, "query_pokemon", game="Platinum Ultra")
+    assert r.status == "error" and "unresolved game" in r.summary

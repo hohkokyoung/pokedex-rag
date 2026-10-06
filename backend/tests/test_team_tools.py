@@ -188,7 +188,7 @@ def test_scopes_and_planner_visibility() -> None:
     assert not team_only & {t.name for t in tools_for("ask")}
     assert team_only <= {t.name for t in tools_for("team")}
     assert "team_context" not in {t.name for t in tools_for("team", plannable_only=True)}
-    assert llm_planner.prompt_size("team") <= 10_500
+    assert llm_planner.prompt_size("team") <= llm_planner.PROMPT_BUDGET
 
 
 class _SpySession:

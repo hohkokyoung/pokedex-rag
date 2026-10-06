@@ -302,3 +302,10 @@ async def test_ask_empty_plan_without_unhandled_falls_back(monkeypatch, session_
     events, _ = await _run("Which Pokémon are the most stylish, honestly?", session_factory)
     assert _first(events, "plan")["planner"] == "keyword" and _first(events, "done")["fallback"]
     assert llm.plan_calls == 1
+
+
+def test_every_scope_fits_the_prompt_budget():
+    from app.agent import calc_tools, llm_planner, team_tools  # noqa: F401 — register tools
+
+    for scope in ("ask", "team", "calc"):
+        assert llm_planner.prompt_size(scope) <= llm_planner.PROMPT_BUDGET, scope

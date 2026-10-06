@@ -136,19 +136,54 @@ def _exact(kind: str, name: str) -> int | None:
     return next((i for n, i in _names[kind] if n == key), None)
 
 
+def _gnorm(text: str) -> str:
+    """"Scarlet/Violet" / "scarlet-violet" / "Scarlet & Violet" → "scarlet violet"."""
+    text = text.lower().replace("é", "e").replace("’", "'").replace("&", " ").replace(" and ", " ")
+    return " ".join(re.sub(r"[^a-z0-9']+", " ", text).replace("'", "").split())
+
+
 async def resolve_game(session: AsyncSession, game: str) -> VersionGroup | None:
-    """A version group by name or identifier ("Scarlet / Violet", "scarlet-violet", "sv")."""
-    key = game.strip().lower()
+    """A version group by name, identifier, initials or common short name ("Scarlet / Violet",
+    "scarlet-violet", "Scarlet/Violet", "sv", "SwSh", "BDSP")."""
+    key = _gnorm(game).removeprefix("pokemon ")
     groups = (await session.execute(select(VersionGroup))).scalars().all()
     for vg in groups:
-        names = {vg.name.lower(), vg.identifier.lower(), vg.identifier.replace("-", " ")}
         initials = "".join(w[0] for w in vg.identifier.split("-") if w)
-        if key in names or key == initials:
+        short = _SHORT_GAME.get(vg.identifier, "").lower()
+        if key in {_gnorm(vg.name), _gnorm(vg.identifier), initials, short}:
+            return vg
+    # The start of a longer name ("let's go" → Let's Go, Pikachu / Eevee).
+    for vg in groups:
+        if len(key.split()) >= 2 and _gnorm(vg.name).startswith(key):
             return vg
     # A single game named inside a pair ("scarlet" → Scarlet / Violet), newest first.
     for vg in sorted(groups, key=lambda g: -g.sort_order):
-        if key and (key in vg.identifier.split("-") or key in vg.name.lower().split()):
+        if key and key in _gnorm(vg.identifier).split():
             return vg
+    return None
+
+
+# "in Scarlet/Violet", "available in SwSh", "from Pokémon Emerald" — the phrase after the cue.
+_GAME_CUE = re.compile(r"\b(?:in|from|on)\s+(?:the\s+)?((?:pok[eé]mon\s+)?[\w'’/&-]+"
+                       r"(?:\s*(?:/|&|and)\s*[\w'’-]+|\s+[\w'’-]+){0,3})", re.I)
+# Single words that are also everyday words ("in the sun", "in red") only count with "Pokémon".
+_COMMON = {"red", "blue", "yellow", "gold", "silver", "crystal", "black", "white", "x", "y",
+           "sun", "moon", "sword", "shield", "scarlet", "violet"}
+
+
+async def find_game_in_text(session: AsyncSession, question: str) -> VersionGroup | None:
+    """The game a question restricts to, if it names one after "in/from/on" — longest phrase
+    first. A bare everyday word ("in the sun") only counts as a game after "Pokémon"."""
+    for m in _GAME_CUE.finditer(question):
+        words = m.group(1).split()
+        for n in range(len(words), 0, -1):
+            phrase = " ".join(words[:n])
+            key = _gnorm(phrase)
+            if key in _COMMON:  # needs "Pokémon …" or a pair ("Sun/Moon")
+                continue
+            vg = await resolve_game(session, phrase)
+            if vg is not None:
+                return vg
     return None
 
 
@@ -587,8 +622,19 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     if row and row[0] == "level-up" and p.version_group_id is None:
         history = await _level_history(session, p.move_id, [p.pokemon_id])
         how = _how_by_game(history.get(p.pokemon_id)) or how
+    absent = False
+    if not row and p.version_group_id is not None:  # not in that game at all?
+        absent = not await session.scalar(
+            select(PokemonMoveLearn.pokemon_id).where(
+                PokemonMoveLearn.pokemon_id == p.pokemon_id,
+                PokemonMoveLearn.version_group_id == p.version_group_id,
+            ).limit(1)
+        )
     if row:
         verdict = f"{pokemon.name} can learn {move.name} {how}{_in_game(p)}."
+    elif absent:
+        verdict = (f"{pokemon.name} can't learn {move.name}{_in_game(p)}: {pokemon.name} isn't "
+                   f"in {p.game} at all.")
     elif p.method:
         verdict = f"{pokemon.name} doesn't learn {move.name} {_by(p.method)}{_in_game(p)}."
     else:
@@ -615,5 +661,6 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     return LearnsetOutcome(
         "pair", chunks, note,
         {"pokemon": pokemon, "move": move, "move_type": mtype, "move_learners": total,
-         "ok": row is not None, "how": how, "game": p.game, "method": p.method},
+         "ok": row is not None, "how": how, "game": p.game, "method": p.method,
+         "absent": absent},
     )

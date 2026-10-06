@@ -136,6 +136,7 @@ class LearnCheckView(BaseModel):
     how: str | None = None  # "by level-up at Lv 1"
     method: str | None = None  # only this learn method was asked for
     game: str | None = None
+    absent: bool = False  # the Pokémon isn't in that game at all
     chunk_refs: list[int] = Field(default_factory=list)
 
 

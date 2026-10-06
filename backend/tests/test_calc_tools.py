@@ -168,7 +168,7 @@ def test_calc_scope_and_budget() -> None:
             "learnset"} <= calc
     assert "calc_context" not in {t.name for t in tools_for("calc", plannable_only=True)}
     assert not {"damage_calc", "propose_build"} & {t.name for t in tools_for("ask")}
-    assert llm_planner.prompt_size("calc") <= 10_500
+    assert llm_planner.prompt_size("calc") <= llm_planner.PROMPT_BUDGET
 
 
 class _SpySession:

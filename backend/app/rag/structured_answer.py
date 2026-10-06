@@ -65,6 +65,8 @@ def _scope(q: StructuredQuery) -> str | None:
     if q.types_all:
         words.append("/".join(t.capitalize() for t in q.types_all) + "-type")
     gen = f" from Generation {q.generation}" if q.generation is not None else ""
+    if q.game:
+        gen += f" in {q.game}"
     if not words and not gen:
         return None
     return " ".join([*words, "Pokémon"]) + gen

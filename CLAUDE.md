@@ -62,7 +62,8 @@ per question (plan, re-plan, answer); fast-path closed-form questions use 0. Usa
 reported in `done` and logged.
 
 Tools (`ask_tools.py`) are read-only, never see the question text (filters are typed
-args — `legendary`, `types`, `attacker_class` …), and return `ToolResult`: citable
+args — `legendary`, `types`, `attacker_class`, `game` …; a game filter means "has learnset
+data in that version group", so older games include trade-only Pokémon), and return `ToolResult`: citable
 `RetrievedChunk`s **plus typed views** (`views.py`: ranking, pokemon_list, type_chart,
 move_list, learnset, learners, learn_check) that the UI draws directly — nothing on the
 frontend parses snippet text. SSE: `plan` (with `planner: llm|keyword`, `cached`) →
@@ -95,8 +96,8 @@ deterministic recommender in `services/recommend.py`; candidate cards with
 Add/Replace/Revert), `propose_set_edit` (wraps `build_suggest` with `attempts=1`; every
 field validated against legal data; was → now card, saved only on Apply, Revert
 restores exactly), `add_member`, `duel`. Most Ask dex tools are also team-scoped (not
-lore search, look-alikes, profile picks or encounters — keeps the team prompt ≤ 10.5k
-chars).
+lore search, look-alikes, profile picks or encounters — keeps the team prompt within
+`llm_planner.PROMPT_BUDGET`, 11k chars).
 
 **Writes are gated in code, not prompts.** `add_member` saves only when the runner's
 deterministic `is_imperative_add(question)` agrees ("add Garchomp" yes, "should I add

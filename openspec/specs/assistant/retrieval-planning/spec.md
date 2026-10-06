@@ -81,11 +81,15 @@ Every tool available on Ask SHALL read only from the locally ingested database o
 - **THEN** that step is reported as an error step and nothing is changed
 
 ### Requirement: Filters are explicit tool arguments
-Filters a planner decides, such as types, damage class, legendary/mythical inclusion, generation, game, learn method (level-up, TM, tutor, egg), and stat thresholds, SHALL be passed as tool arguments. Tools SHALL apply them as given rather than re-deriving them from the question text.
+Filters a planner decides, such as types, damage class, legendary/mythical inclusion, generation, game (for Pokémon queries: present in that game's data), learn method (level-up, TM, tutor, egg), and stat thresholds, SHALL be passed as tool arguments. Tools SHALL apply them as given rather than re-deriving them from the question text.
 
 #### Scenario: Legendary exclusion on learners
 - **WHEN** a plan has a learnset step for Earthquake with `legendary: false`
 - **THEN** no legendary Pokémon appears among the returned learners, whatever the question's wording
+
+#### Scenario: Game on a Pokémon query
+- **WHEN** a plan ranks Pokémon by base stat total with `game: "Scarlet/Violet"`
+- **THEN** only Pokémon in Scarlet / Violet's data are ranked, and the answer names the game
 
 #### Scenario: Learn method on learners
 - **WHEN** a plan has a learnset step for Earthquake restricted to Water types with `method: level-up`

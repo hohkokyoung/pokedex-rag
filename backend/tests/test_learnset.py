@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import func, select
 
 from app.models import Move, Pokemon, PokemonMove
@@ -186,3 +187,37 @@ async def test_pokemon_learnset_levels_name_their_games(session) -> None:
     text = next(c.content for c in out.chunks if "by level-up" in c.content)
     assert "Earthquake (Ground, physical, 100 power) at Lv 1 in SwSh/BDSP (Lv 51–52 in other " \
         "games)" in text
+
+
+@pytest.mark.parametrize("text,want", [
+    ("Scarlet/Violet", "Scarlet / Violet"), ("SwSh", "Sword / Shield"), ("sv", "Scarlet / Violet"),
+    ("Sword & Shield", "Sword / Shield"), ("Let's Go", "Let’s Go, Pikachu / Eevee"),
+    ("BDSP", "Brilliant Diamond / Shining Pearl"), ("Pokémon Emerald", "Emerald"),
+])
+async def test_resolve_game_spellings(session, text, want) -> None:
+    vg = await learnset.resolve_game(session, text)
+    assert vg is not None and vg.name == want
+
+
+@pytest.mark.parametrize("q,want", [
+    ("Top 5 by base stat total that are in Scarlet/Violet", "Scarlet / Violet"),
+    ("strongest dragon in Pokémon Emerald", "Emerald"),
+    ("Can Garchomp learn Earthquake in Emerald?", "Emerald"),
+    ("best water types in sun and moon", "Sun / Moon"),
+    ("which fire types are strong in the sun", None),  # everyday words need "Pokémon"
+    ("top attack in red", None),
+])
+async def test_find_game_in_text(session, q, want) -> None:
+    vg = await learnset.find_game_in_text(session, q)
+    assert (vg.name if vg else None) == want
+
+
+async def test_pair_says_when_the_pokemon_isnt_in_the_game(session) -> None:
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    eq = await session.scalar(select(Move.id).where(Move.name == "Earthquake"))
+    garchomp = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Garchomp"))
+    vg = await learnset.resolve_game(session, "Emerald")
+    out = await retrieve_typed(session, LearnsetPlan(garchomp, eq, [], None,
+                                                     version_group_id=vg.id, game=vg.name))
+    assert out.data["absent"] and "isn't in Emerald at all" in out.chunks[0].content

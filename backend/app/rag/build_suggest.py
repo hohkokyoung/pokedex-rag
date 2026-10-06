@@ -53,6 +53,9 @@ Reply with ONLY a JSON object:
  "evs": {"hp":0,"atk":0,"def":0,"spa":0,"spd":0,"spe":0},
  "why": <one or two short sentences on the plan>}
 EVs: each 0-252, total at most 510, in multiples of 4. Use exact names as listed.
+The nature must fit the spread: raise a stat the set invests in or relies on, and lower \
+an attacking stat it doesn't use. If a revision moves EVs out of a stat (e.g. Speed into \
+HP), change a nature that raises that stat too (e.g. Jolly -> Impish or Careful).
 When a current set and a follow-up are given, revise that set to satisfy the \
 follow-up and keep everything it doesn't ask to change. If the follow-up is only a \
 question, return the current set unchanged and answer it in "why"."""

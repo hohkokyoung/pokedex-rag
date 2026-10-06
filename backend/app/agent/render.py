@@ -40,6 +40,9 @@ def _learn_check(v: LearnCheckView) -> str:
     game = f" in {v.game}" if v.game else ""
     if v.ok:
         return f"Yes — **{v.pokemon.name}** can learn **{v.move.name}** {v.how}{game} [1]."
+    if v.absent:
+        return (f"No — **{v.pokemon.name}** isn't in {v.game} at all, so it can't learn "
+                f"**{v.move.name}** there [1].")
     if v.method:
         return (f"No — **{v.pokemon.name}** doesn't learn **{v.move.name}** "
                 f"{learnset_rag._by(v.method)}{game} [1].")

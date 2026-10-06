@@ -324,6 +324,9 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
     legendary, mythical = nlfilters.restricted_filters(question)
     learn_cue = bool(learnset._LEARN.search(text))
     lore = any(m in text for m in _DEEP_LORE)
+    # "…in Scarlet/Violet", "…in SwSh": a game filter for queries and learnsets.
+    vg = await learnset.find_game_in_text(session, question)
+    game = vg.name if vg else None
 
     # ---- recommendations from the user's profile ----
     if personalize.is_recommendation(question) and not mons and not moves:
@@ -336,8 +339,8 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
         if p.kind == "pokemon":
             how = _learn_method(text)
             return [_step("learnset", f"check {p.name} × {m.name}",
-                          pokemon=p.name, move=m.name, method=how)], (
-                _simple(question, found, "pair") and how is None)
+                          pokemon=p.name, move=m.name, method=how, game=game)], (
+                _simple(question, found, "pair") and how is None and game is None)
 
     # ---- a move ----
     if moves and not mons:
@@ -348,10 +351,10 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
             steps = [_step(
                 "learnset", f"who learns {m.name}", move=m.name, types=plain_types,
                 legendary=legendary, mythical=mythical,
-                damage_class=cls.group(1) if cls else None, method=how,
+                damage_class=cls.group(1) if cls else None, method=how, game=game,
             )]
             return steps, _simple(question, found, "learners") and not (
-                plain_types or legendary is not None or mythical is not None or how)
+                plain_types or legendary is not None or mythical is not None or how or game)
         # Every named move (and ability/item: "Protect and Leftovers"), one lookup each.
         steps = [_step("move_info", f"what {x.name} does", name=x.name) for x in moves[:4]]
         steps += await _other_info(session, question, limit=4 - len(steps))
@@ -414,11 +417,14 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
 
     # ---- rankings, thresholds, filters (+ lore = today's hybrid) ----
     sq = sql_retrieval.plan(question)
+    if game is not None:  # "Which Pokémon are in SwSh?" is a query with only a game filter
+        sq = sq or sql_retrieval.StructuredQuery()
+        sq.game = game
     if sq is not None:
         steps = [_step("query_pokemon", "filter and rank Pokémon", **sq.model_dump())]
         if any(m in text for m in _LORE_MARKERS):
             steps.append(_step("semantic_search", "descriptions and lore", query=question))
-        return steps, len(steps) == 1 and _simple_ranking(question, sq)
+        return steps, len(steps) == 1 and _simple_ranking(question, sq) and game is None
 
     return [_step("semantic_search", "search descriptions", query=question)], False
 

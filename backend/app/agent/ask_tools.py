@@ -120,7 +120,7 @@ class QueryPokemonArgs(StructuredQuery):
 @tool(
     "query_pokemon",
     scopes=ASK_AND_TEAM,
-    description="Filter/rank Pokémon by type, generation, legendary/mythical and stats "
+    description="Filter/rank Pokémon by type, generation, game, legendary/mythical and stats "
     "(rankings, thresholds, counts).",
     args=QueryPokemonArgs,
     closed_form=True,
@@ -129,6 +129,11 @@ async def query_pokemon(
     session: AsyncSession, args: QueryPokemonArgs, ctx: AgentContext
 ) -> ToolResult:
     sq = StructuredQuery(**args.model_dump())
+    if sq.game:
+        vg = await learnset.resolve_game(session, sq.game)
+        if vg is None:
+            return _unresolved("game", sq.game)
+        sq.game = vg.name
     rows = await sql_retrieval.execute(session, sq)
     total = await sql_retrieval.count(session, sq)
     data = {"query": sq, "total": total}
@@ -535,7 +540,8 @@ async def learnset_tool(
         p = (await _pokemon_by_id(session, [d["pokemon"].id]))[d["pokemon"].id]
         view = LearnCheckView(
             pokemon=_card_from_pokemon(p, 0), move=_move_row(out.chunks[1], 1),
-            ok=d["ok"], how=d["how"], game=d["game"], method=d["method"], chunk_refs=[0, 1],
+            ok=d["ok"], how=d["how"], game=d["game"], method=d["method"], absent=d["absent"],
+            chunk_refs=[0, 1],
         )
         verdict = f"yes, {d['how']}" if d["ok"] else "no"
         return ToolResult(

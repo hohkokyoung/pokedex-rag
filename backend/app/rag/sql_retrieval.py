@@ -25,6 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import Pokemon, PokemonType, Type
+from app.models.moves import PokemonMoveLearn, VersionGroup
 from app.rag.retrieval import RetrievedChunk
 from app.services import nlfilters
 
@@ -65,10 +66,14 @@ class StructuredQuery(BaseModel):
     sort_by: StatName | None = None
     order: Literal["asc", "desc"] = "desc"
     limit: int = 5
+    # Only Pokémon in this game's data (by its learnset). Tools resolve it to the canonical
+    # version-group name first ("SwSh" → "Sword / Shield").
+    game: str | None = None
 
     def is_empty(self) -> bool:
         return not (
             self.types_all
+            or self.game
             or self.generation
             or self.legendary is not None
             or self.mythical is not None
@@ -93,6 +98,14 @@ def _apply_filters(stmt, query: StructuredQuery):
 
     if query.generation is not None:
         stmt = stmt.where(Pokemon.generation_id == query.generation)
+    if query.game:
+        in_game = (
+            select(PokemonMoveLearn.pokemon_id)
+            .join(VersionGroup, VersionGroup.id == PokemonMoveLearn.version_group_id)
+            .where(PokemonMoveLearn.pokemon_id == Pokemon.id, VersionGroup.name == query.game)
+            .exists()
+        )
+        stmt = stmt.where(in_game)
     if query.legendary is not None:
         stmt = stmt.where(Pokemon.is_legendary.is_(query.legendary))
     if query.mythical is not None:

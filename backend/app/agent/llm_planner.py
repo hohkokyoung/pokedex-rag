@@ -209,6 +209,11 @@ def roster_line(team, opponent=None) -> str:
     return line
 
 
+# Characters per planning call (system text + schema), per scope. ~4 chars/token, so 11k is
+# ~2.75k input tokens: small enough for Groq's free-tier TPM with room for an answer call.
+PROMPT_BUDGET = 11_000
+
+
 def prompt_size(scope: str) -> int:
     """Characters sent per planning call: system text + schema (budget proxy)."""
     return len(system_prompt(scope)) + len(json.dumps(plan_schema(scope), separators=(",", ":")))
