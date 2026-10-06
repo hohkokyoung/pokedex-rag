@@ -294,10 +294,19 @@ async def similar_to(session: AsyncSession, args: SimilarArgs, ctx: AgentContext
         for i, c in enumerate(chunks)
         if c.source_ref != "target" and c.pokemon_id in byid
     ]
+    if not cards:
+        return ToolResult.empty(f"nothing similar to {target.name}")
+    # The answer model sees the look-alikes in rank order but not their scores, so it
+    # once called #2 "the closest". Spell out the ranking, and ask for one bullet per
+    # match so each named Pokémon gets its sprite (a verdict sentence gets none).
+    ranking = ", ".join(f"{c.name} ({round(c.match * 100)}%)" for c in cards if c.match)
     note = (
         f"NOTE: {target.name}'s own profile comes first; the rest are the Pokémon most similar "
-        f"to it by type, stats and characteristics (excluding its evolution line). Name the "
-        f"closest matches and say why they resemble {target.name}. When you compare a stat "
+        f"to it by type, stats and characteristics (excluding its evolution line), closest "
+        f"first: {ranking}. The closest match is {cards[0].name} — never call another one "
+        f"the closest. Open with one sentence naming the closest matches, then give one "
+        f"bullet per match you discuss, in that order, as '**Name** — why'; every match you "
+        f"name gets its own bullet. Say why each resembles {target.name}. When you compare a stat "
         f"or ability, cite both sides' values; call stats similar only if the numbers are "
         f"close, and call an ability shared only if both profiles list it."
     )

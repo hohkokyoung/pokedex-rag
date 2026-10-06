@@ -82,7 +82,9 @@ non-Pokémon questions (which the answer then declines).
 No query text is embedded: it takes the target's stored **profile** vector and returns
 the nearest other profiles, excluding the target's own evolution line. The target's
 own profile is always included first in the evidence (not as a card) so the answer can
-compare both sides.
+compare both sides. The tool's note spells out the ranking with match % and asks for one
+`**Name** —` bullet per match, so the answer can't call a lower-ranked match "the
+closest" and every Pokémon it names gets a sprite.
 
 ## Why it's split this way
 

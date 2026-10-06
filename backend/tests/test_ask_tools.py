@@ -70,6 +70,10 @@ async def test_similar_to_leads_with_the_target(session) -> None:
     refs = r.views[0].chunk_refs
     assert refs == [c.ref for c in r.views[0].cards] and 0 not in refs
     assert "cite both sides" in r.note
+    # The ranking is spelled out, so the answer can't call #2 "the closest".
+    top = r.views[0].cards[0]
+    assert f"The closest match is {top.name}" in r.note
+    assert f"{top.name} ({round(top.match * 100)}%)" in r.note
 
 
 async def test_user_profile_note(session) -> None:
