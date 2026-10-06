@@ -1,32 +1,19 @@
 schema: spec-driven
 
-# Project context: constraints an agent can't infer from the code alone.
-# Architecture, commands and conventions live in CLAUDE.md — read it first.
+# Project context for planning. The rules that hold everywhere (no runtime PokéAPI,
+# grounded answers, keyless fallbacks, gated writes, LLM budget) are in CLAUDE.md,
+# and each area's doc + spec is listed there — read it first. Only what CLAUDE.md
+# doesn't say lives here.
 context: |
-  Single-user, local-only app with no auth. Pokémon data is pre-ingested from
-  PokéAPI CSVs into Postgres; never call PokéAPI (or any other data API) at runtime.
+  LLM features must work on BOTH providers — Groq (strict json_schema; the running
+  setup) and Anthropic (forced tool call) — and be tuned for Groq's free-tier
+  tokens-per-minute limit.
 
-  LLM provider: the running setup uses Groq (openai/gpt-oss-120b) because no
-  Anthropic key is set. Anything LLM-driven must work on BOTH Groq
-  (OpenAI-style tools / strict json_schema) and Anthropic, be tuned for Groq, and
-  respect Groq's free-tier tokens-per-minute limit: keep LLM calls per request
-  small and bounded, and treat a 429 as a signal to fall back, not to retry in a loop.
+  Every proposal the assistant shows (sets, builds, additions) is validated against
+  legal data (learnsets, abilities, natures, items) before it is shown.
 
-  Grounding is non-negotiable: answers use ONLY retrieved context (RetrievedChunk),
-  cite it as [n], and abstain when the data can't answer. The LLM may choose what
-  to retrieve, but facts, names and numbers come from the database. Ranking/count
-  answers are rendered from data by code, not written by the LLM.
-
-  Every LLM feature needs a keyless / rate-limited fallback that still returns
-  something useful from the data (heuristic routing, extractive answers).
-
-  Nothing that changes the user's teams or calc state is applied without an
-  explicit click or an explicit imperative command ("add X"); the assistant only
-  proposes, and each proposal is validated against legal data (learnsets,
-  abilities, natures, items) before it is shown.
-
-  UI: the light "Instrument" data-lab theme; respect prefers-reduced-motion; GSAP
-  only for high-impact moments. The user prefers decisive designs over many options.
+  UI follows the light "Instrument" data-lab theme. The user prefers decisive
+  designs over many options.
 
 rules:
   proposal:
@@ -34,12 +21,13 @@ rules:
     - Keep one change per shippable phase; don't bundle surfaces (Ask / team coach / calc coach) unless asked
   design:
     - Name the existing modules/services reused, and say what (if anything) becomes fallback-only or is removed
+    - List the docs/ pages this change affects
     - Give a per-request LLM call and token budget for any LLM-driven flow
   specs:
     - Write scenarios as testable WHEN/THEN, including the no-key and rate-limited paths
   tasks:
     - Include backend tests (pytest) and, for retrieval/coach changes, eval dataset updates (backend/eval)
-    - End with updating CLAUDE.md when architecture or conventions change
+    - End with a docs task: update the docs/architecture pages the change touches, the docs/product page and README feature list if it's user-visible, and CLAUDE.md only for new conventions or gotchas
 
 operations:
   apply:
@@ -48,4 +36,5 @@ operations:
       - Data pipeline scripts run on the host against the Compose DB (host port 5433)
   archive:
     guidance:
+      - Before archiving, check that the docs/ pages named in design.md still match the code; fix any drift in the same change
       - Summarize the archive outcome before finishing
