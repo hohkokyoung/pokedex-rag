@@ -269,13 +269,11 @@ async def semantic_search(
 
 class SimilarArgs(BaseModel):
     name: str
-    include_target: bool = False
 
 
 @tool(
     "similar_to",
-    description="Other Pokémon that resemble one (type, stats, role); include_target adds its "
-    "own profile.",
+    description="Other Pokémon that resemble one (type, stats, role).",
     args=SimilarArgs,
 )
 async def similar_to(session: AsyncSession, args: SimilarArgs, ctx: AgentContext) -> ToolResult:
@@ -283,30 +281,30 @@ async def similar_to(session: AsyncSession, args: SimilarArgs, ctx: AgentContext
     if m is None:
         return _unresolved("Pokémon", args.name)
     target = (await _pokemon_by_id(session, [m.id]))[m.id]
-    chunks = await similarity.similar_to(session, target, k=6)
-    if args.include_target:
-        own = await similarity.target_profile_chunk(session, target)
-        if own is not None:
-            chunks = [own, *chunks]
-    if not chunks:
+    alikes = await similarity.similar_to(session, target, k=6)
+    if not alikes:
         return ToolResult.empty(f"nothing similar to {target.name}")
+    # The target's own profile always leads, so the answer can compare both sides
+    # instead of describing look-alikes against a Pokémon it never saw.
+    own = await similarity.target_profile_chunk(session, target)
+    chunks = [own, *alikes] if own is not None else alikes
     byid = await _pokemon_by_id(session, [c.pokemon_id for c in chunks if c.pokemon_id])
-    cards = [
-        _card_from_pokemon(byid[c.pokemon_id], i,
-                           match=None if c.source_ref == "target" else c.score)
+    cards = [  # look-alikes only; the target is evidence, not a match
+        _card_from_pokemon(byid[c.pokemon_id], i, match=c.score)
         for i, c in enumerate(chunks)
-        if c.pokemon_id in byid
+        if c.source_ref != "target" and c.pokemon_id in byid
     ]
-    extra = f" {target.name}'s own profile is included first." if args.include_target else ""
     note = (
-        f"NOTE: The CONTEXT lists the Pokémon most similar to {target.name} by type, stats and "
-        f"characteristics (excluding its evolution line).{extra} Name the closest matches and "
-        f"briefly say why they resemble {target.name}."
+        f"NOTE: {target.name}'s own profile comes first; the rest are the Pokémon most similar "
+        f"to it by type, stats and characteristics (excluding its evolution line). Name the "
+        f"closest matches and say why they resemble {target.name}. When you compare a stat "
+        f"or ability, cite both sides' values; call stats similar only if the numbers are "
+        f"close, and call an ability shared only if both profiles list it."
     )
     return ToolResult(
         chunks=chunks,
         views=[PokemonListView(title=f"Similar to {target.name}", cards=cards,
-                               chunk_refs=list(range(len(chunks))))],
+                               chunk_refs=[c.ref for c in cards])],
         summary=f"{len(cards)} like {target.name}{_resolved_note(args.name, m)}",
         note=note,
     )

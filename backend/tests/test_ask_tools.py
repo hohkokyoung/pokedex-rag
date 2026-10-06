@@ -59,7 +59,17 @@ async def test_similar_to_excludes_evolution_line(session) -> None:
     names = {c.name for c in r.views[0].cards}
     assert names and not names & {"Torchic", "Combusken", "Blaziken"}
     assert all(c.match is not None for c in r.views[0].cards)
-    assert "similar to Blaziken" in r.note
+    assert "similar to it" in r.note
+
+
+async def test_similar_to_leads_with_the_target(session) -> None:
+    # The answer compares both sides, so the target's profile is evidence (not a card).
+    r = await run(session, "similar_to", name="Jigglypuff")
+    assert r.chunks[0].pokemon_name == "Jigglypuff" and r.chunks[0].source_ref == "target"
+    assert "Jigglypuff" not in {c.name for c in r.views[0].cards}
+    refs = r.views[0].chunk_refs
+    assert refs == [c.ref for c in r.views[0].cards] and 0 not in refs
+    assert "cite both sides" in r.note
 
 
 async def test_user_profile_note(session) -> None:
