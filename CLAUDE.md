@@ -1,17 +1,20 @@
 # CLAUDE.md — pokérag
 
 Guidance for working in this repo. Read the doc for the area you're touching before
-changing it:
+changing it (index: `docs/index.md`; from a file path, find its component manifest):
 
 | Area | Doc | Rules (specs) |
 |---|---|---|
 | System map | `docs/architecture/overview.md` | |
+| Tables, relationships, data invariants | `docs/architecture/data.md` | |
 | Ask agent (planners, tools, answers) | `docs/architecture/ask-agent.md` | `openspec/specs/assistant/` |
 | Retrieval (SQL, learnsets, matchups, vectors) | `docs/architecture/retrieval.md` | `openspec/specs/assistant/` |
 | Team builder & coach | `docs/architecture/team-coach.md` | `openspec/specs/team-coach/` |
 | Damage calc & its coach | `docs/architecture/damage-calc.md` | `openspec/specs/calc-coach/` |
 | What each page does + its code | `docs/product/` | |
 | Dev setup, data pipeline, eval | `docs/guides/` | |
+| Which code → which docs/specs/ADRs | `docs/components/*.yaml` | |
+| Why it's built this way | `docs/decisions/` (ADRs) | |
 
 ## What this is
 
@@ -64,7 +67,7 @@ in this environment — overridable in `.env`).
   extractive answer). A 429 or timeout means fall back — never retry in a loop.
 - **LLM budget.** ≤ 3 calls per Ask question (plan, re-plan, answer); fast-path
   closed-form questions use 0. Planning prompt ≤ `PROMPT_BUDGET` (11k chars) per
-  scope, and it's nearly full — see `docs/architecture/ask-agent.md` before adding a tool.
+  scope, and it's nearly full — see `docs/architecture/ask-agent-planners.md` before adding a tool.
   LLM: Anthropic Claude (preferred) or Groq `gpt-oss-120b` via the async SDKs
   (`app/rag/answer.py`); this environment runs Groq, so keep calls Groq-friendly.
 - **Team summary never blocks a page.** `GET /summary` must not call the LLM; it's
@@ -86,9 +89,10 @@ in this environment — overridable in `.env`).
   change per shippable phase.
 - Every answered question stores a plan trace (`app/agent/trace.py`). When the runner
   gains a decision (a new fallback or answer path), record it there — see
-  `docs/architecture/ask-agent.md` §6.
+  `docs/architecture/ask-agent-traces.md`.
 - **Docs:** when behaviour described in `docs/` changes, update that page in the same
-  commit. Each fact has one home — link, don't copy.
+  commit (and the component manifest if code moved; a new ADR if a decision changed).
+  Each fact has one home — link, don't copy.
 
 ## Making a change
 

@@ -85,4 +85,4 @@ make eval
 tokens if a key is set; `--keyless` mode doesn't) — [docs/guides/eval.md](docs/guides/eval.md).
 
 Contributors and coding agents: start with [CLAUDE.md](CLAUDE.md). All docs:
-[docs/](docs/README.md). Feature work goes through OpenSpec (`openspec/`).
+[docs/](docs/index.md). Feature work goes through OpenSpec (`openspec/`).

@@ -41,7 +41,7 @@ page's own report and the analysis travel in `AgentContext`.
   questions take the fast path (0 planning calls).
 - Most Ask dex tools are available here; lore search, look-alikes, profile picks and
   encounters are not (keeps the planning prompt under `PROMPT_BUDGET` — see
-  [ask-agent.md](ask-agent.md#llm-planner-llm_plannerpy)).
+  [ask-agent-planners.md](ask-agent-planners.md#llm-planner-llm_plannerpy)).
 
 | Tool | Does | Writes? |
 |---|---|---|

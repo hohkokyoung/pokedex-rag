@@ -1,0 +1,57 @@
+name: team-coach
+description: Saved teams, deterministic analysis and grades, the background summary, and the team-scope coach.
+
+code:
+  - backend/app/api/teams.py
+  - backend/app/services/teams.py
+  - backend/app/services/team_analysis.py
+  - backend/app/services/team_strategy.py
+  - backend/app/services/recommend.py
+  - backend/app/services/battle.py
+  - backend/app/services/sets.py
+  - backend/app/services/stats.py
+  - backend/app/services/zmoves.py
+  - backend/app/agent/team_tools.py
+  - backend/app/rag/team_summary.py
+  - backend/app/rag/build_suggest.py
+  - backend/app/rag/coach.py
+  - backend/app/models/team.py
+  - frontend/app/teams/
+  - frontend/components/TeamsBrowser.tsx
+  - frontend/components/TeamWorkbench.tsx
+  - frontend/components/SlotEditor.tsx
+  - frontend/components/TeamReport.tsx
+  - frontend/components/TeamCoach.tsx
+  - frontend/lib/teamEval.ts
+  - frontend/lib/teamProfile.ts
+
+documentation:
+  - docs/architecture/team-coach.md
+  - docs/product/teams.md
+
+specs:
+  - openspec/specs/team-coach/
+
+decisions:
+  - docs/decisions/ADR-004.md
+  - docs/decisions/ADR-007.md
+  - docs/decisions/ADR-008.md
+
+depends_on:
+  - ask-agent
+  - pokedex
+
+interfaces:
+  - GET|POST /api/teams
+  - GET|PUT|DELETE /api/teams/{team_id}
+  - PUT|DELETE /api/teams/{team_id}/slots/{slot}
+  - POST /api/teams/{team_id}/slots/{slot}/build
+  - GET /api/teams/{team_id}/analysis
+  - GET /api/teams/{team_id}/strategy
+  - GET /api/teams/{team_id}/summary, POST .../summary/refresh
+  - GET /api/teams/{team_id}/duel
+  - POST /api/teams/{team_id}/ask (SSE)
+
+events:
+  publishes:
+    - team_updated   # plus the ask-agent events

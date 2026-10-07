@@ -1,0 +1,49 @@
+name: ask-agent
+description: The planner + tools + runner that answers questions on Ask, the team coach and the calc coach.
+
+code:
+  - backend/app/agent/
+  - backend/app/api/ask.py
+  - backend/app/api/traces.py
+  - backend/app/rag/answer.py
+  - backend/app/rag/structured_answer.py
+  - frontend/components/AskConsole.tsx
+  - frontend/components/AskTile.tsx
+  - frontend/components/agent/
+  - frontend/lib/answerFormat.tsx
+  - frontend/lib/askEvidence.ts
+
+documentation:
+  - docs/architecture/ask-agent.md
+  - docs/architecture/ask-agent-planners.md
+  - docs/architecture/ask-agent-traces.md
+  - docs/product/ask.md
+  - docs/guides/eval.md
+
+specs:
+  - openspec/specs/assistant/
+
+decisions:
+  - docs/decisions/ADR-002.md
+  - docs/decisions/ADR-003.md
+  - docs/decisions/ADR-005.md
+  - docs/decisions/ADR-008.md
+
+depends_on:
+  - retrieval
+  - llm (Anthropic or Groq, optional)
+
+interfaces:
+  - POST /api/ask
+  - POST /api/ask/stream (SSE)
+  - GET /api/traces
+  - GET /api/traces/{id}
+
+events:
+  publishes:
+    - plan
+    - step
+    - view
+    - sources
+    - delta
+    - done

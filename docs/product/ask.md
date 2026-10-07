@@ -47,5 +47,5 @@ directly ("add an LLM key for narrated answers").
 
 How it works: [../architecture/ask-agent.md](../architecture/ask-agent.md).
 
-Code: `/ask` → `components/AskConsole.tsx`; streaming state in `components/agent/useAsk.ts`;
-backend `api/ask.py` → `agent/runner.py`.
+Code: [ask-agent manifest](../components/ask-agent.yaml). Streaming state lives in
+`components/agent/useAsk.ts`.

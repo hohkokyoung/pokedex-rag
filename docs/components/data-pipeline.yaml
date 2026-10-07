@@ -1,0 +1,19 @@
+name: data-pipeline
+description: Offline ingest of the PokéAPI CSV dataset, sprites and knowledge chunks into Postgres.
+
+code:
+  - backend/app/ingest/
+  - backend/alembic/
+  - backend/app/models/
+  - Makefile
+
+documentation:
+  - docs/guides/data-pipeline.md
+  - docs/architecture/data.md
+
+decisions:
+  - docs/decisions/ADR-001.md
+
+depends_on:
+  - postgres
+  - pokeapi-csv (data/raw/pokeapi/, offline only)

@@ -25,7 +25,7 @@ answers, set/build suggestions and team summaries.
 | Package | Holds |
 |---|---|
 | `api/` | routes: `health`, `pokemon` (read), `ask` (+ SSE), `profile`, `builder` (moves, abilities, items, natures, learners), `teams` (CRUD, analysis, strategy, summary, duel, coach SSE), `calc` (coach SSE) |
-| `models/` | `pokemon` (relational), `moves` (moves, learnsets, natures), `knowledge` (pgvector chunks), `team`, `user` |
+| `models/` | the ORM — tables and invariants in [data.md](data.md) |
 | `services/` | deterministic logic: queries, builder lookups, team CRUD/validation, stats, analysis, strategy, recommender, damage calc, duels, encounters |
 | `agent/` | the planner + tools + runner behind Ask and both coaches — [ask-agent.md](ask-agent.md) |
 | `rag/` | retrievers, the answer/LLM client, team summary, build suggestions — [retrieval.md](retrieval.md) |
@@ -56,4 +56,5 @@ respects `prefers-reduced-motion`.
 | How to do things | `docs/guides/` |
 | What each page does for a user | `docs/product/` |
 | Conventions and gotchas for contributors | `CLAUDE.md` |
-| Past decisions | `openspec/changes/archive/` |
+| Which code belongs to which docs/specs | `docs/components/*.yaml` |
+| Decisions and why | `docs/decisions/` (older detail: `openspec/changes/archive/`) |

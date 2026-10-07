@@ -74,7 +74,7 @@ multipliers). "Math" shows the formula.
 
 ## Code
 
-All tiles are composed in `frontend/app/page.tsx` (the damage calculator and its coach
-live there too, with the formula in `lib/damageCalc.ts` — [damage-calc.md](../architecture/damage-calc.md)).
-Other tiles: `Finder.tsx` (search), `AskTile.tsx`, `TypeMatchups.tsx` (`lib/typeChart.ts`),
-`CatchRateTile.tsx` (`lib/catchRate.ts`).
+All tiles are composed in `frontend/app/page.tsx`, the damage calculator and its coach
+included. Files: [pokedex](../components/pokedex.yaml) (search, type and catch-rate
+tiles), [damage-calc](../components/damage-calc.yaml), [ask-agent](../components/ask-agent.yaml)
+(the Ask tile).

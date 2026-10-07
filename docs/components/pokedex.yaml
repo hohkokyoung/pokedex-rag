@@ -1,0 +1,43 @@
+name: pokedex
+description: Browsing the ingested Pokédex — catalog, detail pages, movesets, learners, encounters.
+
+code:
+  - backend/app/api/pokemon.py
+  - backend/app/api/builder.py
+  - backend/app/api/profile.py
+  - backend/app/services/pokemon_query.py
+  - backend/app/services/builder.py
+  - backend/app/services/encounters.py
+  - backend/app/services/versions.py
+  - frontend/app/pokedex/
+  - frontend/components/PokedexBrowser.tsx
+  - frontend/components/PokemonDetailView.tsx
+  - frontend/components/MovesetPanel.tsx
+  - frontend/components/MoveLearners.tsx
+  - frontend/components/EncountersPanel.tsx
+  - frontend/app/page.tsx
+  - frontend/components/Finder.tsx
+  - frontend/components/TypeMatchups.tsx
+  - frontend/components/CatchRateTile.tsx
+  - frontend/lib/typeChart.ts
+  - frontend/lib/catchRate.ts
+
+documentation:
+  - docs/product/pokedex.md
+  - docs/product/home.md
+
+decisions:
+  - docs/decisions/ADR-001.md
+
+depends_on:
+  - data-pipeline
+  - postgres
+
+interfaces:
+  - GET /api/pokemon
+  - GET /api/pokemon/{id_or_name}
+  - GET /api/pokemon/{pokemon_id}/encounters
+  - GET /api/types
+  - GET /api/generations
+  - GET /api/moves, /api/abilities, /api/items, /api/natures (+ learners and per-game variants)
+  - GET|PUT /api/profile, POST|DELETE /api/profile/favorites/{pokemon_id}

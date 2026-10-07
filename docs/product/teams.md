@@ -63,9 +63,7 @@ How it works: [../architecture/team-coach.md](../architecture/team-coach.md).
 
 ## Code
 
-`/teams` → `components/TeamsBrowser.tsx`; `/teams/[id]` → `components/TeamWorkbench.tsx`
-(slots in `SlotEditor.tsx`, report in `TeamReport.tsx`, coach in `TeamCoach.tsx`).
-Backend: `api/teams.py` (CRUD, analysis, strategy, summary, duel, coach) and
-`api/builder.py` (the moves / abilities / items / natures the slot editor offers →
-`services/builder.py`, Z-moves in `services/zmoves.py`). Engines and grades:
+Files: [team-coach manifest](../components/team-coach.yaml). The slot editor's
+choices (moves, abilities, items, natures) come from the shared builder API in the
+[pokedex manifest](../components/pokedex.yaml). Engines and grades:
 [team-coach.md](../architecture/team-coach.md).

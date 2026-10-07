@@ -1,0 +1,24 @@
+name: retrieval
+description: What the agent's tools fetch — structured SQL lookups, learnsets, matchups, hybrid and profile-vector search.
+
+code:
+  - backend/app/rag/
+  - backend/app/agent/ask_tools.py
+  - backend/app/agent/names.py
+  - backend/app/services/matchups.py
+  - backend/app/services/nlfilters.py
+  - backend/app/models/knowledge.py
+
+documentation:
+  - docs/architecture/retrieval.md
+
+specs:
+  - openspec/specs/assistant/
+
+decisions:
+  - docs/decisions/ADR-001.md
+  - docs/decisions/ADR-003.md
+
+depends_on:
+  - data-pipeline
+  - postgres (pgvector, full-text)

@@ -72,7 +72,7 @@ Evaluation: [eval.md](eval.md).
 ## Plan traces
 
 Every question you ask records how it was planned and answered (see
-[the Ask agent](../architecture/ask-agent.md#6-plan-traces-tracepy)). To review them:
+[the Ask agent](../architecture/ask-agent-traces.md)). To review them:
 
 ```bash
 make traces                       # the 20 most recent questions

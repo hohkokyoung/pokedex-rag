@@ -77,19 +77,10 @@ behave identically for the same arguments, and every lookup is reproducible.
 | `calc_context` | calc (built-in) | | the calculator's state |
 | `damage_calc`, `survive_threshold`, `propose_build` | calc | yes | see [damage-calc.md](damage-calc.md) |
 
-Each tool returns a `ToolResult`:
-
-```python
-ToolResult(
-    chunks=[RetrievedChunk, ...],  # citable evidence → [1], [2]… for the answer
-    views=[View, ...],             # typed data the UI draws (ranking, type chart, cards…)
-    summary="6 passages",          # one line for the live plan
-    status="done",                 # or "empty" / "error"
-    note=None,                     # guidance for the answer LLM about this evidence
-    data={},                       # payload for code-rendered answers
-    closed=None,                   # per-result override of closed_form
-)
-```
+Each tool returns a `ToolResult` (`results.py`): citable **chunks** (numbered `[n]` for
+the answer), typed **views** the UI draws, a one-line **summary** for the live plan, a
+**status** (`done` / `empty` / `error`), and optional **data** for code-rendered answers
+and a **note** that guides the answer LLM.
 
 `RetrievedChunk` is described in [retrieval.md](retrieval.md). The frontend draws
 `views` directly and never parses chunk text.
@@ -105,55 +96,8 @@ Cheapest first (`runner._choose_plan`):
 4. Otherwise the **LLM planner** makes one call. A 429, timeout (10 s), bad JSON or a
    plan with no valid steps → the keyword plan. Never a retry.
 
-### Keyword planner (`keyword_planner.py`)
-
-1. **Find names.** `names.find_in_text` scans the question against every Pokémon, form,
-   move, type, ability and item name in the DB, longest first ("Mewtwo" before "Mew",
-   "Fire Punch" before "Fire"). A span can match two kinds ("Psychic" = type and move).
-2. **Pick a tool** from what was found and a few cue words (`_decide`):
-   Pokémon + move → `learnset`; move alone → `move_info`; Pokémon + "like" →
-   `similar_to`; type + "weak" → `type_matchup`; nothing named → `query_pokemon` if a
-   ranking/filter is recognised, else `semantic_search`.
-3. **Fill the other args** with small parsers: `nlfilters.restricted_filters`
-   (legendary/mythical, with negation), physical/special, learn method, game
-   (`learnset.find_game_in_text`), stat words and thresholds (`sql_retrieval.plan`).
-
-**Confident** means: one valid step, every name has one meaning, no extra filters
-(game, method, types, legendary), and the question — with names replaced by
-placeholders — matches a fixed template:
-
-```
-"Can Pikachu learn Surf?"  →  "can P learn M"  →  confident
-"Can Pikachu learn Surf in Scarlet?"            →  not confident (game filter) → LLM
-```
-
-The keyword planner matches names exactly (after lowercasing and stripping
-punctuation). Misspelled names are fixed later, inside the tools (`names.resolve`,
-`difflib` ≥ 0.85).
-
-### LLM planner (`llm_planner.py`)
-
-One strict-JSON call. The schema is built from the tools' Pydantic models: each step is
-an `anyOf` of per-tool objects, so choosing `learnset` forces learnset's argument
-shape. Groq uses `json_schema` mode, Anthropic a forced tool call; SDK retries are off.
-
-The prompt lists tool names + one-line descriptions, rules ("set a filter only when
-the question states it", "use names as written", "never supply a Pokémon's stats from
-memory"), and four examples. It must stay under `PROMPT_BUDGET` (11k characters,
-~2.75k tokens) for Groq's free-tier tokens-per-minute limit; a test fails any scope
-that goes over. **The budget is nearly full** (Oct 2026: ask ~9.8k, team ~10.6k, calc
-~10.4k) — a new tool in team or calc scope will likely need a shorter description or
-another tool trimmed. Check with `llm_planner.prompt_size(scope)`.
-
-The plan also has `unhandled`: constraints no argument can express ("cute"). The
-answer opens by saying they weren't applied.
-
-### Validation (`plan.py`)
-
-Both planners' raw steps go through `make_step`: the tool must exist in this scope,
-nulls are dropped for non-nullable fields, `model_validate` checks types and enums,
-and `legendary=False` also sets `mythical=False` (colloquial "non-legendary"). A bad
-step gets `error` instead of raising.
+Details of each planner — name finding, the confidence test, the LLM schema and
+prompt budget, step validation — are in [ask-agent-planners.md](ask-agent-planners.md).
 
 ## 4. Answering (`runner._answer_body`)
 
@@ -181,32 +125,11 @@ Usage is reported in `done` and logged. Ask plans and answers are cached in memo
 fell back or read your profile. Team and calc answers are never cached — the team and
 calculator change.
 
-## 6. Plan traces (`trace.py`)
+## 6. Plan traces
 
-Every answered question, on Ask, the team coach and the calc coach, stores a **plan trace**
-with its `question_log` row (`trace` JSONB). The runner builds it just before `done` from what
-it already holds, so it costs no LLM calls, and leaves it in `ctx.extra["trace"]`. The route
-saves it best-effort with the question (a failed write only logs a warning). The trace
-never goes to the client.
-
-| Field | What it records |
-|---|---|
-| `planner` | `cached`, `keyword` or `llm` |
-| `skip_llm` | why the LLM wasn't asked: `fast-path` (confident keyword plan) or `no-llm` (no key / `ASK_AGENT_ENABLED=false`) |
-| `fallback` | why the keyword plan stood in for the LLM: `rate-limited`, `timeout`, `provider-error:<Type>`, `no-valid-steps` |
-| `keyword` | the keyword plan and whether it was confident |
-| `llm` | the LLM's plan (tool, args, why), also when rejected, plus `unhandled` and `needs_followup` |
-| `replan` | steps a re-plan added, or why it failed |
-| `steps` | each executed step's state, summary and time (incl. the coach context step) |
-| `answer` | `tier` (`code`, `llm`, `no-llm`, `abstain`, `cached`) and an answer `fallback` reason |
-| `usage`, `ms` | LLM calls and tokens; total time |
-
-Strings are capped (reasons and summaries 200 chars, arg values 300), so a trace stays
-under ~8 KB. Only the newest `TRACE_RETENTION` (default 2,000) rows keep a trace; older rows
-keep their question, which personalization reads. Read them with `make traces` (see
-[local development](../guides/local-dev.md#plan-traces)) or `GET /api/traces` and
-`GET /api/traces/{id}`. When the runner gains a decision (a new fallback or answer path),
-record it in the trace.
+Every answered question stores how it was planned and answered, at no LLM cost — see
+[ask-agent-traces.md](ask-agent-traces.md). When the runner gains a decision (a new
+fallback or answer path), record it in the trace.
 
 ## Adding a capability
 
