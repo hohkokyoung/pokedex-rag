@@ -56,6 +56,25 @@ _METHOD_CUES = (
 )
 
 
+# "below lvl 30" / "before level 30" → 29; "by level 30" / "lv 30 or below" → 30.
+_LEVEL_CAP = (
+    (-1, re.compile(r"\b(?:below|under|before|lower than|earlier than)\s+(?:the\s+)?"
+                    r"(?:level|lvl|lv)\.?\s*(\d{1,3})\b")),
+    (0, re.compile(r"\b(?:by|until|up to|at or below|at or before|no later than)\s+(?:the\s+)?"
+                   r"(?:level|lvl|lv)\.?\s*(\d{1,3})\b")),
+    (0, re.compile(r"\b(?:level|lvl|lv)\.?\s*(\d{1,3})\s+or\s+"
+                   r"(?:below|lower|earlier|less|under)\b")),
+)
+
+
+def _level_cap(text: str) -> int | None:
+    """The highest level a level-up move may be learned at, if the question caps it."""
+    for shift, rx in _LEVEL_CAP:
+        if m := rx.search(text):
+            return max(int(m.group(1)) + shift, 1)
+    return None
+
+
 def _learn_method(text: str) -> str | None:
     """The one learn method the question restricts to, if it names exactly one."""
     hits = [m for m, rx in _METHOD_CUES if rx.search(text)]
@@ -92,8 +111,11 @@ async def plan_keywords(
         ok = len(plan.valid_steps) == len(plan.steps) <= 1
         return KeywordPlan(plan, confident and ok)
     raw, confident = await _decide(session, question)
-    plan = build_plan(raw[:MAX_KEYWORD_STEPS], "keyword", scope=scope)
-    return KeywordPlan(plan, confident and len(plan.valid_steps) == 1)
+    # A game it named but couldn't place ("in the gizmo game"): say so, don't drop it.
+    phrase = await learnset.unresolved_game(session, question)
+    unhandled = [f'the game "{phrase}" (not recognised)'] if phrase else []
+    plan = build_plan(raw[:MAX_KEYWORD_STEPS], "keyword", scope=scope, unhandled=unhandled)
+    return KeywordPlan(plan, confident and not unhandled and len(plan.valid_steps) == 1)
 
 
 # ---- damage-calculator phrasings ------------------------------------------------------
@@ -337,9 +359,11 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
     if mons and moves:
         p, m = mons[0], moves[0]
         if p.kind == "pokemon":
-            how = _learn_method(text)
+            cap = _level_cap(text)
+            how = "level-up" if cap else _learn_method(text)
             return [_step("learnset", f"check {p.name} × {m.name}",
-                          pokemon=p.name, move=m.name, method=how, game=game)], (
+                          pokemon=p.name, move=m.name, method=how, game=game,
+                          max_level=cap)], (
                 _simple(question, found, "pair") and how is None and game is None)
 
     # ---- a move ----
@@ -347,11 +371,13 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
         m = moves[0]
         if learn_cue or _LEARNERS.search(text):
             cls = _CLASS.search(text)
-            how = _learn_method(text)
+            cap = _level_cap(text)
+            how = "level-up" if cap else _learn_method(text)
             steps = [_step(
                 "learnset", f"who learns {m.name}", move=m.name, types=plain_types,
                 legendary=legendary, mythical=mythical,
                 damage_class=cls.group(1) if cls else None, method=how, game=game,
+                max_level=cap,
             )]
             return steps, _simple(question, found, "learners") and not (
                 plain_types or legendary is not None or mythical is not None or how or game)
@@ -383,9 +409,11 @@ async def _decide(session: AsyncSession, question: str) -> tuple[list[dict], boo
             learnset._MOVES.search(text) and not learnset._MATCHUP.search(text))
         if moves_cue and p.kind == "pokemon":
             cls = _CLASS.search(text)
+            cap = _level_cap(text)
             return [_step("learnset", f"{p.name}'s moves", pokemon=p.name, types=plain_types,
                           damage_class=cls.group(1) if cls else None,
-                          method=_learn_method(text))], False
+                          method="level-up" if cap else _learn_method(text),
+                          max_level=cap)], False
         steps = [_step("get_pokemon", f"{p.name}'s profile", name=p.name)]
         if lore:
             steps.append(_step("semantic_search", "descriptions and lore", query=question))

@@ -226,3 +226,14 @@ async def test_query_pokemon_game_filter(session) -> None:
     assert "Snivy" in every and "Snivy" not in swsh and swsh < every  # Snivy isn't in SwSh
     r = await run(session, "query_pokemon", game="Platinum Ultra")
     assert r.status == "error" and "unresolved game" in r.summary
+
+
+async def test_learnset_level_cap_renders_no(session) -> None:
+    from app.agent import render
+
+    r = await run(session, "learnset", pokemon="Garchomp", move="Crunch", method="level-up",
+                  max_level=29)
+    assert r.views[0].ok is False and r.views[0].max_level == 29
+    text = render.render_step("learnset", r)
+    assert text.startswith("No — **Garchomp** doesn't learn **Crunch** by level-up by Lv 29"), text
+    assert "Lv 48" in text

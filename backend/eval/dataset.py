@@ -103,6 +103,8 @@ CASES: list[EvalCase] = [
              fast_path=False),
     EvalCase("v5", "Which non-legendary Pokémon learn Earthquake?", "learnset",
              [T("learnset", move="Earthquake", legendary=False)], fast_path=False),
+    EvalCase("v5b", "Does Garchomp learn Crunch below lvl 30?", "learnset",
+             [T("learnset", pokemon="Garchomp", move="Crunch", max_level=29)], fast_path=False),
     EvalCase("x1", "What is Fire weak to?", "matchup", [T("type_matchup", types=["fire"])],
              fast_path=True),
     EvalCase("x2", "Moves that beat Garchomp", "matchup",

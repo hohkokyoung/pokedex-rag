@@ -274,3 +274,31 @@ async def test_every_named_lookup_gets_a_step(session, q, want) -> None:
     kp = await plan_keywords(session, q)
     assert [(s.tool, s.args["name"]) for s in kp.plan.steps] == want
     assert not kp.confident  # multi-part: the LLM planner still gets a say when available
+
+
+@pytest.mark.parametrize("q,level", [
+    ("does garchomp learn crunch below lvl 30", 29),
+    ("can Garchomp learn Crunch before level 30?", 29),
+    ("does Garchomp get Crunch by level 30", 30),
+    ("can garchomp learn crunch at lv 30 or below", 30),
+    ("who learns earthquake under level 20", 19),
+    ("does garchomp learn crunch", None),
+])
+async def test_level_cap_cue(session, q, level) -> None:
+    """ "below lvl 30" is a level cap on the learnset step, not a dropped constraint."""
+    kp = await plan_keywords(session, q)
+    [step] = kp.plan.steps
+    assert step.tool == "learnset" and step.args.get("max_level") == level, step.args
+    if level is not None:
+        assert step.args["method"] == "level-up" and not kp.confident
+
+
+async def test_unresolved_game_is_flagged_not_dropped(session) -> None:
+    """A game the planner can't place is reported as unapplied, never silently ignored."""
+    kp = await plan_keywords(session, "can garchomp learn crunch in the newest gizmo game")
+    [step] = kp.plan.steps
+    assert step.args.get("game") is None
+    assert kp.plan.unhandled and "gizmo" in kp.plan.unhandled[0] and not kp.confident
+    kp = await plan_keywords(session, "can garchomp learn crunch in new diamond and pearl game")
+    assert kp.plan.steps[0].args["game"] == "Brilliant Diamond / Shining Pearl"
+    assert not kp.plan.unhandled

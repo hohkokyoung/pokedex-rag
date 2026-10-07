@@ -506,6 +506,7 @@ class LearnsetArgs(BaseModel):
     legendary: bool | None = None
     mythical: bool | None = None
     method: Literal["level-up", "machine", "tutor", "egg"] | None = None
+    max_level: int | None = Field(None, ge=1, le=100, description="by this level (below 30 → 29)")
 
 
 @tool(
@@ -534,6 +535,7 @@ async def learnset_tool(
             session, pokemon=pm.name if pm else None, move=mm.name if mm else None,
             game=args.game, types=args.types, damage_class=args.damage_class,
             legendary=args.legendary, mythical=args.mythical, method=args.method,
+            max_level=args.max_level,
         )
     except learnset.UnresolvedName as e:
         return _unresolved(e.kind, e.name)
@@ -548,6 +550,7 @@ async def learnset_tool(
         view = LearnCheckView(
             pokemon=_card_from_pokemon(p, 0), move=_move_row(out.chunks[1], 1),
             ok=d["ok"], how=d["how"], game=d["game"], method=d["method"], absent=d["absent"],
+            max_level=d["max_level"],
             chunk_refs=[0, 1],
         )
         verdict = f"yes, {d['how']}" if d["ok"] else "no"
@@ -561,7 +564,7 @@ async def learnset_tool(
         how = d["hows"]
         view = LearnersView(
             move=_move_row(out.chunks[0], 0), total=d["total"], by_method=d["by_method"],
-            scope=d["scope"], game=d["game"], method=d["method"],
+            scope=d["scope"], game=d["game"], method=d["method"], max_level=d["max_level"],
             rows=[_card_from_row(c, i, via=how.get(c.pokemon_id)) for i, c in users],
             chunk_refs=list(range(len(out.chunks))),
         )

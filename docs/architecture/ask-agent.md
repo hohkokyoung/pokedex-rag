@@ -69,7 +69,7 @@ behave identically for the same arguments, and every lookup is reproducible.
 | `user_profile` | ask | | picks from your favourites and preferred types |
 | `type_matchup` | ask, team, calc | yes | type chart for 1–2 types |
 | `coverage_vs_types` | ask, team, calc | | who / which moves hit types (or a Pokémon) super-effectively |
-| `learnset` | ask, team, calc | per result | can X learn Y; who learns Y; X's moves — game-aware |
+| `learnset` | ask, team, calc | per result | can X learn Y; who learns Y; X's moves — game-aware, optional level cap |
 | `move_info` / `ability_info` / `item_info` | ask, team, calc | move only | what a move / ability / item does |
 | `encounters` | ask | | where to catch a Pokémon, per game |
 | `team_context` | team (built-in) | | the team, page report, analysis, opponent |

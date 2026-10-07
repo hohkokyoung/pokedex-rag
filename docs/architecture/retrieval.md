@@ -34,7 +34,7 @@ tool's `views` and lists chunks as sources. **Code-rendered answers** read `valu
 | Retriever | Example questions | How |
 |---|---|---|
 | `sql_retrieval.py` | "fastest non-legendary Fire types", "Speed above 100 in Gen 4" | A typed `StructuredQuery` (types, generation, legendary/mythical, stat filters, sort, limit ≤ 25, game) → a parameterised SQLAlchemy query. No raw SQL from users or the LLM. Rows come back as `sql_row` chunks with `values`, score 1.0. |
-| `learnset.py` | "can Pikachu learn Surf in Scarlet?", "who learns Earthquake?", "Garchomp's moves" | Joins over learnsets, moves and version groups. Game-aware: level-up levels and availability come from the named game (or the newest). |
+| `learnset.py` | "can Pikachu learn Surf in Scarlet?", "who learns Earthquake?", "Garchomp's moves" | Joins over learnsets, moves and version groups. Game-aware: level-up levels and availability come from the named game (or the newest); a bare name means the original, not its remake ("Diamond" → Diamond / Pearl, not BDSP), and "new …" / "… remake" means the remake. A level cap (`max_level`) keeps level-up rows at or below it; an evolution move (stored as level 0) counts at the level the Pokémon evolves, and reads "on evolving (Lv 48)". |
 | `matchup.py` | "what is Fire weak to?", "special attackers that cover Dragon" | The ingested type chart; coverage is **movepool-based** — a Pokémon covers a type if it can *learn* a super-effective damaging move (special-only when asked for), not just by its own typing. |
 | `personalize.py` | "recommend a Pokémon for me" | Your favourites and preferred types (single local profile). |
 

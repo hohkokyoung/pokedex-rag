@@ -122,6 +122,7 @@ class LearnersView(BaseModel):
     scope: list[str] = Field(default_factory=list)  # e.g. ["Fire-type", "non-legendary"]
     game: str | None = None
     method: str | None = None  # only this learn method was asked for
+    max_level: int | None = None
     rows: list[PokemonCard]
     chunk_refs: list[int] = Field(default_factory=list)
 
@@ -135,6 +136,7 @@ class LearnCheckView(BaseModel):
     ok: bool
     how: str | None = None  # "by level-up at Lv 1"
     method: str | None = None  # only this learn method was asked for
+    max_level: int | None = None  # only learned by this level was asked for
     game: str | None = None
     absent: bool = False  # the Pokémon isn't in that game at all
     chunk_refs: list[int] = Field(default_factory=list)
