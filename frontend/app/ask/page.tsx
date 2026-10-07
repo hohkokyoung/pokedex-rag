@@ -13,12 +13,10 @@ export default function AskPage() {
     <main className="shell ax-page">
       <ThemeScope attr="data-lab" />
       <header className="ax-hero">
-        <div>
-          <h1 className="font-display ax-hero__title">Ask the Pokédex</h1>
-        </div>
+        <h1 className="font-display ax-hero__title">Ask</h1>
         <p className="ax-hero__sub">
-          Every answer cites the records it came from. If the data can’t answer, it says so
-          instead of guessing.
+          Answers from the Pokédex’s own records, with sources. If the data can’t answer, it
+          says so instead of guessing.
         </p>
       </header>
       <Suspense>

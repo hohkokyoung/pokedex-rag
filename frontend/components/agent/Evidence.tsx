@@ -5,7 +5,7 @@ import type { StepRun } from "./useAsk";
 import { SourceCard, ViewBlock, refIndex, viewCaption, viewRefs } from "./ViewBlock";
 import { sprite, type Linking } from "./views/shared";
 
-const TOOL_TITLE: Record<string, string> = {
+export const TOOL_TITLE: Record<string, string> = {
   query_pokemon: "Pokédex query",
   get_pokemon: "Profile",
   semantic_search: "Descriptions",

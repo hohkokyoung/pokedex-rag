@@ -21,17 +21,30 @@ instead of guessing.
 
 ## Reading an answer
 
-- **Plan strip** — how many steps, who planned them (**keywords** or the **LLM**),
-  whether it was cached, the time taken and the number of LLM calls. Expand it to see
-  each step and what it found.
-- **Verdict** — one direct sentence first, then bullets if there's a list. `[n]`
-  marks link to the sources.
-- **Evidence** — the typed results drawn as tables, charts and cards (rankings, type
-  charts, learnsets, learner lists, Pokémon cards).
-- **Sources** — the numbered records behind the citations.
+The answer is laid out as tiles:
+
+- **Answer** — one direct sentence first, then bullets if there's a list. A question
+  with several parts gets one row per part ("1 · Which Fire types learn Will-O-Wisp?
+  → 75 · 15 by level-up, 60 by TM"). The small numbers are citations: hover to light up
+  where the record is drawn, click to read the record itself ("Show in results" scrolls
+  to it).
+- **How it was answered** — a quiet line at the bottom of the answer tile: who planned
+  it (**keywords** or the **LLM**, or cached), the time taken and the LLM calls. Click
+  "N lookups" to see each step and what it found. While working, it shows the step
+  that's running.
+- **Matchups** — a type chart is a card beside the answer, drawn like the home page's
+  Type calculator. Long answers show their first 4 bullets ("Show N more") so the two
+  cards stay level; after a one-sentence answer the matchups sit underneath as a strip.
+- **Evidence tiles** — one per other result: learner lists and Pokémon lists as
+  Pokédex cards (with how each one learns the move), rankings, move info, learnsets.
+- **Records** — cited records no tile draws (Pokédex entries, descriptions); the rest
+  are behind "Show N more".
+- **Sources** — every tile ends with the records it came from ("From the Fire type
+  chart [11]").
 - **Notice** — if part of the question couldn't be applied ("cute"), the answer says
   so up front.
-- **Follow-ups** — suggested next questions.
+- **Ask next** — once answered, follow-up questions replace the examples in the search
+  card.
 
 ## Your profile
 

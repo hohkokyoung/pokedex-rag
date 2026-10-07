@@ -7,8 +7,8 @@ import { parseBlocks, renderInline, type CiteRenderer } from "@/lib/answerFormat
 import { citedNumbers, followUps } from "@/lib/askEvidence";
 import { typeColor } from "@/lib/pokeTypes";
 import ProfilePanel from "@/components/ProfilePanel";
-import { EvidencePanel, chartedNames, moveTypes } from "@/components/agent/Evidence";
-import { PlanSteps } from "@/components/agent/PlanSteps";
+import { AskBento, SourcePeek } from "@/components/agent/AskBento";
+import { chartedNames, moveTypes } from "@/components/agent/Evidence";
 import { useAsk } from "@/components/agent/useAsk";
 
 /** Starter questions, labelled by what they exercise. */
@@ -34,7 +34,16 @@ export default function AskConsole() {
   const initialQ = params.get("q");
   const [q, setQ] = useState(initialQ ?? "");
   const [hot, setHot] = useState<number | null>(null);
-  const [showAll, setShowAll] = useState(false);
+  // The record a clicked citation points to, shown in a popover by the citation.
+  // ``jump`` is where the record is drawn in the results, unless that's the citation's own tile.
+  const [peek, setPeek] = useState<{
+    ns: number[];
+    from: HTMLElement;
+    x: number;
+    y: number;
+    above: boolean;
+    jumps: (Element | null)[];
+  } | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const { run, ask: start } = useAsk();
 
@@ -56,7 +65,7 @@ export default function AskConsole() {
   function submit(question: string) {
     if (!question.trim() || run.status === "streaming") return;
     setHot(null);
-    setShowAll(false);
+    setPeek(null);
     start(question);
     requestAnimationFrame(() => cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
@@ -72,8 +81,33 @@ export default function AskConsole() {
   const abstained = status === "done" && ABSTAIN.test(answer) && cited.size === 0;
   // A ranking (or a move list) draws its own chart, so answer bullets that just
   // restate a charted Pokémon / move are folded into it rather than listed twice.
-  const charted = useMemo(() => chartedNames(views), [views]);
+  // Here learners and type charts get their own tiles too, so bullets that only restate
+  // one ("Ho-Oh — by TM", "Resists — Bug, Steel…") are dropped as well. Pokémon lists
+  // keep theirs: look-alike bullets say why each one matches.
+  const charted = useMemo(() => {
+    const out = chartedNames(views);
+    for (const v of views) {
+      if (v.kind === "learners") v.rows.forEach((r) => out.add(r.name.toLowerCase()));
+      if (v.kind === "type_chart") ["weak to", "resists", "immune to", "super-effective against", "hits hard"].forEach((l) => out.add(l));
+    }
+    return out;
+  }, [views]);
   const moves = useMemo(() => moveTypes(views), [views]);
+  // Once answered, the search card's strip offers follow-ups instead of the examples.
+  const next = status === "done" && !abstained ? followUps(sources.filter((s) => cited.has(s.n))) : [];
+
+  /** Open (or toggle) the popover for these records, by the citation that was clicked. */
+  const openPeek = (ns: number[], from: HTMLElement) => {
+    const r = from.getBoundingClientRect();
+    // Where each record is drawn in the results, unless that's the citation's own tile.
+    const jumps = ns.map(
+      (n) => [...(cardRef.current?.querySelectorAll(`[data-src="${n}"]`) ?? [])].find((el) => !el.contains(from)) ?? null,
+    );
+    // Placed on the page once, here: below the citation, or above it when the screen has no room.
+    const above = window.innerHeight - r.bottom < 440 && r.top > window.innerHeight - r.bottom;
+    const at = { x: r.left, y: (above ? r.top : r.bottom) + window.scrollY, above };
+    setPeek((p) => (p?.from === from ? null : { ns, from, ...at, jumps }));
+  };
 
   const cite: CiteRenderer = (n, key) => (
     <button
@@ -84,14 +118,22 @@ export default function AskConsole() {
       onMouseLeave={() => setHot(null)}
       onFocus={() => setHot(n)}
       onBlur={() => setHot(null)}
-      onClick={() =>
-        cardRef.current
-          ?.querySelector(`[data-src="${n}"]`)
-          ?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-      }
+      onClick={(e) => openPeek([n], e.currentTarget)}
       aria-label={`Source ${n}`}
     >
       {n}
+    </button>
+  );
+
+  /** A run of records ("2–9") as one citation; its popover lists them. */
+  const citeRange = (a: number, b: number) => (
+    <button
+      type="button"
+      className="ax-cite ax-cite--range"
+      onClick={(e) => openPeek(Array.from({ length: b - a + 1 }, (_, i) => a + i), e.currentTarget)}
+      aria-label={`Sources ${a} to ${b}`}
+    >
+      {a}–{b}
     </button>
   );
 
@@ -105,7 +147,10 @@ export default function AskConsole() {
         }}
       >
         <div className="ax-composer__row">
-          <span className="ax-composer__prompt" aria-hidden>›</span>
+          <svg className="ax-composer__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -114,10 +159,35 @@ export default function AskConsole() {
             autoFocus
           />
           <button type="submit" className="btn btn-primary ax-composer__go" disabled={streaming || !q.trim()}>
-            {streaming ? "Asking…" : "Ask →"}
+            {streaming ? "Asking…" : "Ask"}
           </button>
         </div>
         <ProfilePanel
+          lead={
+            next.length > 0 ? (
+              <>
+                <span className="ax-foot__lbl">Ask next</span>
+                {next.map((f) => (
+                  <button key={f} type="button" onClick={() => ask(f)}>
+                    {f}
+                  </button>
+                ))}
+              </>
+            ) : (
+              SUGGESTIONS.map(([kind, label, question]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => ask(question)}
+                  disabled={streaming}
+                  title={question}
+                  className={run.question === question ? "on" : ""}
+                >
+                  {label}
+                </button>
+              ))
+            )
+          }
           meta={
             enabled === null ? null : enabled ? (
               <>Answers by {provider === "anthropic" ? "Claude" : provider === "groq" ? "Groq" : provider}</>
@@ -136,33 +206,17 @@ export default function AskConsole() {
         </p>
       )}
 
-      <div className="ax-sugg">
-        {SUGGESTIONS.map(([kind, label, question]) => (
-          <button key={kind} type="button" onClick={() => ask(question)} disabled={streaming} title={question}>
-            <span className="ax-sugg__k">{kind}</span>
-            {label}
-          </button>
-        ))}
-      </div>
-
       {status !== "idle" && (
-        <div className="ax-card" ref={cardRef}>
-          <div className="ax-q">{run.question}</div>
-          <PlanSteps
+        <div className="ax-results" ref={cardRef}>
+          <AskBento
             key={run.question}
-            steps={run.steps}
-            planner={run.planner}
-            cached={run.cached}
-            status={status}
-            elapsed={run.elapsed}
-            usage={run.usage}
-            answering={answer.length > 0}
-          />
-
-          {status === "error" ? (
-            <p className="ax-error">{run.error}</p>
-          ) : (
-            <>
+            run={run}
+            cited={cited}
+            hot={hot}
+            setHot={setHot}
+            cite={(n) => cite(n, `c${n}`)}
+            citeRange={citeRange}
+            answer={
               <Answer
                 text={answer}
                 streaming={streaming}
@@ -173,24 +227,23 @@ export default function AskConsole() {
                 cite={cite}
                 hot={hot}
                 setHot={setHot}
+                maxItems={4}
               />
-              <EvidencePanel
-                steps={run.steps}
-                views={views}
-                sources={sources}
-                cited={cited}
-                done={status === "done"}
-                hot={hot}
-                setHot={setHot}
-                showAll={showAll}
-                setShowAll={setShowAll}
-              />
-              {status === "done" && !abstained && (
-                <FollowUps items={followUps(sources.filter((s) => cited.has(s.n)))} onAsk={ask} />
-              )}
-            </>
-          )}
+            }
+          />
         </div>
+      )}
+      {peek && (
+        <SourcePeek
+          key={`${peek.ns.join(",")}-${peek.x}-${peek.y}`}
+          sources={peek.ns.map((n) => sources.find((s) => s.n === n))}
+          from={peek.from}
+          x={peek.x}
+          y={peek.y}
+          above={peek.above}
+          jumps={peek.jumps}
+          onClose={() => setPeek(null)}
+        />
       )}
     </div>
   );
@@ -207,6 +260,7 @@ export function Answer({
   cite,
   hot,
   setHot,
+  maxItems,
 }: {
   text: string;
   streaming: boolean;
@@ -219,7 +273,10 @@ export function Answer({
   cite: CiteRenderer;
   hot: number | null;
   setHot: (n: number | null) => void;
+  /** Show this many bullets per list, the rest behind "Show N more" (once streamed). */
+  maxItems?: number;
 }) {
+  const [allItems, setAllItems] = useState(false);
   if (!text) {
     return (
       <div className="ax-answer" aria-busy>
@@ -262,9 +319,10 @@ export function Answer({
             </p>
           );
         }
+        const capped = !streaming && !allItems && maxItems !== undefined && b.items.length > maxItems + 1;
         return (
           <ul key={i} className="ax-list">
-            {b.items.map((li, j) => {
+            {(capped ? b.items.slice(0, maxItems) : b.items).map((li, j) => {
               const label = labelOf(li);
               const src = label ? byName.get(label) : undefined;
               const n = Number(li.match(/[[【](\d+)[\]】]/)?.[1] ?? 0);
@@ -291,6 +349,13 @@ export function Answer({
                 </li>
               );
             })}
+            {capped && (
+              <li className="ax-li ax-li--more">
+                <button type="button" onClick={() => setAllItems(true)}>
+                  Show {b.items.length - maxItems} more
+                </button>
+              </li>
+            )}
           </ul>
         );
       })}

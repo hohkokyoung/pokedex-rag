@@ -71,7 +71,7 @@ export function viewRefs(view: AskView): number[] {
   return [...refs];
 }
 
-const CHUNK_LABEL: Record<string, string> = {
+export const CHUNK_LABEL: Record<string, string> = {
   dex_entry: "Pokédex entry",
   profile: "profile",
   ability: "ability",

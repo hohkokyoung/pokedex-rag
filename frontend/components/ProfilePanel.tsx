@@ -6,11 +6,11 @@ import { assetUrl, getProfile, updatePreferredTypes, type Profile } from "@/lib/
 import { TYPE_ORDER, titleCase, typeColor } from "@/lib/pokeTypes";
 
 /**
- * The composer's footer on /ask: a compact "personalised" chip (favourite
- * sprites + counts) that opens the profile editor in place. `meta` sits on the
- * right of the row (provider line).
+ * The composer's footer on /ask: `lead` (example questions, or follow-ups once
+ * answered) on the left, then a compact "personalised" chip (favourite sprites +
+ * counts) that opens the profile editor in place, and `meta` (provider line).
  */
-export default function ProfilePanel({ meta }: { meta?: ReactNode }) {
+export default function ProfilePanel({ meta, lead }: { meta?: ReactNode; lead?: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -45,6 +45,7 @@ export default function ProfilePanel({ meta }: { meta?: ReactNode }) {
   return (
     <div className="ax-foot">
       <div className="ax-foot__row">
+        {lead && <div className="ax-foot__lead">{lead}</div>}
         {profile && (
           <button
             type="button"

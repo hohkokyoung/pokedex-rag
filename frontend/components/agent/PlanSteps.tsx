@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Planner, Usage } from "@/lib/api";
 import type { Status, StepRun } from "./useAsk";
 
-const TOOL_LABEL: Record<string, string> = {
+export const TOOL_LABEL: Record<string, string> = {
   query_pokemon: "Query the Pokédex",
   get_pokemon: "Read the profile",
   semantic_search: "Search descriptions",
