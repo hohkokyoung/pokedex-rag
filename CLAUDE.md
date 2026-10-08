@@ -15,6 +15,7 @@ changing it (index: `docs/index.md`; from a file path, find its component manife
 | Dev setup, data pipeline, eval | `docs/guides/` | |
 | Which code → which docs/specs/ADRs | `docs/components/*.yaml` | |
 | Why it's built this way | `docs/decisions/` (ADRs) | |
+| Who it's for, personality, design principles | `PRODUCT.md` | |
 
 ## What this is
 
@@ -23,7 +24,7 @@ answers only from ingested data. Single-user, local-only, no auth. PokéAPI data
 ingested into Postgres and **never called at runtime**.
 
 ```
-frontend/  Next.js 16 · React 19 · TS · Tailwind v4 · GSAP · Lenis · Vanta
+frontend/  Next.js 16 · React 19 · TS · Tailwind v4 · GSAP · Lenis
 backend/   FastAPI · SQLAlchemy (async) · Alembic · Pydantic
   app/api/       routes          app/models/    ORM
   app/services/  deterministic logic (queries, teams, analysis, strategy, damage, duels)
@@ -83,6 +84,8 @@ in this environment — overridable in `.env`).
   excluded via `include_object` in `alembic/env.py` — don't let autogenerate drop it.
 - Backend lint excludes `alembic/`; FastAPI `Depends()` defaults are allowed (bugbear
   `extend-immutable-calls`).
+- **Design context:** read `PRODUCT.md` before UI work (product register; "precise,
+  premium, playful"; WCAG AA; anti-references). `/impeccable` commands read it too.
 - Frontend: entrance/scroll reveals use IntersectionObserver + CSS; GSAP is reserved
   for high-impact moments (stat bars, artwork). Respect `prefers-reduced-motion`.
 - Feature work goes through OpenSpec (`openspec/`): propose → apply → archive, one

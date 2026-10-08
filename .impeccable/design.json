@@ -1,0 +1,1318 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T19:37:55.233074+00:00",
+  "title": "Design System: pokérag",
+  "extensions": {
+    "colorMeta": {
+      "pokeball-red": {
+        "role": "primary",
+        "displayName": "Pokéball Red",
+        "canonical": "#d8310c",
+        "tonalRamp": [
+          "oklch(15% 0.2 35)",
+          "oklch(25% 0.2 35)",
+          "oklch(35% 0.2 35)",
+          "oklch(48% 0.2 35)",
+          "oklch(60% 0.2 35)",
+          "oklch(72% 0.2 35)",
+          "oklch(84% 0.2 35)",
+          "oklch(95% 0.2 35)"
+        ]
+      },
+      "ember-red": {
+        "role": "primary",
+        "displayName": "Ember Red",
+        "canonical": "oklch(0.68 0.2 35)",
+        "tonalRamp": [
+          "oklch(15% 0.19 35)",
+          "oklch(25% 0.19 35)",
+          "oklch(35% 0.19 35)",
+          "oklch(48% 0.19 35)",
+          "oklch(60% 0.19 35)",
+          "oklch(72% 0.19 35)",
+          "oklch(84% 0.19 35)",
+          "oklch(95% 0.19 35)"
+        ]
+      },
+      "you-blue": {
+        "role": "secondary",
+        "displayName": "You Blue",
+        "canonical": "oklch(0.57 0.22 262)",
+        "tonalRamp": [
+          "oklch(15% 0.2 262)",
+          "oklch(25% 0.2 262)",
+          "oklch(35% 0.2 262)",
+          "oklch(48% 0.2 262)",
+          "oklch(60% 0.2 262)",
+          "oklch(72% 0.2 262)",
+          "oklch(84% 0.2 262)",
+          "oklch(95% 0.2 262)"
+        ]
+      },
+      "verdict-green": {
+        "role": "tertiary",
+        "displayName": "Verdict Green",
+        "canonical": "oklch(0.66 0.14 152)",
+        "tonalRamp": [
+          "oklch(15% 0.13 152)",
+          "oklch(25% 0.13 152)",
+          "oklch(35% 0.13 152)",
+          "oklch(48% 0.13 152)",
+          "oklch(60% 0.13 152)",
+          "oklch(72% 0.13 152)",
+          "oklch(84% 0.13 152)",
+          "oklch(95% 0.13 152)"
+        ]
+      },
+      "verdict-green-text": {
+        "role": "tertiary",
+        "displayName": "Verdict Green (text)",
+        "canonical": "#1f7a47",
+        "tonalRamp": [
+          "oklch(15% 0.12 152)",
+          "oklch(25% 0.12 152)",
+          "oklch(35% 0.12 152)",
+          "oklch(48% 0.12 152)",
+          "oklch(60% 0.12 152)",
+          "oklch(72% 0.12 152)",
+          "oklch(84% 0.12 152)",
+          "oklch(95% 0.12 152)"
+        ]
+      },
+      "caution-amber": {
+        "role": "tertiary",
+        "displayName": "Caution Amber",
+        "canonical": "#f0b429",
+        "tonalRamp": [
+          "oklch(15% 0.14 70)",
+          "oklch(25% 0.14 70)",
+          "oklch(35% 0.14 70)",
+          "oklch(48% 0.14 70)",
+          "oklch(60% 0.14 70)",
+          "oklch(72% 0.14 70)",
+          "oklch(84% 0.14 70)",
+          "oklch(95% 0.14 70)"
+        ]
+      },
+      "caution-amber-text": {
+        "role": "tertiary",
+        "displayName": "Caution Amber (text)",
+        "canonical": "#94600a",
+        "tonalRamp": [
+          "oklch(15% 0.12 70)",
+          "oklch(25% 0.12 70)",
+          "oklch(35% 0.12 70)",
+          "oklch(48% 0.12 70)",
+          "oklch(60% 0.12 70)",
+          "oklch(72% 0.12 70)",
+          "oklch(84% 0.12 70)",
+          "oklch(95% 0.12 70)"
+        ]
+      },
+      "instrument-ink": {
+        "role": "neutral",
+        "displayName": "Instrument Ink",
+        "canonical": "oklch(0.2 0.013 265)",
+        "tonalRamp": [
+          "oklch(15% 0.012 265)",
+          "oklch(25% 0.012 265)",
+          "oklch(35% 0.012 265)",
+          "oklch(48% 0.012 265)",
+          "oklch(60% 0.012 265)",
+          "oklch(72% 0.012 265)",
+          "oklch(84% 0.012 265)",
+          "oklch(95% 0.012 265)"
+        ]
+      },
+      "ink-dim": {
+        "role": "neutral",
+        "displayName": "Ink Dim",
+        "canonical": "oklch(0.39 0.02 260)",
+        "tonalRamp": [
+          "oklch(15% 0.015 260)",
+          "oklch(25% 0.015 260)",
+          "oklch(35% 0.015 260)",
+          "oklch(48% 0.015 260)",
+          "oklch(60% 0.015 260)",
+          "oklch(72% 0.015 260)",
+          "oklch(84% 0.015 260)",
+          "oklch(95% 0.015 260)"
+        ]
+      },
+      "muted-slate": {
+        "role": "neutral",
+        "displayName": "Muted Slate",
+        "canonical": "oklch(0.52 0.02 260)",
+        "tonalRamp": [
+          "oklch(15% 0.015 260)",
+          "oklch(25% 0.015 260)",
+          "oklch(35% 0.015 260)",
+          "oklch(48% 0.015 260)",
+          "oklch(60% 0.015 260)",
+          "oklch(72% 0.015 260)",
+          "oklch(84% 0.015 260)",
+          "oklch(95% 0.015 260)"
+        ]
+      },
+      "faint-slate": {
+        "role": "neutral",
+        "displayName": "Faint Slate",
+        "canonical": "#666e7b",
+        "tonalRamp": [
+          "oklch(15% 0.012 260)",
+          "oklch(25% 0.012 260)",
+          "oklch(35% 0.012 260)",
+          "oklch(48% 0.012 260)",
+          "oklch(60% 0.012 260)",
+          "oklch(72% 0.012 260)",
+          "oklch(84% 0.012 260)",
+          "oklch(95% 0.012 260)"
+        ]
+      },
+      "panel-white": {
+        "role": "neutral",
+        "displayName": "Panel White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(15% 0.005 260)",
+          "oklch(25% 0.005 260)",
+          "oklch(35% 0.005 260)",
+          "oklch(48% 0.005 260)",
+          "oklch(60% 0.005 260)",
+          "oklch(72% 0.005 260)",
+          "oklch(84% 0.005 260)",
+          "oklch(95% 0.005 260)"
+        ]
+      },
+      "inset-gray": {
+        "role": "neutral",
+        "displayName": "Inset Gray",
+        "canonical": "oklch(0.97 0.004 265)",
+        "tonalRamp": [
+          "oklch(15% 0.006 265)",
+          "oklch(25% 0.006 265)",
+          "oklch(35% 0.006 265)",
+          "oklch(48% 0.006 265)",
+          "oklch(60% 0.006 265)",
+          "oklch(72% 0.006 265)",
+          "oklch(84% 0.006 265)",
+          "oklch(95% 0.006 265)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "canonical": "oklch(0.95 0.007 265)",
+        "tonalRamp": [
+          "oklch(15% 0.008 265)",
+          "oklch(25% 0.008 265)",
+          "oklch(35% 0.008 265)",
+          "oklch(48% 0.008 265)",
+          "oklch(60% 0.008 265)",
+          "oklch(72% 0.008 265)",
+          "oklch(84% 0.008 265)",
+          "oklch(95% 0.008 265)"
+        ]
+      },
+      "type-normal": {
+        "role": "tertiary",
+        "displayName": "Normal type",
+        "canonical": "#a8a878",
+        "tonalRamp": [
+          "oklch(15% 0.03 100)",
+          "oklch(25% 0.03 100)",
+          "oklch(35% 0.03 100)",
+          "oklch(48% 0.03 100)",
+          "oklch(60% 0.03 100)",
+          "oklch(72% 0.03 100)",
+          "oklch(84% 0.03 100)",
+          "oklch(95% 0.03 100)"
+        ]
+      },
+      "type-fire": {
+        "role": "tertiary",
+        "displayName": "Fire type",
+        "canonical": "#f0803c",
+        "tonalRamp": [
+          "oklch(15% 0.19 45)",
+          "oklch(25% 0.19 45)",
+          "oklch(35% 0.19 45)",
+          "oklch(48% 0.19 45)",
+          "oklch(60% 0.19 45)",
+          "oklch(72% 0.19 45)",
+          "oklch(84% 0.19 45)",
+          "oklch(95% 0.19 45)"
+        ]
+      },
+      "type-water": {
+        "role": "tertiary",
+        "displayName": "Water type",
+        "canonical": "#5aa0e6",
+        "tonalRamp": [
+          "oklch(15% 0.15 250)",
+          "oklch(25% 0.15 250)",
+          "oklch(35% 0.15 250)",
+          "oklch(48% 0.15 250)",
+          "oklch(60% 0.15 250)",
+          "oklch(72% 0.15 250)",
+          "oklch(84% 0.15 250)",
+          "oklch(95% 0.15 250)"
+        ]
+      },
+      "type-electric": {
+        "role": "tertiary",
+        "displayName": "Electric type",
+        "canonical": "#f4cf46",
+        "tonalRamp": [
+          "oklch(15% 0.16 100)",
+          "oklch(25% 0.16 100)",
+          "oklch(35% 0.16 100)",
+          "oklch(48% 0.16 100)",
+          "oklch(60% 0.16 100)",
+          "oklch(72% 0.16 100)",
+          "oklch(84% 0.16 100)",
+          "oklch(95% 0.16 100)"
+        ]
+      },
+      "type-grass": {
+        "role": "tertiary",
+        "displayName": "Grass type",
+        "canonical": "#6fc25a",
+        "tonalRamp": [
+          "oklch(15% 0.17 145)",
+          "oklch(25% 0.17 145)",
+          "oklch(35% 0.17 145)",
+          "oklch(48% 0.17 145)",
+          "oklch(60% 0.17 145)",
+          "oklch(72% 0.17 145)",
+          "oklch(84% 0.17 145)",
+          "oklch(95% 0.17 145)"
+        ]
+      },
+      "type-ice": {
+        "role": "tertiary",
+        "displayName": "Ice type",
+        "canonical": "#8fd4d4",
+        "tonalRamp": [
+          "oklch(15% 0.09 200)",
+          "oklch(25% 0.09 200)",
+          "oklch(35% 0.09 200)",
+          "oklch(48% 0.09 200)",
+          "oklch(60% 0.09 200)",
+          "oklch(72% 0.09 200)",
+          "oklch(84% 0.09 200)",
+          "oklch(95% 0.09 200)"
+        ]
+      },
+      "type-fighting": {
+        "role": "tertiary",
+        "displayName": "Fighting type",
+        "canonical": "#d13b52",
+        "tonalRamp": [
+          "oklch(15% 0.18 20)",
+          "oklch(25% 0.18 20)",
+          "oklch(35% 0.18 20)",
+          "oklch(48% 0.18 20)",
+          "oklch(60% 0.18 20)",
+          "oklch(72% 0.18 20)",
+          "oklch(84% 0.18 20)",
+          "oklch(95% 0.18 20)"
+        ]
+      },
+      "type-poison": {
+        "role": "tertiary",
+        "displayName": "Poison type",
+        "canonical": "#b25ec4",
+        "tonalRamp": [
+          "oklch(15% 0.18 320)",
+          "oklch(25% 0.18 320)",
+          "oklch(35% 0.18 320)",
+          "oklch(48% 0.18 320)",
+          "oklch(60% 0.18 320)",
+          "oklch(72% 0.18 320)",
+          "oklch(84% 0.18 320)",
+          "oklch(95% 0.18 320)"
+        ]
+      },
+      "type-ground": {
+        "role": "tertiary",
+        "displayName": "Ground type",
+        "canonical": "#e0c068",
+        "tonalRamp": [
+          "oklch(15% 0.11 70)",
+          "oklch(25% 0.11 70)",
+          "oklch(35% 0.11 70)",
+          "oklch(48% 0.11 70)",
+          "oklch(60% 0.11 70)",
+          "oklch(72% 0.11 70)",
+          "oklch(84% 0.11 70)",
+          "oklch(95% 0.11 70)"
+        ]
+      },
+      "type-flying": {
+        "role": "tertiary",
+        "displayName": "Flying type",
+        "canonical": "#8aa0e6",
+        "tonalRamp": [
+          "oklch(15% 0.09 265)",
+          "oklch(25% 0.09 265)",
+          "oklch(35% 0.09 265)",
+          "oklch(48% 0.09 265)",
+          "oklch(60% 0.09 265)",
+          "oklch(72% 0.09 265)",
+          "oklch(84% 0.09 265)",
+          "oklch(95% 0.09 265)"
+        ]
+      },
+      "type-psychic": {
+        "role": "tertiary",
+        "displayName": "Psychic type",
+        "canonical": "#f0619a",
+        "tonalRamp": [
+          "oklch(15% 0.18 5)",
+          "oklch(25% 0.18 5)",
+          "oklch(35% 0.18 5)",
+          "oklch(48% 0.18 5)",
+          "oklch(60% 0.18 5)",
+          "oklch(72% 0.18 5)",
+          "oklch(84% 0.18 5)",
+          "oklch(95% 0.18 5)"
+        ]
+      },
+      "type-bug": {
+        "role": "tertiary",
+        "displayName": "Bug type",
+        "canonical": "#9fc02f",
+        "tonalRamp": [
+          "oklch(15% 0.17 130)",
+          "oklch(25% 0.17 130)",
+          "oklch(35% 0.17 130)",
+          "oklch(48% 0.17 130)",
+          "oklch(60% 0.17 130)",
+          "oklch(72% 0.17 130)",
+          "oklch(84% 0.17 130)",
+          "oklch(95% 0.17 130)"
+        ]
+      },
+      "type-rock": {
+        "role": "tertiary",
+        "displayName": "Rock type",
+        "canonical": "#b8a038",
+        "tonalRamp": [
+          "oklch(15% 0.06 90)",
+          "oklch(25% 0.06 90)",
+          "oklch(35% 0.06 90)",
+          "oklch(48% 0.06 90)",
+          "oklch(60% 0.06 90)",
+          "oklch(72% 0.06 90)",
+          "oklch(84% 0.06 90)",
+          "oklch(95% 0.06 90)"
+        ]
+      },
+      "type-ghost": {
+        "role": "tertiary",
+        "displayName": "Ghost type",
+        "canonical": "#7a5aa0",
+        "tonalRamp": [
+          "oklch(15% 0.14 300)",
+          "oklch(25% 0.14 300)",
+          "oklch(35% 0.14 300)",
+          "oklch(48% 0.14 300)",
+          "oklch(60% 0.14 300)",
+          "oklch(72% 0.14 300)",
+          "oklch(84% 0.14 300)",
+          "oklch(95% 0.14 300)"
+        ]
+      },
+      "type-dragon": {
+        "role": "tertiary",
+        "displayName": "Dragon type",
+        "canonical": "#7a5cf0",
+        "tonalRamp": [
+          "oklch(15% 0.19 275)",
+          "oklch(25% 0.19 275)",
+          "oklch(35% 0.19 275)",
+          "oklch(48% 0.19 275)",
+          "oklch(60% 0.19 275)",
+          "oklch(72% 0.19 275)",
+          "oklch(84% 0.19 275)",
+          "oklch(95% 0.19 275)"
+        ]
+      },
+      "type-dark": {
+        "role": "tertiary",
+        "displayName": "Dark type",
+        "canonical": "#5a5366",
+        "tonalRamp": [
+          "oklch(15% 0.05 300)",
+          "oklch(25% 0.05 300)",
+          "oklch(35% 0.05 300)",
+          "oklch(48% 0.05 300)",
+          "oklch(60% 0.05 300)",
+          "oklch(72% 0.05 300)",
+          "oklch(84% 0.05 300)",
+          "oklch(95% 0.05 300)"
+        ]
+      },
+      "type-steel": {
+        "role": "tertiary",
+        "displayName": "Steel type",
+        "canonical": "#a8b0c0",
+        "tonalRamp": [
+          "oklch(15% 0.05 230)",
+          "oklch(25% 0.05 230)",
+          "oklch(35% 0.05 230)",
+          "oklch(48% 0.05 230)",
+          "oklch(60% 0.05 230)",
+          "oklch(72% 0.05 230)",
+          "oklch(84% 0.05 230)",
+          "oklch(95% 0.05 230)"
+        ]
+      },
+      "type-fairy": {
+        "role": "tertiary",
+        "displayName": "Fairy type",
+        "canonical": "#f0a6d0",
+        "tonalRamp": [
+          "oklch(15% 0.11 340)",
+          "oklch(25% 0.11 340)",
+          "oklch(35% 0.11 340)",
+          "oklch(48% 0.11 340)",
+          "oklch(60% 0.11 340)",
+          "oklch(72% 0.11 340)",
+          "oklch(84% 0.11 340)",
+          "oklch(95% 0.11 340)"
+        ]
+      },
+      "pokeball-red-text": {
+        "role": "primary",
+        "displayName": "Pokéball Red (text)",
+        "canonical": "#c42b08",
+        "tonalRamp": [
+          "oklch(15% 0.18 35)",
+          "oklch(25% 0.18 35)",
+          "oklch(35% 0.18 35)",
+          "oklch(48% 0.18 35)",
+          "oklch(60% 0.18 35)",
+          "oklch(72% 0.18 35)",
+          "oklch(84% 0.18 35)",
+          "oklch(95% 0.18 35)"
+        ]
+      },
+      "brand-mark-red": {
+        "role": "primary",
+        "displayName": "Brand Mark Red",
+        "canonical": "#e3350d",
+        "tonalRamp": [
+          "oklch(15% 0.2 35)",
+          "oklch(25% 0.2 35)",
+          "oklch(35% 0.2 35)",
+          "oklch(48% 0.2 35)",
+          "oklch(60% 0.2 35)",
+          "oklch(72% 0.2 35)",
+          "oklch(84% 0.2 35)",
+          "oklch(95% 0.2 35)"
+        ]
+      },
+      "you-blue-text": {
+        "role": "secondary",
+        "displayName": "You Blue (text)",
+        "canonical": "#2a5fe0",
+        "tonalRamp": [
+          "oklch(15% 0.2 262)",
+          "oklch(25% 0.2 262)",
+          "oklch(35% 0.2 262)",
+          "oklch(48% 0.2 262)",
+          "oklch(60% 0.2 262)",
+          "oklch(72% 0.2 262)",
+          "oklch(84% 0.2 262)",
+          "oklch(95% 0.2 262)"
+        ]
+      },
+      "type-normal-on": {
+        "role": "tertiary",
+        "displayName": "Normal on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.03 100)",
+          "oklch(25% 0.03 100)",
+          "oklch(35% 0.03 100)",
+          "oklch(48% 0.03 100)",
+          "oklch(60% 0.03 100)",
+          "oklch(72% 0.03 100)",
+          "oklch(84% 0.03 100)",
+          "oklch(95% 0.03 100)"
+        ]
+      },
+      "type-normal-text": {
+        "role": "tertiary",
+        "displayName": "Normal as text",
+        "canonical": "#787749",
+        "tonalRamp": [
+          "oklch(15% 0.03 100)",
+          "oklch(25% 0.03 100)",
+          "oklch(35% 0.03 100)",
+          "oklch(48% 0.03 100)",
+          "oklch(60% 0.03 100)",
+          "oklch(72% 0.03 100)",
+          "oklch(84% 0.03 100)",
+          "oklch(95% 0.03 100)"
+        ]
+      },
+      "type-fire-on": {
+        "role": "tertiary",
+        "displayName": "Fire on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.19 45)",
+          "oklch(25% 0.19 45)",
+          "oklch(35% 0.19 45)",
+          "oklch(48% 0.19 45)",
+          "oklch(60% 0.19 45)",
+          "oklch(72% 0.19 45)",
+          "oklch(84% 0.19 45)",
+          "oklch(95% 0.19 45)"
+        ]
+      },
+      "type-fire-text": {
+        "role": "tertiary",
+        "displayName": "Fire as text",
+        "canonical": "#bc570c",
+        "tonalRamp": [
+          "oklch(15% 0.19 45)",
+          "oklch(25% 0.19 45)",
+          "oklch(35% 0.19 45)",
+          "oklch(48% 0.19 45)",
+          "oklch(60% 0.19 45)",
+          "oklch(72% 0.19 45)",
+          "oklch(84% 0.19 45)",
+          "oklch(95% 0.19 45)"
+        ]
+      },
+      "type-water-on": {
+        "role": "tertiary",
+        "displayName": "Water on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.15 250)",
+          "oklch(25% 0.15 250)",
+          "oklch(35% 0.15 250)",
+          "oklch(48% 0.15 250)",
+          "oklch(60% 0.15 250)",
+          "oklch(72% 0.15 250)",
+          "oklch(84% 0.15 250)",
+          "oklch(95% 0.15 250)"
+        ]
+      },
+      "type-water-text": {
+        "role": "tertiary",
+        "displayName": "Water as text",
+        "canonical": "#3178bb",
+        "tonalRamp": [
+          "oklch(15% 0.15 250)",
+          "oklch(25% 0.15 250)",
+          "oklch(35% 0.15 250)",
+          "oklch(48% 0.15 250)",
+          "oklch(60% 0.15 250)",
+          "oklch(72% 0.15 250)",
+          "oklch(84% 0.15 250)",
+          "oklch(95% 0.15 250)"
+        ]
+      },
+      "type-electric-on": {
+        "role": "tertiary",
+        "displayName": "Electric on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.16 100)",
+          "oklch(25% 0.16 100)",
+          "oklch(35% 0.16 100)",
+          "oklch(48% 0.16 100)",
+          "oklch(60% 0.16 100)",
+          "oklch(72% 0.16 100)",
+          "oklch(84% 0.16 100)",
+          "oklch(95% 0.16 100)"
+        ]
+      },
+      "type-electric-text": {
+        "role": "tertiary",
+        "displayName": "Electric as text",
+        "canonical": "#8a7102",
+        "tonalRamp": [
+          "oklch(15% 0.16 100)",
+          "oklch(25% 0.16 100)",
+          "oklch(35% 0.16 100)",
+          "oklch(48% 0.16 100)",
+          "oklch(60% 0.16 100)",
+          "oklch(72% 0.16 100)",
+          "oklch(84% 0.16 100)",
+          "oklch(95% 0.16 100)"
+        ]
+      },
+      "type-grass-on": {
+        "role": "tertiary",
+        "displayName": "Grass on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.17 145)",
+          "oklch(25% 0.17 145)",
+          "oklch(35% 0.17 145)",
+          "oklch(48% 0.17 145)",
+          "oklch(60% 0.17 145)",
+          "oklch(72% 0.17 145)",
+          "oklch(84% 0.17 145)",
+          "oklch(95% 0.17 145)"
+        ]
+      },
+      "type-grass-text": {
+        "role": "tertiary",
+        "displayName": "Grass as text",
+        "canonical": "#338618",
+        "tonalRamp": [
+          "oklch(15% 0.17 145)",
+          "oklch(25% 0.17 145)",
+          "oklch(35% 0.17 145)",
+          "oklch(48% 0.17 145)",
+          "oklch(60% 0.17 145)",
+          "oklch(72% 0.17 145)",
+          "oklch(84% 0.17 145)",
+          "oklch(95% 0.17 145)"
+        ]
+      },
+      "type-ice-on": {
+        "role": "tertiary",
+        "displayName": "Ice on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.09 200)",
+          "oklch(25% 0.09 200)",
+          "oklch(35% 0.09 200)",
+          "oklch(48% 0.09 200)",
+          "oklch(60% 0.09 200)",
+          "oklch(72% 0.09 200)",
+          "oklch(84% 0.09 200)",
+          "oklch(95% 0.09 200)"
+        ]
+      },
+      "type-ice-text": {
+        "role": "tertiary",
+        "displayName": "Ice as text",
+        "canonical": "#397e7e",
+        "tonalRamp": [
+          "oklch(15% 0.09 200)",
+          "oklch(25% 0.09 200)",
+          "oklch(35% 0.09 200)",
+          "oklch(48% 0.09 200)",
+          "oklch(60% 0.09 200)",
+          "oklch(72% 0.09 200)",
+          "oklch(84% 0.09 200)",
+          "oklch(95% 0.09 200)"
+        ]
+      },
+      "type-fighting-on": {
+        "role": "tertiary",
+        "displayName": "Fighting on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.18 20)",
+          "oklch(25% 0.18 20)",
+          "oklch(35% 0.18 20)",
+          "oklch(48% 0.18 20)",
+          "oklch(60% 0.18 20)",
+          "oklch(72% 0.18 20)",
+          "oklch(84% 0.18 20)",
+          "oklch(95% 0.18 20)"
+        ]
+      },
+      "type-fighting-text": {
+        "role": "tertiary",
+        "displayName": "Fighting as text",
+        "canonical": "#d13b52",
+        "tonalRamp": [
+          "oklch(15% 0.18 20)",
+          "oklch(25% 0.18 20)",
+          "oklch(35% 0.18 20)",
+          "oklch(48% 0.18 20)",
+          "oklch(60% 0.18 20)",
+          "oklch(72% 0.18 20)",
+          "oklch(84% 0.18 20)",
+          "oklch(95% 0.18 20)"
+        ]
+      },
+      "type-poison-on": {
+        "role": "tertiary",
+        "displayName": "Poison on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.18 320)",
+          "oklch(25% 0.18 320)",
+          "oklch(35% 0.18 320)",
+          "oklch(48% 0.18 320)",
+          "oklch(60% 0.18 320)",
+          "oklch(72% 0.18 320)",
+          "oklch(84% 0.18 320)",
+          "oklch(95% 0.18 320)"
+        ]
+      },
+      "type-poison-text": {
+        "role": "tertiary",
+        "displayName": "Poison as text",
+        "canonical": "#a552b7",
+        "tonalRamp": [
+          "oklch(15% 0.18 320)",
+          "oklch(25% 0.18 320)",
+          "oklch(35% 0.18 320)",
+          "oklch(48% 0.18 320)",
+          "oklch(60% 0.18 320)",
+          "oklch(72% 0.18 320)",
+          "oklch(84% 0.18 320)",
+          "oklch(95% 0.18 320)"
+        ]
+      },
+      "type-ground-on": {
+        "role": "tertiary",
+        "displayName": "Ground on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.11 70)",
+          "oklch(25% 0.11 70)",
+          "oklch(35% 0.11 70)",
+          "oklch(48% 0.11 70)",
+          "oklch(60% 0.11 70)",
+          "oklch(72% 0.11 70)",
+          "oklch(84% 0.11 70)",
+          "oklch(95% 0.11 70)"
+        ]
+      },
+      "type-ground-text": {
+        "role": "tertiary",
+        "displayName": "Ground as text",
+        "canonical": "#8f7105",
+        "tonalRamp": [
+          "oklch(15% 0.11 70)",
+          "oklch(25% 0.11 70)",
+          "oklch(35% 0.11 70)",
+          "oklch(48% 0.11 70)",
+          "oklch(60% 0.11 70)",
+          "oklch(72% 0.11 70)",
+          "oklch(84% 0.11 70)",
+          "oklch(95% 0.11 70)"
+        ]
+      },
+      "type-flying-on": {
+        "role": "tertiary",
+        "displayName": "Flying on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.09 265)",
+          "oklch(25% 0.09 265)",
+          "oklch(35% 0.09 265)",
+          "oklch(48% 0.09 265)",
+          "oklch(60% 0.09 265)",
+          "oklch(72% 0.09 265)",
+          "oklch(84% 0.09 265)",
+          "oklch(95% 0.09 265)"
+        ]
+      },
+      "type-flying-text": {
+        "role": "tertiary",
+        "displayName": "Flying as text",
+        "canonical": "#5e72b5",
+        "tonalRamp": [
+          "oklch(15% 0.09 265)",
+          "oklch(25% 0.09 265)",
+          "oklch(35% 0.09 265)",
+          "oklch(48% 0.09 265)",
+          "oklch(60% 0.09 265)",
+          "oklch(72% 0.09 265)",
+          "oklch(84% 0.09 265)",
+          "oklch(95% 0.09 265)"
+        ]
+      },
+      "type-psychic-on": {
+        "role": "tertiary",
+        "displayName": "Psychic on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.18 5)",
+          "oklch(25% 0.18 5)",
+          "oklch(35% 0.18 5)",
+          "oklch(48% 0.18 5)",
+          "oklch(60% 0.18 5)",
+          "oklch(72% 0.18 5)",
+          "oklch(84% 0.18 5)",
+          "oklch(95% 0.18 5)"
+        ]
+      },
+      "type-psychic-text": {
+        "role": "tertiary",
+        "displayName": "Psychic as text",
+        "canonical": "#cb3e7a",
+        "tonalRamp": [
+          "oklch(15% 0.18 5)",
+          "oklch(25% 0.18 5)",
+          "oklch(35% 0.18 5)",
+          "oklch(48% 0.18 5)",
+          "oklch(60% 0.18 5)",
+          "oklch(72% 0.18 5)",
+          "oklch(84% 0.18 5)",
+          "oklch(95% 0.18 5)"
+        ]
+      },
+      "type-bug-on": {
+        "role": "tertiary",
+        "displayName": "Bug on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.17 130)",
+          "oklch(25% 0.17 130)",
+          "oklch(35% 0.17 130)",
+          "oklch(48% 0.17 130)",
+          "oklch(60% 0.17 130)",
+          "oklch(72% 0.17 130)",
+          "oklch(84% 0.17 130)",
+          "oklch(95% 0.17 130)"
+        ]
+      },
+      "type-bug-text": {
+        "role": "tertiary",
+        "displayName": "Bug as text",
+        "canonical": "#667d08",
+        "tonalRamp": [
+          "oklch(15% 0.17 130)",
+          "oklch(25% 0.17 130)",
+          "oklch(35% 0.17 130)",
+          "oklch(48% 0.17 130)",
+          "oklch(60% 0.17 130)",
+          "oklch(72% 0.17 130)",
+          "oklch(84% 0.17 130)",
+          "oklch(95% 0.17 130)"
+        ]
+      },
+      "type-rock-on": {
+        "role": "tertiary",
+        "displayName": "Rock on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.06 90)",
+          "oklch(25% 0.06 90)",
+          "oklch(35% 0.06 90)",
+          "oklch(48% 0.06 90)",
+          "oklch(60% 0.06 90)",
+          "oklch(72% 0.06 90)",
+          "oklch(84% 0.06 90)",
+          "oklch(95% 0.06 90)"
+        ]
+      },
+      "type-rock-text": {
+        "role": "tertiary",
+        "displayName": "Rock as text",
+        "canonical": "#887306",
+        "tonalRamp": [
+          "oklch(15% 0.06 90)",
+          "oklch(25% 0.06 90)",
+          "oklch(35% 0.06 90)",
+          "oklch(48% 0.06 90)",
+          "oklch(60% 0.06 90)",
+          "oklch(72% 0.06 90)",
+          "oklch(84% 0.06 90)",
+          "oklch(95% 0.06 90)"
+        ]
+      },
+      "type-ghost-on": {
+        "role": "tertiary",
+        "displayName": "Ghost on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.14 300)",
+          "oklch(25% 0.14 300)",
+          "oklch(35% 0.14 300)",
+          "oklch(48% 0.14 300)",
+          "oklch(60% 0.14 300)",
+          "oklch(72% 0.14 300)",
+          "oklch(84% 0.14 300)",
+          "oklch(95% 0.14 300)"
+        ]
+      },
+      "type-ghost-text": {
+        "role": "tertiary",
+        "displayName": "Ghost as text",
+        "canonical": "#7a5aa0",
+        "tonalRamp": [
+          "oklch(15% 0.14 300)",
+          "oklch(25% 0.14 300)",
+          "oklch(35% 0.14 300)",
+          "oklch(48% 0.14 300)",
+          "oklch(60% 0.14 300)",
+          "oklch(72% 0.14 300)",
+          "oklch(84% 0.14 300)",
+          "oklch(95% 0.14 300)"
+        ]
+      },
+      "type-dragon-on": {
+        "role": "tertiary",
+        "displayName": "Dragon on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.19 275)",
+          "oklch(25% 0.19 275)",
+          "oklch(35% 0.19 275)",
+          "oklch(48% 0.19 275)",
+          "oklch(60% 0.19 275)",
+          "oklch(72% 0.19 275)",
+          "oklch(84% 0.19 275)",
+          "oklch(95% 0.19 275)"
+        ]
+      },
+      "type-dragon-text": {
+        "role": "tertiary",
+        "displayName": "Dragon as text",
+        "canonical": "#795aee",
+        "tonalRamp": [
+          "oklch(15% 0.19 275)",
+          "oklch(25% 0.19 275)",
+          "oklch(35% 0.19 275)",
+          "oklch(48% 0.19 275)",
+          "oklch(60% 0.19 275)",
+          "oklch(72% 0.19 275)",
+          "oklch(84% 0.19 275)",
+          "oklch(95% 0.19 275)"
+        ]
+      },
+      "type-dark-on": {
+        "role": "tertiary",
+        "displayName": "Dark on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.05 300)",
+          "oklch(25% 0.05 300)",
+          "oklch(35% 0.05 300)",
+          "oklch(48% 0.05 300)",
+          "oklch(60% 0.05 300)",
+          "oklch(72% 0.05 300)",
+          "oklch(84% 0.05 300)",
+          "oklch(95% 0.05 300)"
+        ]
+      },
+      "type-dark-text": {
+        "role": "tertiary",
+        "displayName": "Dark as text",
+        "canonical": "#5a5366",
+        "tonalRamp": [
+          "oklch(15% 0.05 300)",
+          "oklch(25% 0.05 300)",
+          "oklch(35% 0.05 300)",
+          "oklch(48% 0.05 300)",
+          "oklch(60% 0.05 300)",
+          "oklch(72% 0.05 300)",
+          "oklch(84% 0.05 300)",
+          "oklch(95% 0.05 300)"
+        ]
+      },
+      "type-steel-on": {
+        "role": "tertiary",
+        "displayName": "Steel on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.05 230)",
+          "oklch(25% 0.05 230)",
+          "oklch(35% 0.05 230)",
+          "oklch(48% 0.05 230)",
+          "oklch(60% 0.05 230)",
+          "oklch(72% 0.05 230)",
+          "oklch(84% 0.05 230)",
+          "oklch(95% 0.05 230)"
+        ]
+      },
+      "type-steel-text": {
+        "role": "tertiary",
+        "displayName": "Steel as text",
+        "canonical": "#6d7584",
+        "tonalRamp": [
+          "oklch(15% 0.05 230)",
+          "oklch(25% 0.05 230)",
+          "oklch(35% 0.05 230)",
+          "oklch(48% 0.05 230)",
+          "oklch(60% 0.05 230)",
+          "oklch(72% 0.05 230)",
+          "oklch(84% 0.05 230)",
+          "oklch(95% 0.05 230)"
+        ]
+      },
+      "type-fairy-on": {
+        "role": "tertiary",
+        "displayName": "Fairy on fill",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.11 340)",
+          "oklch(25% 0.11 340)",
+          "oklch(35% 0.11 340)",
+          "oklch(48% 0.11 340)",
+          "oklch(60% 0.11 340)",
+          "oklch(72% 0.11 340)",
+          "oklch(84% 0.11 340)",
+          "oklch(95% 0.11 340)"
+        ]
+      },
+      "type-fairy-text": {
+        "role": "tertiary",
+        "displayName": "Fairy as text",
+        "canonical": "#a25f87",
+        "tonalRamp": [
+          "oklch(15% 0.11 340)",
+          "oklch(25% 0.11 340)",
+          "oklch(35% 0.11 340)",
+          "oklch(48% 0.11 340)",
+          "oklch(60% 0.11 340)",
+          "oklch(72% 0.11 340)",
+          "oklch(84% 0.11 340)",
+          "oklch(95% 0.11 340)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles and the wordmark only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Tile and panel headings, sentence case."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Pokémon names on cards, list row titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Answers, descriptions, dex entries; prose capped at 70ch."
+      },
+      "body-small": {
+        "displayName": "Body small",
+        "purpose": "Sub-lines and source lines."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field names, pills, type tags, nav links."
+      },
+      "readout": {
+        "displayName": "Readout",
+        "purpose": "Numbers, ranges, multipliers, dex numbers."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "0 20px 40px -20px rgba(20,23,29,.35)",
+        "purpose": "Dropdowns, pickers, popovers."
+      },
+      {
+        "name": "panel-lift",
+        "value": "0 14px 40px -26px rgba(20,23,29,.5)",
+        "purpose": "Legacy .panel on lab pages; do not extend."
+      },
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px rgba(227,53,13,.12)",
+        "purpose": "Inputs and pills on focus, with red border."
+      },
+      {
+        "name": "raised-tab",
+        "value": "0 1px 2px rgba(20,23,29,.12)",
+        "purpose": "Current nav link, selected segment."
+      },
+      {
+        "name": "type-glow",
+        "value": "0 3px 10px color-mix(in srgb, var(--c) 40%, transparent)",
+        "purpose": "Active type chip."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Default for reveals and state changes."
+      },
+      {
+        "name": "ease-out-quart",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Softer UI transitions."
+      },
+      {
+        "name": "ease-in-out-quint",
+        "value": "cubic-bezier(0.83, 0, 0.17, 1)",
+        "purpose": "Symmetric moves (rare)."
+      },
+      {
+        "name": "duration-state",
+        "value": "150-250ms",
+        "purpose": "Hover, focus, toggles."
+      },
+      {
+        "name": "duration-reveal",
+        "value": "500ms",
+        "purpose": "Card reveal on scroll."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "560px"
+      },
+      {
+        "name": "bento-stack",
+        "value": "620px"
+      },
+      {
+        "name": "tablet",
+        "value": "760px"
+      },
+      {
+        "name": "bento-two",
+        "value": "1000px"
+      },
+      {
+        "name": "bento-grid",
+        "value": "1200px"
+      },
+      {
+        "name": "bento-wide",
+        "value": "1440px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one action that matters on a surface (Ask, Apply, Add).",
+      "html": "<button class=\"ds-btn-primary\">Ask pokérag</button>",
+      "css": ".ds-btn-primary{font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:500;background:#d8310c;color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;transition:filter .18s,box-shadow .18s}.ds-btn-primary:hover{filter:brightness(1.06);box-shadow:0 10px 30px -10px #d8310c}.ds-btn-primary:focus-visible{outline:2px solid #d8310c;outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions beside a primary.",
+      "html": "<button class=\"ds-btn-ghost\">Compare team</button>",
+      "css": ".ds-btn-ghost{font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:500;background:#f4f5f8;color:#14171d;border:1px solid rgba(20,23,29,.1);border-radius:10px;padding:8px 14px;cursor:pointer;transition:color .18s,border-color .18s}.ds-btn-ghost:hover{border-color:#d8310c;color:#d8310c}.ds-btn-ghost:focus-visible{outline:2px solid #d8310c;outline-offset:2px}"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Species search with leading icon; red border and halo on focus.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg><input placeholder=\"Search any of 1,025 species…\"></label>",
+      "css": ".ds-search{position:relative;display:block;max-width:460px}.ds-search svg{position:absolute;left:13px;top:15px;width:18px;height:18px;color:#5f6773}.ds-search input{width:100%;height:48px;border:1.5px solid rgba(20,23,29,.1);border-radius:10px;background:#fff;padding:0 16px 0 42px;font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;font-size:15px;color:#14171d;outline:none;transition:border-color .15s,box-shadow .15s}.ds-search input::placeholder{color:#5f6773}.ds-search input:focus{border-color:#d8310c;box-shadow:0 0 0 3px rgba(227,53,13,.12)}"
+    },
+    {
+      "name": "Nav Tray",
+      "kind": "nav",
+      "refersTo": "nav-tray-link",
+      "description": "Sentence-case links in a faint tray, current page raised, red Ask CTA.",
+      "html": "<nav class=\"ds-nav\"><div class=\"ds-tray\"><a class=\"on\" href=\"#\">Home</a><a href=\"#\">Pokédex</a><a href=\"#\">Teams</a></div><a class=\"ds-cta\" href=\"#\">Ask</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:10px;font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;}.ds-tray{display:flex;padding:3px;border-radius:10px;background:rgba(20,23,29,.05)}.ds-tray a{font-size:14px;font-weight:500;color:#5f6773;padding:6px 12px;border-radius:8px;text-decoration:none;transition:color .18s,background .18s}.ds-tray a:hover{color:#14171d}.ds-tray a.on{color:#14171d;background:#fff;box-shadow:0 1px 2px rgba(20,23,29,.12)}.ds-cta{font-size:14px;font-weight:500;padding:8px 14px;border-radius:10px;background:#d8310c;color:#fff;text-decoration:none}.ds-cta:hover{filter:brightness(1.06)}.ds-nav a:focus-visible{outline:2px solid #d8310c;outline-offset:2px}"
+    },
+    {
+      "name": "Type Tag",
+      "kind": "chip",
+      "refersTo": "type-tag",
+      "description": "Static type identity: type fill, label in the type's deep 'on' shade.",
+      "html": "<span class=\"ds-tt\" style=\"--c:#f0803c;--on:#582400\">fire</span> <span class=\"ds-tt\" style=\"--c:#5aa0e6;--on:#02315a\">water</span> <span class=\"ds-tt\" style=\"--c:#f4cf46;--on:#564602\">electric</span> <span class=\"ds-tt\" style=\"--c:#7a5cf0;--on:#fff\">dragon</span>",
+      "css": ".ds-tt{display:inline-block;font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;font-weight:700;text-transform:capitalize;color:var(--on,#fff);background:var(--c);padding:4px 9px;border-radius:6px;font-size:11px;letter-spacing:.01em}"
+    },
+    {
+      "name": "Type Filter Chips",
+      "kind": "chip",
+      "refersTo": "type-chip",
+      "description": "Ghost to fill: muted at rest, type colour with soft glow when on.",
+      "html": "<div class=\"ds-tg\"><button style=\"--c:#6fc25a;--on:#154a02\" class=\"on\">grass</button><button style=\"--c:#b25ec4;--on:#24002c\">poison</button><button style=\"--c:#f4cf46;--on:#564602\">electric</button></div>",
+      "css": ".ds-tg{display:flex;gap:5px;flex-wrap:wrap}.ds-tg button{font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;font-size:11px;font-weight:700;text-transform:capitalize;color:#666e7b;background:transparent;padding:7px 12px;border-radius:10px;border:0;cursor:pointer;transition:all .14s}.ds-tg button:hover{color:#3a4049;background:#eceff3}.ds-tg button.on{color:var(--on,#fff);background:var(--c);box-shadow:0 3px 10px color-mix(in srgb,var(--c) 40%,transparent)}.ds-tg button:focus-visible{outline:2px solid #d8310c;outline-offset:2px}"
+    },
+    {
+      "name": "Tool Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A bento tile: white panel, hairline, 14px radius, no resting shadow, red go-link.",
+      "html": "<article class=\"ds-card\"><h3>Type calculator</h3><p>Fire / Flying takes ×4 from Rock and resists Grass ×¼.</p><a href=\"#\">Open the type chart →</a></article>",
+      "css": ".ds-card{font-family:var(--font-sans),'Space Grotesk',ui-sans-serif,system-ui,sans-serif;background:#fff;border:1px solid rgba(20,23,29,.1);border-radius:14px;padding:14px;max-width:340px;color:#14171d}.ds-card h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px}.ds-card p{font-size:13px;line-height:1.5;color:#5f6773;margin:0}.ds-card a{display:inline-block;margin-top:14px;font-size:12.5px;font-weight:600;color:#c42b08;text-decoration:none}.ds-card a:hover{text-decoration:underline}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Field Instrument",
+    "overview": "**Creative North Star: \"The Field Instrument\"**\n\npokérag is a precision device you carry into a game. Its surfaces are white instrument panels set on a cool, faintly tinted ground; its numbers read out in mono like a gauge; and it has exactly one live signal, Pokéball red, which marks the action you can take or the thing currently selected. All the warmth comes from Pokémon itself: the eighteen type colours, the artwork, and battle text written the way the games write it. The instrument stays calibrated and quiet so that the data and the creatures can be loud.\n\nDensity is high and deliberate. Tiles hug their content, grids pack without dead space, and every panel must earn its place by being useful. The system is light everywhere (the \"Instrument\" theme on every route, with home's components as the source of truth). It explicitly rejects the **generic SaaS dashboard** (gray card grids, hero-metric tiles, icon + heading + text feature cards), the **dark neon \"AI\" look** (phosphor green, scanlines, glow, terminal HUD, the app's own retired first theme), and anything **childish or cartoony**.\n\nMotion follows the instrument too: state changes are quick (150 to 250ms, ease-out-expo `cubic-bezier(0.16, 1, 0.3, 1)`), and the expensive moments are saved for a few places where motion carries information (stat bars filling, artwork arriving, charts drawing). Entrance reveals use IntersectionObserver plus CSS on already-visible content; GSAP is reserved for those high-impact moments. Every animation has a `prefers-reduced-motion` fallback. Layouts reflow from a three-column bento at ≥1440px down to one column at 620px and must hold at 375px.",
+    "keyCharacteristics": [
+      "One red signal; type colours carry all other chroma.",
+      "White panels on a tinted ground, separated by hairlines, not shadows.",
+      "Three typefaces with fixed jobs: Chakra Petch titles the page, Space Grotesk does the work, JetBrains Mono reads out numbers.",
+      "Uniform 10px controls; pills only for type and status tags.",
+      "Answer first, source line last, no filler between."
+    ],
+    "rules": [
+      {
+        "name": "The One Signal Rule",
+        "body": "Pokéball red marks what you can do or what is selected, and nothing else. If red appears on a decorative element, a heading, or an inactive state, remove it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Types Are the Colour Rule",
+        "body": "Any extra chroma on a screen must come from a Pokémon type, a verdict, or you/opponent. Invented accent colours (violet gradients, brand teals) are forbidden.",
+        "section": "colors"
+      },
+      {
+        "name": "The Name Always Shows Rule",
+        "body": "A type is never identified by colour alone; every type chip and tag prints the type name.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fill Is Not Text Rule",
+        "body": "A fill colour is never used for words. Every signal has a fill and a text shade (red, green, amber, blue, each type); words always take the text shade, and labels on a fill take its \"on\" shade.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Jobs Rule",
+        "body": "Exactly three families, each with one job: Chakra Petch names the page, Space Grotesk does the work, JetBrains Mono reads out numbers. A fourth family is forbidden; mono is forbidden for sentences.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Eyebrow Rule",
+        "body": "Spaced-caps mono kickers (the old red-dot eyebrow) appear at most once per page region, and preferably never. Give a panel a real sentence-case heading instead.",
+        "section": "typography"
+      },
+      {
+        "name": "The Legible Floor Rule",
+        "body": "Readable text is never below 12px. The 9 to 11px mono labels that exist today are debt, not precedent.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Rule",
+        "body": "Depth at rest comes from hairlines and tone, never shadows. If a card needs a shadow to separate from the page, the ground is wrong, not the card.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do extend home's components (type tags, ghost-to-fill type chips, picker rows, white cards) before inventing new ones; \"same as home\" means home's exact styling.",
+      "Do keep red to the one action or selection per surface (The One Signal Rule).",
+      "Do use blue for you and red for the opponent in every comparison.",
+      "Do print the type name on every type chip and tag.",
+      "Do put numbers, ranges and multipliers in JetBrains Mono readout; sentences in Space Grotesk.",
+      "Do keep readable text at Faint Slate (`#666e7b`) or darker and at least 12px.",
+      "Do keep transitions at 150 to 250ms with ease-out-expo, and give every animation a `prefers-reduced-motion` fallback.",
+      "Do check every layout at desktop and at 375px."
+    ],
+    "donts": [
+      "Don't build a generic SaaS dashboard: no gray card grids, no hero-metric tiles (big number, small label, gradient accent), no icon + heading + text feature cards.",
+      "Don't bring back the dark neon \"AI\" look: no phosphor green, scanlines, glow, grid overlays or terminal HUD styling.",
+      "Don't go childish or cartoony: no bubbly oversized radii, no mascots decorating panels.",
+      "Don't use heatmaps, grids, damage charts or symbol chips (✕ ≈ ⚔) for team comparisons; write them in plain text with the existing card language.",
+      "Don't add coloured top-border bars, coloured dots as decoration, or `border-left` / inset side stripes thicker than 1px as accents.",
+      "Don't repeat spaced-caps eyebrow labels; one per region at most.",
+      "Don't leave empty whitespace inside a tile or between uneven side-by-side tiles.",
+      "Don't use gradient text, glassmorphism or a fourth typeface.",
+      "Don't use circle buttons, bottom sheets for primary flows, or an elaborate nav.",
+      "Don't put white text on a light type fill, or use a fill colour (red, green, amber, a type) for words; use its text or \"on\" shade.",
+      "Don't introduce a text gray lighter than Faint Slate (`#666e7b`)."
+    ]
+  }
+}
