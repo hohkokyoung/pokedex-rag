@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { MoveListView } from "@/lib/api";
-import { titleCase, typeColor } from "@/lib/pokeTypes";
+import { titleCase, typeVars } from "@/lib/pokeTypes";
 import { CiteBadge, type Linking } from "./shared";
 
 /** Moves as rows with a power bar, grouped by type. */
@@ -23,7 +23,7 @@ export function MoveChart({ view, link }: { view: MoveListView; link: Linking })
             key={`${m.name}-${i}`}
             data-src={n ?? undefined}
             className={groupStart ? "is-group" : ""}
-            style={{ animationDelay: `${i * 45}ms`, "--tc": typeColor(m.type) } as React.CSSProperties}
+            style={{ animationDelay: `${i * 45}ms`, ...typeVars(m.type) } as React.CSSProperties}
           >
             <div className={`ax-mv ${n !== null && link.hot === n ? "is-hot" : ""}`} title={m.effect ?? undefined} {...link.hover(n)}>
               <span className="ax-mv__type">{titleCase(m.type)}</span>

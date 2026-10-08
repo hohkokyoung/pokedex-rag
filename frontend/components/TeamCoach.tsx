@@ -51,7 +51,7 @@ function streamCoach(
     onDone: (d) => patch((t) => applyDone(t, d, (performance.now() - t0) / 1000)),
     onError: (reason) =>
       patch((t) =>
-        applyError(t, reason === "assistant-not-configured" ? "The coach needs an LLM API key to answer." : "The coach couldn't answer — try again."),
+        applyError(t, reason === "assistant-not-configured" ? "The coach needs an LLM API key to answer." : "The coach couldn't answer. Try again."),
       ),
   }, report);
   return ctrl;
@@ -94,8 +94,8 @@ export default function TeamCoach({
   const quick = [
     "What's my team's biggest weakness?",
     opponent ? `How do I beat ${opponent.name}?` : "Which type should I add for coverage?",
-    first ? `Give ${first.name} its best set` : "Draft the rest of my team — I like sweepers, non-legendary",
-    "Draft the rest of my team — I like sweepers, non-legendary",
+    first ? `Give ${first.name} its best set` : "Draft the rest of my team: I like sweepers, non-legendary",
+    "Draft the rest of my team: I like sweepers, non-legendary",
   ].filter((q, i, xs) => xs.indexOf(q) === i).slice(0, 4);
 
   const ask = (raw: string) => {
@@ -172,7 +172,7 @@ export default function TeamCoach({
                 ) : null}
                 {t.status === "error" && <p className="co-err">{t.error}</p>}
 
-                {edits.length > 1 && <span className="co-props-h">Suggested changes — apply the ones you want</span>}
+                {edits.length > 1 && <span className="co-props-h">Suggested changes: apply the ones you want</span>}
                 {t.views.map((v, j) => {
                   switch (v.kind) {
                     case "set_edit":
@@ -220,6 +220,7 @@ export default function TeamCoach({
       </div>
       <form className="co-in" onSubmit={(e) => { e.preventDefault(); ask(input); }}>
         <input
+          aria-label="Message the team coach"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={disabled}

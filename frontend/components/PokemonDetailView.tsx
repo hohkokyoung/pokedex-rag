@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
-import { getPokemon, listPokemon, getAbilityHolders, assetUrl } from "@/lib/api";
-import type { AbilityHolder } from "@/lib/api";
-import { dexLabel, primaryColor, titleCase, typeColor } from "@/lib/pokeTypes";
+import { failureKind, getPokemon, listPokemon, getAbilityHolders, assetUrl, thumb } from "@/lib/api";
+import type { AbilityHolder, FailureKind } from "@/lib/api";
+import ServerNote from "@/components/ServerNote";
+import { dexLabel, primaryColor, titleCase, typeColor, typeText, typeVars } from "@/lib/pokeTypes";
 import type { FlavorEntry, PokemonDetail, PokemonSummary } from "@/lib/types";
 import TypeBadge from "@/components/TypeBadge";
 import StatBars from "@/components/StatBars";
@@ -17,9 +18,11 @@ import TrainingBreeding from "@/components/TrainingBreeding";
 import MovesetPanel from "@/components/MovesetPanel";
 import EncountersPanel from "@/components/EncountersPanel";
 import FavoriteButton from "@/components/FavoriteButton";
+import PointerFX from "@/components/PointerFX";
 import { useStaggerReveal } from "@/hooks/useStaggerReveal";
 import { useKeyNav } from "@/hooks/useKeyNav";
 import { superEffectiveHits } from "@/lib/typeChart";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 /** Search box to jump straight to any Pokémon (not just prev/next). */
 function JumpSearch() {
@@ -44,6 +47,7 @@ function JumpSearch() {
     <div className="d-jump">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
       <input
+        aria-label="Jump to a Pokémon by name or dex number"
         placeholder="Jump to any Pokémon…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
@@ -55,10 +59,10 @@ function JumpSearch() {
           {res.map((p, idx) => (
             <button key={p.id} role="option" {...itemProps(idx)} onClick={() => go(p)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={assetUrl(p.sprite_url)} alt="" />
+              <img loading="lazy" decoding="async" src={thumb(p.sprite_url, 48)} alt="" />
               <span className="nm">{titleCase(p.name)}</span>
               <span className="tps">{p.types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}</span>
-              <span className="font-mono" style={{ fontSize: 11, color: "var(--faint)" }}>{dexLabel(p.dex_number)}</span>
+              <span className="font-mono" style={{ fontSize: 12, color: "var(--faint)" }}>{dexLabel(p.dex_number)}</span>
             </button>
           ))}
         </div>
@@ -155,7 +159,7 @@ function DexEntries({ entries }: { entries: FlavorEntry[] }) {
   const shown = gen != null ? entries.filter((e) => gamesIn(e, gen).length > 0) : entries;
   return (
     <div className="panel d-panel">
-      <h2 className="d-panel__title font-mono">DEX ENTRIES</h2>
+      <h2 className="d-panel__title">Dex entries</h2>
       {featured && (
         <div className="d-dex__feat">
           <p className="font-display">“{featured.text}”</p>
@@ -202,7 +206,7 @@ function DexEntries({ entries }: { entries: FlavorEntry[] }) {
 function Fact({ label, value }: { label: string; value: string | number | null }) {
   return (
     <div>
-      <div className="font-mono" style={{ fontSize: 9.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--faint)" }}>
+      <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--muted)" }}>
         {label}
       </div>
       <div style={{ fontSize: 15, marginTop: 4 }}>{value ?? "—"}</div>
@@ -243,6 +247,7 @@ function AbilityHolders({
   const [holders, setHolders] = useState<AbilityHolder[] | null>(null);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
+  const dialogRef = useDialogFocus(open);
 
   // Fetch once so the button can show the count up front.
   useEffect(() => {
@@ -283,7 +288,7 @@ function AbilityHolders({
       </button>
 
       {open && typeof document !== "undefined" && createPortal(
-        <div className="d-hmodal" onClick={() => setOpen(false)} role="dialog" aria-modal="true" data-lenis-prevent>
+        <div ref={dialogRef} className="d-hmodal" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label={`Pokémon with ${name}`} data-lenis-prevent>
           <div className="d-hmodal__card" onClick={(e) => e.stopPropagation()}>
             <div className="d-hmodal__top">
               <div className="d-hmodal__head">
@@ -295,7 +300,7 @@ function AbilityHolders({
               {effect && <p className="d-hmodal__desc">{effect}</p>}
             </div>
             <div className="d-hmodal__filter">
-              <input autoFocus placeholder="Filter these species…" value={filter} onChange={(e) => setFilter(e.target.value)} />
+              <input autoFocus aria-label="Filter species with this ability" placeholder="Filter these species…" value={filter} onChange={(e) => setFilter(e.target.value)} />
             </div>
             <div className="d-hmodal__grid" data-lenis-prevent>
               {shown.map((h) => (
@@ -307,7 +312,7 @@ function AbilityHolders({
                   onClick={() => setOpen(false)}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={assetUrl(h.sprite_url)} alt={h.name} />
+                  <img loading="lazy" decoding="async" src={thumb(h.sprite_url, 160)} alt={h.name} />
                   <span>{titleCase(h.name)}</span>
                   <span className="tps-mini">{h.types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}</span>
                 </Link>
@@ -365,7 +370,9 @@ function GenderStack({
 
 export default function PokemonDetailView({ dex }: { dex: string }) {
   const [data, setData] = useState<PokemonDetail | null>(null);
-  const [error, setError] = useState(false);
+  /** "not-found" → the 404 page; "offline"/"server" → a retryable notice. */
+  const [error, setError] = useState<FailureKind | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   // Selected alternate form (null = the base species), persisted in the URL
@@ -390,12 +397,16 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
   useEffect(() => {
     let active = true;
     getPokemon(dex)
-      .then((d) => active && setData(d))
-      .catch(() => active && setError(true));
+      .then((d) => {
+        if (!active) return;
+        setError(null);
+        setData(d);
+      })
+      .catch((e) => active && setError(failureKind(e)));
     return () => {
       active = false;
     };
-  }, [dex]);
+  }, [dex, attempt]);
 
   // High-impact single tween: artwork scales/fades in once data arrives.
   useEffect(() => {
@@ -412,6 +423,14 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       tween.kill();
     };
   }, [data, formId]);
+
+  if (error === "offline" || error === "server") {
+    return (
+      <main className="shell" style={{ paddingTop: 140, paddingBottom: 120 }}>
+        <ServerNote kind={error} what={`Pokémon #${dex}`} onRetry={() => { setError(null); setAttempt((n) => n + 1); }} />
+      </main>
+    );
+  }
 
   if (error) {
     return (
@@ -470,6 +489,9 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
 
   return (
     <main ref={scope} style={{ paddingTop: 84, paddingBottom: 100 }}>
+      <title>{`pokérag — ${view.name}`}</title>
+      {/* pointer parallax feeds only the hero art here (--px / --py) */}
+      <PointerFX />
       {/* ---- nav row ---- */}
       <div className="shell d-navrow">
         <Link href="/pokedex" className="d-back">
@@ -494,7 +516,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {/* ---- hero ---- */}
       <section
         className="shell d-hero"
-        style={{ "--c": color, "--c2": color2 } as React.CSSProperties}
+        style={{ ...typeVars(view.types[0], "--c"), "--c2": color2 } as React.CSSProperties}
       >
         <div className="d-hero__art">
           <span aria-hidden className="d-hero__dexbg font-display">{dexLabel(data.dex_number)}</span>
@@ -543,7 +565,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {/* ---- abilities: full-width strip, one column per ability ---- */}
       <section className="shell">
         <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">ABILITIES</h2>
+          <h2 className="d-panel__title">Abilities</h2>
           {view.abilities.length === 0 && (
             <p className="d-hmodal__empty">Ability data for this form isn’t in the PokéAPI dataset yet.</p>
           )}
@@ -566,11 +588,11 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {/* ---- stats + type matchups: both have a fixed row count, so they pair evenly ---- */}
       <section className="shell d-grid" style={{ marginTop: 20 }}>
         <div className="panel d-panel d-panel--fill">
-          <h2 className="d-panel__title font-mono">BASE STATS</h2>
-          <StatBars key={view.name} stats={view.stats} color={color} />
+          <h2 className="d-panel__title">Base stats</h2>
+          <StatBars key={view.name} stats={view.stats} color={color} textColor={typeText(view.types[0])} />
         </div>
         <div className="panel d-panel d-panel--fill">
-          <h2 className="d-panel__title font-mono">TYPE MATCHUPS</h2>
+          <h2 className="d-panel__title">Type matchups</h2>
           <TypeMatchups m={view.matchups} hits={superEffectiveHits(view.types)} />
         </div>
       </section>
@@ -578,7 +600,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {/* ---- training & breeding ---- */}
       <section className="shell" style={{ marginTop: 20 }}>
         <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">TRAINING &amp; BREEDING</h2>
+          <h2 className="d-panel__title">Training &amp; breeding</h2>
           <TrainingBreeding d={data} />
         </div>
       </section>
@@ -586,7 +608,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {/* ---- moveset ---- */}
       <section className="shell" style={{ marginTop: 20 }}>
         <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">MOVESET</h2>
+          <h2 className="d-panel__title">Moveset</h2>
           <MovesetPanel pokemonId={data.id} formId={formId} />
         </div>
       </section>
@@ -595,7 +617,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {evo.members.length > 1 && (
         <section className="shell" style={{ marginTop: 20 }}>
           <div className="panel d-panel">
-            <h2 className="d-panel__title font-mono">EVOLUTION</h2>
+            <h2 className="d-panel__title">Evolution</h2>
             <EvolutionChain
               members={evo.members}
               stages={evo.stages}
@@ -615,7 +637,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
       {/* ---- where to find ---- */}
       <section className="shell" style={{ marginTop: 20 }}>
         <div className="panel d-panel">
-          <h2 className="d-panel__title font-mono">WHERE TO FIND</h2>
+          <h2 className="d-panel__title">Where to find</h2>
           <EncountersPanel key={view.currentId} pokemonId={view.currentId} />
         </div>
       </section>

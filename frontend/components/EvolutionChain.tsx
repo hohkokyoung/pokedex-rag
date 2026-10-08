@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { assetUrl } from "@/lib/api";
-import { primaryColor, titleCase } from "@/lib/pokeTypes";
+import { thumb } from "@/lib/api";
+import { titleCase, typeVars } from "@/lib/pokeTypes";
 import { buildCondition, type EvoCondition } from "@/lib/evolution";
 import { CREAM_RULE, SPIN_STEPS, SWEET_TOPPING } from "@/lib/alcremie";
 import type { CosmeticVariant, EvolutionMember, EvolutionStage } from "@/lib/types";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 type Edge = { to: number; stage: EvolutionStage };
 
@@ -61,7 +62,7 @@ const uniq = (xs: string[]) => [...new Set(xs)];
 function VariantArt({ v, size }: { v: CosmeticVariant; size: number }) {
   if (!v.sprite_url) return <span className="evo2-vart evo2-vart--none" style={{ width: size, height: size }} aria-hidden="true" />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img className="evo2-vart" src={assetUrl(v.sprite_url)} alt={v.name} loading="lazy" width={size} height={size} />;
+  return <img className="evo2-vart" src={thumb(v.sprite_url, 160)} alt={v.name} loading="lazy" width={size} height={size} />;
 }
 
 const PEEK = 232; // hover preview card size (px)
@@ -75,7 +76,7 @@ function VariantPeek({ v, rect }: { v: CosmeticVariant; rect: DOMRect }) {
   return (
     <div className="evo2-peek" style={{ left, top, width: PEEK }} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={assetUrl(v.sprite_url)} alt="" width={PEEK - 24} height={PEEK - 24} />
+      <img loading="lazy" decoding="async" src={thumb(v.sprite_url, 160)} alt="" width={PEEK - 24} height={PEEK - 24} />
       <b>{v.name}</b>
     </div>
   );
@@ -85,6 +86,7 @@ function VariantPeek({ v, rect }: { v: CosmeticVariant; rect: DOMRect }) {
     names (Alcremie) are split into the two independent choices that make them. */
 function VariantsButton({ member }: { member: EvolutionMember }) {
   const [open, setOpen] = useState(false);
+  const dialogRef = useDialogFocus(open);
   const [peek, setPeek] = useState<{ v: CosmeticVariant; rect: DOMRect } | null>(null);
   const variants = member.variants ?? [];
   useEffect(() => {
@@ -108,7 +110,7 @@ function VariantsButton({ member }: { member: EvolutionMember }) {
         {variants.length} variants
       </button>
       {open && typeof document !== "undefined" && createPortal(
-        <div className="d-hmodal" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label={`${name} variants`} data-lenis-prevent>
+        <div ref={dialogRef} className="d-hmodal" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label={`${name} variants`} data-lenis-prevent>
           <div className="d-hmodal__card" onClick={(e) => e.stopPropagation()}>
             <div className="d-hmodal__top">
               <div className="d-hmodal__head">
@@ -263,11 +265,10 @@ function EvoCard({
   onToggle: () => void;
   fork?: number;
 }) {
-  const c = primaryColor(member.types);
   const cond = stage ? buildCondition(stage) : null;
   const isCurrent = member.id === currentId;
   return (
-    <div className="evo2-card" style={{ "--c": c } as React.CSSProperties}>
+    <div className="evo2-card" style={typeVars(member.types[0], "--c") as React.CSSProperties}>
       <Link
         href={member.form_id ? `/pokedex/${member.dex_number}?form=${member.form_id}` : `/pokedex/${member.dex_number}`}
         className={`evo2-mon ${isCurrent ? "is-current" : ""}`}
@@ -282,7 +283,7 @@ function EvoCard({
         }
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={assetUrl(member.sprite_url)} alt={member.name} loading="lazy" width={80} height={80} />
+        <img src={thumb(member.sprite_url, 160)} alt={member.name} loading="lazy" width={80} height={80} />
         <span className="evo2-nm font-mono">{titleCase(member.name)}</span>
       </Link>
       {stage === null ? (

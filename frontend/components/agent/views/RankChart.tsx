@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { RankingView } from "@/lib/api";
 import { CiteBadge, Types, sprite, type Linking } from "./shared";
+import { thumb } from "@/lib/api";
 
 export const STAT_NAME: Record<string, string> = {
   hp: "HP",
@@ -40,7 +41,7 @@ export function RankChart({ view, link }: { view: RankingView; link: Linking }) 
               {...link.hover(n)}
             >
               <span className="ax-rank__pos">{i + 1}</span>
-              <img src={sprite(r.pokemon_id ?? r.dex_number)} alt="" className="ax-rank__art" />
+              <img loading="lazy" decoding="async" src={thumb(sprite(r.pokemon_id ?? r.dex_number), 160)} alt="" className="ax-rank__art" />
               <span className="ax-rank__name">
                 {r.name}
                 <Types types={r.types} />

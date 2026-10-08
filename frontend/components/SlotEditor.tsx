@@ -22,19 +22,10 @@ import {
   type PickOpt,
   type SKey,
 } from "@/components/calc/fields";
-import {
-  assetUrl,
-  clearSlot,
-  getPokemonAbilities,
-  getHeldItems,
-  setSlot,
-  type SlotItem,
-  type NatureInfo,
-  type Team,
-  type TeamMember,
-} from "@/lib/api";
+import { clearSlot, getPokemonAbilities, getHeldItems, setSlot, type SlotItem, type NatureInfo, type Team, type TeamMember, thumb } from "@/lib/api";
 import type { Ability, PokemonSummary } from "@/lib/types";
 import { TYPE_HEX } from "@/lib/pokeTypes";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 type Ask = { title: string; body: string; action: string; sprite?: string; resolve: (ok: boolean) => void };
 
@@ -99,6 +90,7 @@ export default function SlotEditor({
   onTeamChange: (team: Team) => void;
   onClose: () => void;
 }) {
+  const dialogRef = useDialogFocus(true);
   const [slot, setSlotNo] = useState(initialSlot);
   const [removing, setRemoving] = useState<number | null>(null);
   const dirty = useRef(false);
@@ -183,7 +175,7 @@ export default function SlotEditor({
   // trap this overlay in its stacking context beneath the fixed nav.
   return createPortal(
     <div className="se-scrim" onClick={close}>
-      <div className="se dc" role="dialog" aria-modal="true" aria-label={`Edit ${team.name}`} onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="se dc" role="dialog" aria-modal="true" aria-label={`Edit ${team.name}`} onClick={(e) => e.stopPropagation()}>
         <div className="se-top">
           <span className="dc-k">
             Team · <b>{team.name}</b> · {team.members.length}/6
@@ -207,7 +199,7 @@ export default function SlotEditor({
                   >
                     {m ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={assetUrl(m.sprite_url)} alt="" />
+                      <img loading="lazy" decoding="async" src={thumb(m.sprite_url, 48)} alt="" />
                     ) : (
                       <span className="add" aria-hidden>
                         +
@@ -263,7 +255,7 @@ export default function SlotEditor({
             <div className="se-askc" role="alertdialog" aria-modal="true" aria-labelledby="se-ask-t" onClick={(e) => e.stopPropagation()}>
               {ask.sprite && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={assetUrl(ask.sprite)} alt="" />
+                <img loading="lazy" decoding="async" src={thumb(ask.sprite, 48)} alt="" />
               )}
               <b id="se-ask-t">{ask.title}</b>
               <p>{ask.body}</p>

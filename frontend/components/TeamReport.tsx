@@ -1,23 +1,11 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import {
-  applySlotBuild,
-  assetUrl,
-  getTeamStrategy,
-  setSlot,
-  getTeamSummary,
-  refreshTeamSummary,
-  type VsOpponent,
-  type Team,
-  type TeamAnalysis,
-  type TeamStrategy,
-  type TeamSummaryText,
-} from "@/lib/api";
+import { applySlotBuild, getTeamStrategy, setSlot, getTeamSummary, refreshTeamSummary, type VsOpponent, type Team, type TeamAnalysis, type TeamStrategy, type TeamSummaryText, thumb } from "@/lib/api";
 import { Chip, StrategyBars } from "@/components/TeamCardParts";
 import TeamMatchupText, { matchupHeadline, tally } from "@/components/TeamMatchupText";
 import { profileTeam, type Profile } from "@/lib/teamProfile";
-import { titleCase, typeHex } from "@/lib/pokeTypes";
+import { titleCase, typeVars } from "@/lib/pokeTypes";
 import { FAST_SPEED, gradeTone, type Area, type Rating } from "@/lib/teamEval";
 
 /** Overall grade as a drawn ring around the letter. */
@@ -54,7 +42,7 @@ function TypeCells({ cells }: { cells: { type: string; tone: "on" | "half" | "of
           key={c.type}
           className={c.tone}
           title={c.tip}
-          style={{ "--c": typeHex(c.type) } as CSSProperties}
+          style={typeVars(c.type, "--c") as CSSProperties}
         >
           {c.type.slice(0, 3)}
         </i>
@@ -341,7 +329,7 @@ function SetsDetail({ team, a, onChanged }: { team: Team; a: TeamAnalysis; onCha
         return (
           <div key={r.m.slot} className="row">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={assetUrl(r.m.sprite_url)} alt="" width={30} height={30} />
+            <img loading="lazy" decoding="async" src={thumb(r.m.sprite_url, 48)} alt="" width={30} height={30} />
             <div className="who">
               <b>{r.m.name}</b>
               <span>
@@ -401,7 +389,7 @@ function DefenceVs({ a, opp, oppA }: { a: TeamAnalysis; opp: Team; oppA: TeamAna
             <b className={net > 0 ? "bad" : net < 0 ? "good" : ""}>{net > 0 ? `+${net} weak` : net < 0 ? "covered" : "even"}</b>
             <span className="by">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {r.who.slice(0, 4).map((m) => <img key={m.slot} src={assetUrl(m.sprite_url)} alt={m.name} width={24} height={24} />)}
+              {r.who.slice(0, 4).map((m) => <img loading="lazy" decoding="async" key={m.slot} src={thumb(m.sprite_url, 48)} alt={m.name} width={24} height={24} />)}
             </span>
           </div>
         );
@@ -584,7 +572,7 @@ export default function TeamReport({
         {op && opponent && (() => {
           const d = r.areas.find((x) => x.key === "defence")!;
           return (
-            <Card wide icon={<GradeIcon g={d.grade} />} title={`Defence vs ${opponent.team.name}`} sub="Their attacking types against your six — sprites show who on their side uses each" right={<span className="tr-score">{d.score}</span>}>
+            <Card wide icon={<GradeIcon g={d.grade} />} title={`Defence vs ${opponent.team.name}`} sub="Their attacking types against your six. Sprites show who on their side uses each." right={<span className="tr-score">{d.score}</span>}>
               <DefenceVs a={analysis} opp={opponent.team} oppA={opponent.analysis} />
             </Card>
           );

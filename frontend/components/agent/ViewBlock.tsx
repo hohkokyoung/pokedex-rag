@@ -7,6 +7,7 @@ import { PokemonGrid } from "./views/PokemonCards";
 import { RankChart, STAT_NAME } from "./views/RankChart";
 import { LearnCheckStrip, LearnersStrip, LearnsetGroups, TypeChartStrip } from "./views/Strips";
 import { CiteBadge, sprite, type Linking } from "./views/shared";
+import { thumb } from "@/lib/api";
 
 /** Draw one typed view with the visual for its kind. */
 export function ViewBlock({ view, link }: { view: AskView; link: Linking }) {
@@ -94,7 +95,7 @@ export function SourceCard({ s, link, delay = 0 }: { s: AskSource; link: Linking
     >
       <CiteBadge n={s.n} cited={link.cited} />
       <div className="ax-evc__top">
-        {art && <img src={art} alt="" />}
+        {art && <img loading="lazy" decoding="async" src={thumb(art, 160)} alt="" />}
         <div>
           <div className="ax-evc__name">{s.pokemon_name ?? s.source_ref ?? "Pokédex"}</div>
           <div className="ax-evc__meta">

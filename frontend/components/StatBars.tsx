@@ -5,7 +5,8 @@ import { gsap } from "gsap";
 import { STAT_LABELS, STAT_MAX } from "@/lib/pokeTypes";
 import type { Stats } from "@/lib/types";
 
-export default function StatBars({ stats, color }: { stats: Stats; color: string }) {
+/** `color` fills the bars; `textColor` (the type's text-safe shade) colours numbers. */
+export default function StatBars({ stats, color, textColor = color }: { stats: Stats; color: string; textColor?: string }) {
   const root = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -80,9 +81,9 @@ export default function StatBars({ stats, color }: { stats: Stats; color: string
             <span
               className="font-mono"
               style={{
-                fontSize: 10,
-                letterSpacing: "0.1em",
-                color: best ? color : "var(--muted)",
+                fontSize: 11.5,
+                letterSpacing: "0.04em",
+                color: best ? textColor : "var(--muted)",
                 fontWeight: best ? 600 : undefined,
               }}
             >
@@ -107,7 +108,7 @@ export default function StatBars({ stats, color }: { stats: Stats; color: string
               style={{
                 fontSize: 13,
                 textAlign: "right",
-                color: best ? color : worst ? "var(--muted)" : undefined,
+                color: best ? textColor : worst ? "var(--muted)" : undefined,
                 fontWeight: best ? 600 : undefined,
               }}
             >
@@ -125,10 +126,10 @@ export default function StatBars({ stats, color }: { stats: Stats; color: string
           borderTop: "1px solid var(--line-soft)",
         }}
       >
-        <span className="font-mono" style={{ fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--muted)" }}>
+        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>
           Base stat total
         </span>
-        <span className="font-display" style={{ fontSize: 20, color }}>
+        <span className="font-display" style={{ fontSize: 20, color: textColor }}>
           {stats.total}
         </span>
       </div>

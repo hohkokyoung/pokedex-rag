@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  failureKind,
+  type FailureKind,
   getTeam,
   getTeamAnalysis,
   listNatures,
@@ -17,6 +19,7 @@ import {
   type TeamSummary,
 } from "@/lib/api";
 import SlotEditor from "@/components/SlotEditor";
+import ServerNote from "@/components/ServerNote";
 import TeamCoach from "@/components/TeamCoach";
 import TeamReport from "@/components/TeamReport";
 import TeamRoster from "@/components/TeamRoster";
@@ -48,6 +51,8 @@ export default function TeamWorkbench({
   const [oppTeam, setOppTeam] = useState<Team | null>(null);
   const [oppRated, setOppRated] = useState<TeamAnalysis | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [loadFailed, setLoadFailed] = useState<Exclude<FailureKind, "not-found"> | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [analysis, setAnalysis] = useState<TeamAnalysis | null>(null);
@@ -85,7 +90,13 @@ export default function TeamWorkbench({
         setNameDraft(t.name);
         setNatures(n);
         void reloadOpponents();
-      } catch {
+      } catch (e) {
+        const kind = failureKind(e);
+        if (kind !== "not-found") {
+          // Server down or erroring: say so (and retry), never treat it as a missing team.
+          setLoadFailed(kind);
+          return;
+        }
         if (isDraft) {
           // This draft was discarded (left without adding anything) — start a new one.
           replaceMissingDraft(teamId)
@@ -96,7 +107,7 @@ export default function TeamWorkbench({
         setNotFound(true);
       }
     })();
-  }, [teamId, reloadOpponents, isDraft, router]);
+  }, [teamId, reloadOpponents, isDraft, router, attempt]);
 
   // One analysis fetch feeds both the versus board and the analysis panel;
   // re-run whenever the team changes (slot edits, adds) or the opponent does.
@@ -179,11 +190,19 @@ export default function TeamWorkbench({
     setTeam((prev) => (prev ? { ...prev, name: updated.name } : prev));
   };
 
+  if (loadFailed && !team) {
+    return (
+      <main className="shell" style={{ paddingTop: 140 }}>
+        <ServerNote kind={loadFailed} what="this team" onRetry={() => { setLoadFailed(null); setAttempt((n) => n + 1); }} />
+      </main>
+    );
+  }
+
   if (notFound) {
     return (
       <main className="shell" style={{ paddingTop: 140 }}>
         <p style={{ color: "var(--muted)" }}>
-          Team not found. <Link href="/teams" style={{ color: "var(--accent)" }}>Back to Team Lab →</Link>
+          Team not found. <Link href="/teams" style={{ color: "var(--accent-text)" }}>Back to Team Lab →</Link>
         </p>
       </main>
     );
@@ -205,13 +224,15 @@ export default function TeamWorkbench({
 
   return (
     <main className="shell" style={{ paddingTop: 104, paddingBottom: 120 }}>
-      <Link href="/teams" className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em" }}>
-        ← TEAM LAB
+      <title>{`pokérag — ${team.name}`}</title>
+      <Link href="/teams" className="tw-back" style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)" }}>
+        ← Team Lab
       </Link>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
         {renaming ? (
           <input
             autoFocus
+            aria-label="Team name"
             value={nameDraft}
             onChange={(e) => setNameDraft(e.target.value)}
             onBlur={saveName}
@@ -243,7 +264,7 @@ export default function TeamWorkbench({
       <div className={`ro-benches${opponentId ? "" : " solo"}`}>
         <section className="ro-col">
           <div className="ro-colh">
-            <b>Your team</b>
+            <h2 className="ro-colt">Your team</h2>
             <span>{team.members.length}/6</span>
             {!opponentId && (
               <span className="ro-pick-r">
@@ -272,7 +293,7 @@ export default function TeamWorkbench({
         {opponentId && (
           <section className="ro-col">
             <div className="ro-colh">
-              <b>Opponent</b>
+              <h2 className="ro-colt">Opponent</h2>
               <Dropdown<number>
                 label="Team to compare against"
                 options={pickable}

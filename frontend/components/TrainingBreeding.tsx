@@ -1,4 +1,4 @@
-import { STAT_LABELS } from "@/lib/pokeTypes";
+import { STAT_LABELS, typeText } from "@/lib/pokeTypes";
 import type { PokemonDetail } from "@/lib/types";
 
 function genderText(rate: number | null): { male: string; female: string } | "genderless" {
@@ -16,7 +16,7 @@ function evText(ev: Record<string, number>): string {
 function Item({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="tb__k font-mono">{label}</div>
+      <div className="tb__k">{label}</div>
       <div className="tb__v">{children}</div>
     </div>
   );
@@ -35,9 +35,9 @@ export default function TrainingBreeding({ d }: { d: PokemonDetail }) {
           <span style={{ color: "var(--muted)" }}>Genderless</span>
         ) : (
           <span>
-            <span style={{ color: "var(--type-water)" }}>♂ {gender.male}</span>
+            <span style={{ color: typeText("water") }}>♂ {gender.male}</span>
             <span style={{ color: "var(--faint)", margin: "0 8px" }}>·</span>
-            <span style={{ color: "var(--type-fairy)" }}>♀ {gender.female}</span>
+            <span style={{ color: typeText("fairy") }}>♀ {gender.female}</span>
           </span>
         )}
       </Item>

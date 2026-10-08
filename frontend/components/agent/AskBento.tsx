@@ -14,6 +14,7 @@ import type { AskRun } from "./runState";
 import { CHUNK_LABEL, SourceCard, ViewBlock, refIndex, viewCaption, viewRefs } from "./ViewBlock";
 import { METHOD_COLOR, METHOD_LABEL, sprite, type Linking } from "./views/shared";
 import { STAT_NAME } from "./views/RankChart";
+import { thumb } from "@/lib/api";
 
 /**
  * The /ask results as tiles: the answer (with one row per lookup when several drew
@@ -276,7 +277,7 @@ export function DexCards({
                 <span className="ab-via is-other">{Math.round(c.match * 100)}% match</span>
               ) : null}
             </div>
-            <div className="poke-card__art">{art && <img src={art} alt="" loading="lazy" />}</div>
+            <div className="poke-card__art">{art && <img src={thumb(art, 160)} alt="" loading="lazy" />}</div>
             <h3 className="poke-card__name">{c.name}</h3>
             <div className="poke-card__types">
               {c.types.map((t) => (
@@ -434,7 +435,7 @@ export function SourcePeek({
       {items.length === 1 ? (
         <>
           <div className="ab-peek__head">
-            {sprite(one.s.pokemon_id ?? one.s.dex_number) && <img src={sprite(one.s.pokemon_id ?? one.s.dex_number)} alt="" />}
+            {sprite(one.s.pokemon_id ?? one.s.dex_number) && <img loading="lazy" decoding="async" src={thumb(sprite(one.s.pokemon_id ?? one.s.dex_number), 160)} alt="" />}
             <span className="ab-peek__id">
               <b>{nameOf(one.s)}</b>
               <small>{meta(one.s)}</small>
@@ -458,7 +459,7 @@ export function SourcePeek({
               <li key={s.n}>
                 <div className="ab-peek__head">
                   <span className="ab-peek__n">{s.n}</span>
-                  {sprite(s.pokemon_id ?? s.dex_number) && <img src={sprite(s.pokemon_id ?? s.dex_number)} alt="" />}
+                  {sprite(s.pokemon_id ?? s.dex_number) && <img loading="lazy" decoding="async" src={thumb(sprite(s.pokemon_id ?? s.dex_number), 160)} alt="" />}
                   <span className="ab-peek__id">
                     <b>{nameOf(s)}</b>
                     <small>{meta(s)}</small>

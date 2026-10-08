@@ -12,6 +12,7 @@ import { MoveLearnersModal } from "@/components/MoveLearners";
 import Finder from "@/components/Finder";
 import AskTile from "@/components/AskTile";
 import CatchRateTile from "@/components/CatchRateTile";
+import ServerNote from "@/components/ServerNote";
 import {
   BULKY_SET, DcPicker, EvEditor, HpPicker, InfoBox, MoveSearch, NAT, NAT_OPTS, PickSearch, Tag, natDesc, natTag,
   SABBR, art, loadCalcMon, loadMonMoves, monArt, natMul, offensiveSet, statFull,
@@ -26,34 +27,10 @@ import type { Linking } from "@/components/agent/views/shared";
 import {
   applyDelta, applyDone, applyError, applyPlan, applySources, applyStep, applyView, startRun, type AskRun,
 } from "@/components/agent/runState";
-import {
-  listPokemon,
-  listTeams,
-  getPokemonAbilities,
-  searchMoves,
-  searchAbilities,
-  searchItems,
-  getHeldItems,
-  getMoveLearners,
-  getAbilityHolders,
-  listNatures,
-  calcAskStream,
-  type BuildSuggestion,
-  type BuildProposalView,
-  type CalcApply,
-  type CalcAskState,
-  type CalcRef,
-  assetUrl,
-  type MoveResult,
-  type MoveLearner,
-  type SignatureZ,
-  type AbilityHolder,
-  type ItemResult,
-  type NatureInfo,
-  type TeamSummary,
-} from "@/lib/api";
+import { failureKind, listPokemon, listTeams, getPokemonAbilities, searchMoves, searchAbilities, searchItems, getHeldItems, getMoveLearners, getAbilityHolders, listNatures, calcAskStream, type BuildSuggestion, type BuildProposalView, type CalcApply, type CalcAskState, type CalcRef, assetUrl, type MoveResult, type MoveLearner, type SignatureZ, type AbilityHolder, type ItemResult, type NatureInfo, type TeamSummary, thumb } from "@/lib/api";
 import type { PokemonSummary, Ability } from "@/lib/types";
-import { TYPE_HEX } from "@/lib/pokeTypes";
+import { TYPE_HEX, typeVars } from "@/lib/pokeTypes";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 /* ---------------- shared data ---------------- */
 const TC = TYPE_HEX;
@@ -83,6 +60,7 @@ function Search() {
     <div className="lc-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
       <input
+        aria-label="Search species by name or dex number"
         placeholder="Search any of 1,025 species…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
@@ -94,10 +72,10 @@ function Search() {
           {res.map((p, idx) => (
             <Link key={p.id} href={pokeHref(p)} onClick={() => setRes([])} role="option" {...itemProps(idx)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={assetUrl(p.sprite_url)} alt={p.name} />
+              <img loading="lazy" decoding="async" src={thumb(p.sprite_url, 48)} alt={p.name} />
               <span className="nm">{p.name}</span>
               <span className="tps">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
-              <span className="mono" style={{ fontSize: 11, color: "var(--dim)" }}>Nº{String(p.dex_number).padStart(4, "0")}</span>
+              <span className="mono" style={{ fontSize: 12, color: "var(--dim)" }}>Nº{String(p.dex_number).padStart(4, "0")}</span>
             </Link>
           ))}
         </div>
@@ -114,6 +92,9 @@ function Search() {
 function TeamCoachTile() {
   const [teams, setTeams] = useState<TeamSummary[] | null>(null);
   const [idx, setIdx] = useState(0);
+  /** The team list failed to load: say so instead of "Build your first team". */
+  const [failed, setFailed] = useState<"offline" | "server" | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -121,11 +102,15 @@ function TeamCoachTile() {
       .then(({ teams }) => {
         // Most complete teams first; empty drafts aren't worth showing here.
         const filled = teams.filter((t) => t.size > 0).sort((a, b) => b.size - a.size || a.id - b.id);
-        if (alive) setTeams(filled);
+        if (alive) { setFailed(null); setTeams(filled); }
       })
-      .catch(() => alive && setTeams([]));
+      .catch((e) => {
+        if (!alive) return;
+        setFailed(failureKind(e) === "offline" ? "offline" : "server");
+        setTeams([]);
+      });
     return () => { alive = false; };
-  }, []);
+  }, [attempt]);
 
   // Load only a sliding window — the shown team plus its neighbours — so a
   // switch never waits, yet the cost stays at ~3 teams however many exist.
@@ -151,7 +136,7 @@ function TeamCoachTile() {
   return (
     <section className="card lc-tc">
       <div className="lbl">
-        Team builder &amp; coach
+        <h2 className="lbl-t">Team builder &amp; coach</h2>
         {cur && (
           <span className="lc-tc-sw">
             {teams && teams.length > 1 && <button onClick={() => step(-1)} aria-label="Previous team">‹</button>}
@@ -163,6 +148,8 @@ function TeamCoachTile() {
 
       {teams === null ? (
         <span className="lab-skel" style={{ height: 220 }} />
+      ) : failed ? (
+        <ServerNote compact kind={failed} what="your teams" onRetry={() => { setTeams(null); setAttempt((n) => n + 1); }} />
       ) : !cur ? (
         <div className="lc-tc-empty">
           <b>Build your first team</b>
@@ -174,9 +161,14 @@ function TeamCoachTile() {
           <div className="lc-team">
             {Array.from({ length: 6 }, (_, i) => cur.sprites[i]).map((s, i) =>
               s ? (
-                <Link className="s" key={i} href={`/teams/${cur.id}`}>
+                <Link
+                  className="s"
+                  key={i}
+                  href={`/teams/${cur.id}`}
+                  aria-label={`${p?.speeds.find((m) => m.sprite === s)?.name ?? `Pokémon ${i + 1}`}, open ${cur.name}`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={assetUrl(s)} alt="" />
+                  <img loading="lazy" decoding="async" src={thumb(s, 48)} alt="" />
                 </Link>
               ) : (
                 <Link className="s e" key={i} href={`/teams/${cur.id}`} aria-label="Add a Pokémon">+</Link>
@@ -223,9 +215,9 @@ function TypeCalcTile() {
   const hits = superEffectiveHits(sel);
   return (
     <section className="card">
-      <div className="lbl">Type calculator<span className="mono">defends as 1–2 types</span></div>
+      <div className="lbl"><h2 className="lbl-t">Type calculator</h2><span className="mono">defends as 1–2 types</span></div>
       <div className="lc-tg">
-        {ORDER.map((o) => <button key={o} onClick={() => toggle(o)} className={sel.includes(o) ? "on" : ""} style={{ "--c": TC[o] } as CSSProperties}>{o}</button>)}
+        {ORDER.map((o) => <button key={o} onClick={() => toggle(o)} className={sel.includes(o) ? "on" : ""} style={typeVars(o, "--c") as CSSProperties}>{o}</button>)}
       </div>
       {sel.length > 0 && <TypeMatchups m={matchups} hits={hits} renderType={(t) => <Tag key={t} t={t} />} />}
     </section>
@@ -259,9 +251,9 @@ const itemToEntry = (i: ItemResult): Entry => ({
 });
 /** Why no Pokémon learns a move, for the lookup card. */
 const unlearnable = (e: Entry) =>
-  e.name === "Struggle" ? "No Pokémon learns Struggle — it's used automatically once every move is out of PP."
-  : e.pp === 1 ? "Z-Move — no Pokémon learns it. A Z-Crystal turns a damaging move into it for one turn."
-  : /^(G-)?Max /.test(e.name) ? "Max Move — no Pokémon learns it. A Dynamaxed Pokémon's moves become it."
+  e.name === "Struggle" ? "No Pokémon learns Struggle; it's used automatically once every move is out of PP."
+  : e.pp === 1 ? "Z-Move: no Pokémon learns it. A Z-Crystal turns a damaging move into it for one turn."
+  : /^(G-)?Max /.test(e.name) ? "Max Move: no Pokémon learns it. A Dynamaxed Pokémon's moves become it."
   : "No Pokémon learns this move in any game's regular learnset.";
 const KIND_BG: Record<string, string> = { Ability: "var(--ink)", Item: "#4a4a55" };
 function LookupTile() {
@@ -349,6 +341,7 @@ function LookupTile() {
   // Ability/item modals: close on Escape and lock the page (Lenis) scroll.
   // (The move modal handles its own.)
   const plainModal = modal != null && modal.kind !== "Move";
+  const plainRef = useDialogFocus(plainModal);
   useEffect(() => {
     if (!plainModal) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setModal(null); };
@@ -376,9 +369,9 @@ function LookupTile() {
 
   return (
     <section className="card lc-look">
-      <div className="lbl">Move · ability · item lookup<span className="mono">3,000+ entries</span></div>
+      <div className="lbl"><h2 className="lbl-t">Move · ability · item lookup</h2><span className="mono">3,000+ entries</span></div>
       <div className="lc-look-q">
-        <input placeholder="e.g. Earthquake, Levitate, Leftovers…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKeyDown} aria-autocomplete="list" />
+        <input aria-label="Look up a move, ability or item" placeholder="e.g. Earthquake, Levitate, Leftovers…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKeyDown} aria-autocomplete="list" />
         <button className="lc-look-adv" onClick={() => setFinder(true)} aria-label="Advanced search" title="Advanced search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
             <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" />
@@ -402,7 +395,7 @@ function LookupTile() {
             <span className="pw">{e.kind === "Move" ? `${e.cat ?? "—"} · ${dash(e.power)}` : e.kind === "Item" ? (e.cat ?? "Item") : "Ability"}</span>
           </div>
         ))}
-        {!loading && list.length === 0 && <div className="sub">No match — try “Ice Beam”, “Intimidate”, “Leftovers”.</div>}
+        {!loading && list.length === 0 && <div className="sub">No match. Try “Ice Beam”, “Intimidate”, “Leftovers”.</div>}
         {loading && list.length === 0 && <div className="sub">Searching…</div>}
       </div>
       {!detail && <div className="lc-movedet lc-movedet--fixed lc-movedet--empty" aria-hidden />}
@@ -455,7 +448,7 @@ function LookupTile() {
                   return (
                     <Link key={p.id} href={formId ? `/pokedex/${p.dex_number}?form=${formId}` : `/pokedex/${p.dex_number}`} title={p.name} className="s">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={formId ? assetUrl(p.sprite_url) : art(p.dex_number)} alt={p.name} />
+                      <img loading="lazy" decoding="async" src={thumb(formId ? assetUrl(p.sprite_url) : art(p.dex_number), 160)} alt={p.name} />
                     </Link>
                   );
                 })}
@@ -477,7 +470,7 @@ function LookupTile() {
                 {modal.zSig.users.map((u) => (
                   <Link key={u.id} href={u.form_id ? `/pokedex/${u.dex_number}?form=${u.form_id}` : `/pokedex/${u.dex_number}`} title={u.name} onClick={close}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={assetUrl(u.sprite_url)} alt={u.name} />
+                    <img loading="lazy" decoding="async" src={thumb(u.sprite_url, 160)} alt={u.name} />
                     <span>{u.name}</span>
                   </Link>
                 ))}
@@ -489,7 +482,7 @@ function LookupTile() {
         />
       )}
       {plainModal && modal && typeof document !== "undefined" && createPortal(
-        <div className="lc-modal" onClick={back} role="dialog" aria-modal="true" data-lenis-prevent>
+        <div ref={plainRef} className="lc-modal" onClick={back} role="dialog" aria-modal="true" aria-label={`${modal.kind}: ${modal.name}`} data-lenis-prevent>
           <div className={`lc-modal-card${modal.kind === "Item" ? " lc-modal-card--short" : ""}`} onClick={(e) => e.stopPropagation()}>
             <div className="lc-modal-top" style={modal.kind === "Item" ? { borderBottom: "none" } : undefined}>
               <div className="lc-modal-head">
@@ -514,7 +507,7 @@ function LookupTile() {
             {modal.kind === "Ability" && (
               <>
                 <div className="lc-modal-sub">
-                  <input autoFocus placeholder="Filter these species…" value={holderQ} onChange={(e) => setHolderQ(e.target.value)} />
+                  <input autoFocus aria-label="Filter species with this ability" placeholder="Filter these species…" value={holderQ} onChange={(e) => setHolderQ(e.target.value)} />
                 </div>
                 {(() => {
                   const f = holderQ.trim().toLowerCase();
@@ -525,7 +518,7 @@ function LookupTile() {
                       {shown.map((p) => (
                         <Link key={p.id} href={`/pokedex/${p.dex_number}`} title={p.name} onClick={close} className={p.is_hidden ? "is-hidden" : undefined}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={art(p.dex_number)} alt={p.name} />
+                          <img loading="lazy" decoding="async" src={thumb(art(p.dex_number), 160)} alt={p.name} />
                           <span>{p.name}</span>
                           <span className="tps-mini">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
                         </Link>
@@ -590,7 +583,7 @@ function NatureTile() {
   const cur = updn[sel] ?? [null, null];
   return (
     <section className="card">
-      <div className="lbl">Nature helper<span className="mono">tap to inspect</span></div>
+      <div className="lbl"><h2 className="lbl-t">Nature helper</h2><span className="mono">tap to inspect</span></div>
       <div className="lc-natmx">
         <div className="corner">+/−</div>
         {STATS.map((s) => <div key={"h" + s} className="hc dn">−{s}</div>)}
@@ -605,7 +598,7 @@ function NatureTile() {
         ))}
       </div>
       <div className="lc-natnote">
-        {cur[0] ? <><b>{sel}</b> — <span style={{ color: "var(--ok)" }}>+{cur[0]}</span> / <span style={{ color: "var(--red)" }}>−{cur[1]}</span> (±10%)</> : <><b>{sel}</b> — neutral, no stat changes</>}
+        {cur[0] ? <><b>{sel}</b> — <span style={{ color: "var(--ok-text)" }}>+{cur[0]}</span> / <span style={{ color: "var(--red-text)" }}>−{cur[1]}</span> (±10%)</> : <><b>{sel}</b> — neutral, no stat changes</>}
       </div>
     </section>
   );
@@ -649,7 +642,7 @@ const pctText = (r: DcResult) => (r.te === 0 ? "immune" : `${r.minPct.toFixed(0)
 /** HP left after the hit: solid = worst roll, faded = best roll. */
 function HpLeft({ min, max, hp = 100 }: { min: number; max: number; hp?: number }) {
   const worst = Math.max(0, hp - max), best = Math.max(0, hp - min);
-  const col = (l: number) => (l > 50 ? "var(--ok)" : l > 20 ? "#f0b429" : "var(--red)");
+  const col = (l: number) => (l > 50 ? "var(--ok)" : l > 20 ? "var(--warn)" : "var(--red)");
   return (
     <div className="dc-hpl" aria-hidden>
       {hp < 100 && <i className="lost" style={{ left: `${hp}%`, width: `${100 - hp}%` }} />}
@@ -768,7 +761,7 @@ function streamCalcCoach(
     onError: (reason) =>
       patch((t) =>
         applyError(t, reason === "assistant-not-configured" ? "The coach needs an LLM API key for that."
-          : reason.startsWith("Coaching failed") ? reason : "The coach couldn't answer — try again."),
+          : reason.startsWith("Coaching failed") ? reason : "The coach couldn't answer. Try again."),
       ),
   });
   return ctrl;
@@ -1040,7 +1033,7 @@ function DamageCalcTile() {
     return (
       <div key={i} className="dc-rcw">
       <button className={`dc-rc${i === f ? " on" : ""}${s.mon ? "" : " empty"}${involves(i) ? "" : " faded"}${s.mon && t.fainted ? " ko" : ""}`} onClick={() => setFocus(i)} aria-pressed={i === f}>
-        {s.mon ? <img src={monArt(s.mon)} alt="" />/* eslint-disable-line @next/next/no-img-element */ : <span className="add" aria-hidden>+</span>}
+        {s.mon ? <img loading="lazy" decoding="async" src={thumb(monArt(s.mon), 48)} alt="" />/* eslint-disable-line @next/next/no-img-element */ : <span className="add" aria-hidden>+</span>}
         <b>{s.mon?.name ?? placeholder}</b>
         <small>{s.mon ? <>{n > 0 && `#${n} · `}{m?.name ?? "—"}{s.item !== "None" && <span className="itm"> · {s.item}</span>}</> : "tap to pick"}</small>
         {s.mon && (
@@ -1066,7 +1059,7 @@ function DamageCalcTile() {
 
   return (
     <section className="card dc">
-      <div className="lbl">Damage calculator
+      <div className="lbl"><h2 className="lbl-t">Damage calculator</h2>
         <span className="dc-top">
           <span className="dc-seg">{["Singles", "Doubles"].map((x, i) => <button key={x} className={doubles === (i === 1) ? "on" : ""} onClick={() => setDoubles(i === 1)}>{x}</button>)}</span>
           <span className="dc-seg">{[50, 100].map((L) => <button key={L} className={level === L ? "on" : ""} onClick={() => setLevel(L)}>Lv{L}</button>)}</span>
@@ -1088,7 +1081,7 @@ function DamageCalcTile() {
                   <button key={o.i} className={`dc-ls${o.i === f ? " on" : ""}${involves(o.i) ? "" : " faded"}`} onClick={() => setFocus(o.i)}>
                     <span className="n">{idx + 1}</span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={monArt(sets[o.i].mon!)} alt="" />
+                    <img loading="lazy" decoding="async" src={thumb(monArt(sets[o.i].mon!), 48)} alt="" />
                     <span className="tx">
                       {st.skipped
                         ? <span className="u gone">{who(o.i, true)} fainted before it could move.</span>
@@ -1137,7 +1130,7 @@ function DamageCalcTile() {
                         {targetsOf(f).map((d) => (
                           <button key={d} role="radio" aria-checked={aimOf(f) === d} className={aimOf(f) === d ? "on" : ""} onClick={() => setAims((xs) => xs.map((x, j) => (j === f ? d : x)))}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={monArt(sets[d].mon!)} alt="" />{sets[d].mon!.name}
+                            <img loading="lazy" decoding="async" src={thumb(monArt(sets[d].mon!), 48)} alt="" />{sets[d].mon!.name}
                           </button>
                         ))}
                       </span>
@@ -1194,14 +1187,14 @@ function DamageCalcTile() {
       </div>
 
       <div className="dc-subrow">
-        <button className="dc-optbtn" onClick={() => setOpen((v) => !v)}>{open ? "hide field ▴" : "field — weather · screens · crit ▾"}</button>
+        <button className="dc-optbtn" onClick={() => setOpen((v) => !v)}>{open ? "hide field ▴" : "Field: weather · screens · crit ▾"}</button>
         <button className="dc-optbtn" onClick={() => setShowMath((v) => !v)}>{showMath ? "hide math ▴" : "math ▾"}</button>
       </div>
       {open && (
         <div className="dc-drawer">
           <div className="dc-field">
-            <select value={weather} onChange={(e) => setWeather(e.target.value)}>{WEATHER.map((x) => <option key={x}>{x === "None" ? "Weather" : x}</option>)}</select>
-            <select value={terrain} onChange={(e) => setTerrain(e.target.value)}>{TERRAIN.map((x) => <option key={x}>{x === "None" ? "Terrain" : x}</option>)}</select>
+            <select aria-label="Weather" value={weather} onChange={(e) => setWeather(e.target.value)}>{WEATHER.map((x) => <option key={x}>{x === "None" ? "Weather" : x}</option>)}</select>
+            <select aria-label="Terrain" value={terrain} onChange={(e) => setTerrain(e.target.value)}>{TERRAIN.map((x) => <option key={x}>{x === "None" ? "Terrain" : x}</option>)}</select>
             {chip(reflect, setReflect, "Foe Reflect", doubles ? "On the opponent's side · ×0.667 in doubles" : "On the opponent's side · ×0.5 in singles")}
             {chip(lightscreen, setLightscreen, "Foe Light Screen", doubles ? "On the opponent's side · ×0.667 in doubles" : "On the opponent's side · ×0.5 in singles")}
             {chip(crit, setCrit, "Crit", "Every hit crits: ×1.5, ignores screens")}
@@ -1367,6 +1360,7 @@ export default function Home() {
     <main ref={rootRef} className="lc">
       <div className="lc-app">
         <header className="lc-head">
+          <h1 className="sr-only">pokérag tools</h1>
           <Search />
         </header>
 

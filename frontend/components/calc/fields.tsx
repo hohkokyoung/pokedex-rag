@@ -5,8 +5,8 @@
 // editor so both tools look and behave the same.
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useKeyNav } from "@/hooks/useKeyNav";
-import { assetUrl, getFormMoves, getPokemon, getPokemonMoves, listPokemon } from "@/lib/api";
-import { TYPE_HEX } from "@/lib/pokeTypes";
+import { assetUrl, getFormMoves, getPokemon, getPokemonMoves, listPokemon, thumb } from "@/lib/api";
+import { TYPE_HEX, typeChip } from "@/lib/pokeTypes";
 import type { Ability, PokemonSummary } from "@/lib/types";
 import { NAT, SABBR, natMul, statFull, type EVs, type SKey } from "@/lib/damageCalc";
 
@@ -20,7 +20,7 @@ const TC = TYPE_HEX;
 export const art = (dex: number) => assetUrl(`/sprites/official-artwork/${dex}.png`);
 
 export function Tag({ t }: { t: string }) {
-  return <span className="lc-tt" style={{ background: TC[t] }}>{t}</span>;
+  return <span className="lc-tt" style={typeChip(t)}>{t}</span>;
 }
 
 
@@ -92,14 +92,14 @@ export function DcPicker({ mon, onPick, ph, forms = true }: {
   const { listRef, onKeyDown, itemProps } = useKeyNav(res, pick);
   return (
     <div className={`dc-pill${mon ? " has" : ""}`}>
-      {mon && <img src={monArt(mon)} alt={mon.name} />/* eslint-disable-line @next/next/no-img-element */}
+      {mon && <img loading="lazy" decoding="async" src={thumb(monArt(mon), 48)} alt={mon.name} />/* eslint-disable-line @next/next/no-img-element */}
       <input placeholder={mon ? mon.name : ph} aria-label={ph} value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} onKeyDown={onKeyDown} aria-autocomplete="list" />
       {open && res.length > 0 && (
         <div className="ac" role="listbox" ref={listRef} data-lenis-prevent>
           {res.map((p, idx) => (
             <button key={p.id} role="option" {...itemProps(idx)} onMouseDown={() => pick(p)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={assetUrl(p.sprite_url)} alt={p.name} />
+              <img loading="lazy" decoding="async" src={thumb(p.sprite_url, 48)} alt={p.name} />
               <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
               <span className="tps">{p.types.map((t) => <Tag key={t} t={t} />)}</span>
             </button>

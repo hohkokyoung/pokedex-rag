@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { applySlotBuild, assetUrl, type SetEditView, type Team } from "@/lib/api";
+import { applySlotBuild, type SetEditView, type Team, thumb } from "@/lib/api";
 import { restoreMember } from "./Candidates";
 
 const EV_SHORT: Record<string, string> = { hp: "HP", atk: "Atk", def: "Def", spa: "SpA", spd: "SpD", spe: "Spe" };
@@ -61,7 +61,7 @@ export function SetEditCard({
     <div className={`co-prop${applied ? " applied" : ""}`}>
       <div className="co-prop-h">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={assetUrl(view.sprite_url)} alt="" width={36} height={36} />
+        <img loading="lazy" decoding="async" src={thumb(view.sprite_url, 48)} alt="" width={36} height={36} />
         <span className="t">
           {applied ? "Applied to " : "Proposed set for "}
           <b>{view.name}</b>

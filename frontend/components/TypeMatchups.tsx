@@ -34,7 +34,7 @@ export default function TypeMatchups({
     .filter((g) => g.rows.length);
 
   if (groups.length === 0) {
-    return <p className="mu__none font-mono">Perfectly neutral — no notable weaknesses or resistances.</p>;
+    return <p className="mu__none font-mono">Perfectly neutral: no notable weaknesses or resistances.</p>;
   }
   return (
     <div className="mu">

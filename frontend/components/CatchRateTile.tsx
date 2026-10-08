@@ -35,7 +35,9 @@ const STATUSES: { k: Exclude<Status, "none">; code: string; name: string; hint: 
   { k: "poison", code: "PSN", name: "Poisoned", hint: "×1.5" },
 ];
 const STATUS_WORD: Record<Status, string> = { none: "healthy", sleep: "asleep", freeze: "frozen", paralysis: "paralyzed", burn: "burned", poison: "poisoned" };
-const hpCol = (v: number) => (v > 50 ? "var(--ok)" : v > 20 ? "#f0b429" : "var(--red)");
+const hpCol = (v: number) => (v > 50 ? "var(--ok)" : v > 20 ? "var(--warn)" : "var(--red)");
+/** Same bands as hpCol, in the text-safe shades (for numbers on white). */
+const hpText = (v: number) => (v > 50 ? "var(--ok-text)" : v > 20 ? "var(--warn-text)" : "var(--red-text)");
 const x = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
 
 type Mon = CatchMon & { calc: CalcMon };
@@ -76,7 +78,7 @@ export default function CatchRateTile() {
 
   return (
     <section className="card dc cr">
-      <div className="lbl">Catch rate<span className="mono">base rate {mon?.captureRate ?? "–"}</span></div>
+      <div className="lbl"><h2 className="lbl-t">Catch rate</h2><span className="mono">base rate {mon?.captureRate ?? "–"}</span></div>
       <div className="cr-k">
         <span className="dc-k">Wild Pokémon · Lv {ctx.level}</span>
         <span className="dc-seg" role="group" aria-label="Status">
@@ -108,13 +110,13 @@ export default function CatchRateTile() {
             <BallIcon b={b} />
             <span className="nm">{b.name}</span>
             <span className="mt">{r.ballWhy}</span>
-            <b style={{ color: hpCol(r.p * 100) }}>{pct(r.p)}%</b>
+            <b style={{ color: hpText(r.p * 100) }}>{pct(r.p)}%</b>
           </button>
         ))}
       </div>
 
       <div className="dc-subrow">
-        <button className="dc-optbtn" onClick={() => setField((o) => !o)}>{field ? "hide situation ▴" : `situation — ${sit} ▾`}</button>
+        <button className="dc-optbtn" onClick={() => setField((o) => !o)}>{field ? "hide situation ▴" : `Situation: ${sit} ▾`}</button>
         <button className="dc-optbtn" onClick={() => setMath((o) => !o)}>{math ? "hide math ▴" : "math ▾"}</button>
       </div>
       {field && (

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { assetUrl, getProfile, updatePreferredTypes, type Profile } from "@/lib/api";
-import { TYPE_ORDER, titleCase, typeColor } from "@/lib/pokeTypes";
+import { getProfile, updatePreferredTypes, type Profile, thumb } from "@/lib/api";
+import { TYPE_ORDER, titleCase, typeVars } from "@/lib/pokeTypes";
 
 /**
  * The composer's footer on /ask: `lead` (example questions, or follow-ups once
@@ -56,7 +56,7 @@ export default function ProfilePanel({ meta, lead }: { meta?: ReactNode; lead?: 
             {favs.length > 0 && (
               <span className="ax-profile__dots" aria-hidden>
                 {favs.slice(0, 3).map((f) => (
-                  <img key={f.id} src={assetUrl(f.sprite_url)} alt="" />
+                  <img loading="lazy" decoding="async" key={f.id} src={thumb(f.sprite_url, 48)} alt="" />
                 ))}
               </span>
             )}
@@ -79,7 +79,7 @@ export default function ProfilePanel({ meta, lead }: { meta?: ReactNode; lead?: 
                 type="button"
                 onClick={() => toggleType(t)}
                 className={profile.preferred_types.includes(t) ? "on" : ""}
-                style={{ "--tc": typeColor(t) } as React.CSSProperties}
+                style={typeVars(t) as React.CSSProperties}
               >
                 {titleCase(t)}
               </button>
@@ -95,7 +95,7 @@ export default function ProfilePanel({ meta, lead }: { meta?: ReactNode; lead?: 
             <div className="ax-drawer__favs">
               {favs.map((f) => (
                 <Link key={f.id} href={`/pokedex/${f.dex_number}`} className="ax-fav">
-                  <img src={assetUrl(f.sprite_url)} alt="" />
+                  <img loading="lazy" decoding="async" src={thumb(f.sprite_url, 48)} alt="" />
                   {titleCase(f.name)}
                 </Link>
               ))}

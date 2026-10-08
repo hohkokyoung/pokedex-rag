@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { clearSlot, type MemberAddedView, type Team } from "@/lib/api";
+import { clearSlot, type MemberAddedView, type Team, thumb } from "@/lib/api";
 import { sprite } from "./shared";
 
 /** "Added Garchomp to slot 4" with Undo (clears the slot), or why nothing was added. */
@@ -25,7 +25,7 @@ export function MemberAddedStrip({ view, onTeamUpdated }: { view: MemberAddedVie
   return (
     <div className={`co-added ${view.added ? "" : "is-noop"}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {art && <img src={art} alt="" width={36} height={36} />}
+      {art && <img loading="lazy" decoding="async" src={thumb(art, 48)} alt="" width={36} height={36} />}
       <span className="t">
         {undone ? <>Removed <b>{view.card.name}</b> again.</> : view.added ? <>Added <b>{view.card.name}</b> to slot {view.slot}</> : view.message.replace(/\*\*/g, "")}
       </span>

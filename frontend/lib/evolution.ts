@@ -68,7 +68,7 @@ export function buildCondition(stage: EvolutionStage): EvoCondition {
     desc.push(`Use ${aOrAn(item)} ${item}.`);
   } else if (trigger === "trade") {
     chips.push({ label: "Trade", tone: "solid" });
-    desc.push("Trade this Pokémon — or, since Gen VIII (Pokémon Legends: Arceus), use a Linking Cord to evolve it without trading.");
+    desc.push("Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading.");
   } else if (p.happiness != null) {
     chips.push({ label: "Friendship", tone: "solid" });
     desc.push(`Level up with high friendship (happiness ≥ ${p.happiness}) — a bond raised by travelling and battling together.`);

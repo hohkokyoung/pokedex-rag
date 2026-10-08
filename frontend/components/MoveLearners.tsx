@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Dropdown from "@/components/Dropdown";
-import { assetUrl, getMoveLearnersByGame, type GameLearner, type LearnMethod, type MoveGameLearners } from "@/lib/api";
-import { TYPE_HEX } from "@/lib/pokeTypes";
+import { getMoveLearnersByGame, type GameLearner, type LearnMethod, type MoveGameLearners, thumb } from "@/lib/api";
+import { typeChip } from "@/lib/pokeTypes";
 import { Tag } from "@/components/calc/fields";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 /**
  * Per-game "who learns this move" for the home lookup's show-all modal: method tabs
@@ -101,7 +102,7 @@ export default function MoveLearnersPanel({
     return (
       <Link key={l.id} href={href} title={[l.name, ...l.also].join(" · ")} onClick={onPick} className={late ? "is-late" : undefined}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={assetUrl(l.sprite_url)} alt={shown} />
+        <img loading="lazy" decoding="async" src={thumb(l.sprite_url, 160)} alt={shown} />
         <span>{shown}</span>
         <span className="tps-mini">{l.types.map((t) => <Tag key={t} t={t} />)}</span>
         <em className="lc-ml-how">{ms.map((m) => label(l, m)).join(" · ")}</em>
@@ -126,7 +127,7 @@ export default function MoveLearnersPanel({
           )}
         </div>
         <div className="lc-ml-row">
-          <input autoFocus placeholder="Can it learn it? Type a Pokémon…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input autoFocus aria-label="Check whether a Pokémon can learn this move" placeholder="Can it learn it? Type a Pokémon…" value={q} onChange={(e) => setQ(e.target.value)} />
           <div className="lc-ml-ctl">
             <Dropdown
               label="Game"
@@ -205,6 +206,7 @@ export function MoveLearnersModal({
   /** Shown instead of the learner grid when no Pokémon learns the move (Z-Moves …). */
   emptyNote?: ReactNode;
 }) {
+  const dialogRef = useDialogFocus(true);
   const { data, setGame } = useGameLearners(move.id, true, initialGame);
   const game = data?.games.find((g) => g.id === data.version_group_id);
 
@@ -229,12 +231,12 @@ export function MoveLearnersModal({
 
   if (typeof document === "undefined") return null;
   return createPortal(
-    <div className="lc-modal" onClick={onClose} role="dialog" aria-modal="true" data-lenis-prevent>
+    <div ref={dialogRef} className="lc-modal" onClick={onClose} role="dialog" aria-modal="true" aria-label={`Pokémon that learn ${move.name}`} data-lenis-prevent>
       <div className="lc-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="lc-modal-top">
           <div className="lc-modal-head">
             {onBack && <button className="lc-modal-back" onClick={onBack} aria-label="Back" title="Back"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 5l-7 7 7 7" /></svg></button>}
-            {move.type && <span className="lc-tt" style={{ background: TYPE_HEX[move.type] }}>{move.type}</span>}
+            {move.type && <span className="lc-tt" style={typeChip(move.type)}>{move.type}</span>}
             <b>{move.name}</b>
             <span className="sub">{data && data.games.length ? (game ? `${game.learners} species in ${game.name}` : `${data.total} species in any game`) : ""}</span>
             <button className="x" onClick={onClose} aria-label="Close">×</button>

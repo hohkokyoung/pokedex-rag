@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import Dropdown from "@/components/Dropdown";
 import { listAllAbilities, listAllItems, listAllMoves, listMoveGames, type ItemResult, type MoveGame, type MoveResult } from "@/lib/api";
 import type { Ability } from "@/lib/types";
-import { TYPE_HEX, TYPE_ORDER, typeHex } from "@/lib/pokeTypes";
+import { TYPE_ORDER, typeChip, typeVars } from "@/lib/pokeTypes";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 /**
  * The home lookup's advanced finder: every move, ability or item (a radio switch
@@ -124,6 +125,7 @@ export default function Finder({
   onPickItem: (i: ItemResult) => void;
   onClose: () => void;
 }) {
+  const dialogRef = useDialogFocus(!hidden);
   const [kind, setKind] = useState<FinderKind>(initialKind);
   // One search box shared by all three, so switching keeps what you typed.
   const [q, setQ] = useState(initialQuery);
@@ -250,7 +252,7 @@ export default function Finder({
 
   if (typeof document === "undefined") return null;
   return createPortal(
-    <div className="lc-modal" onClick={onClose} role="dialog" aria-modal="true" aria-label="Finder" hidden={hidden} data-lenis-prevent>
+    <div ref={dialogRef} className="lc-modal" onClick={onClose} role="dialog" aria-modal="true" aria-label="Finder" hidden={hidden} data-lenis-prevent>
       <div className="lc-modal-card mf-card" onClick={(e) => e.stopPropagation()}>
         <div className="lc-modal-top mf-top">
           <div className="lc-modal-head">
@@ -296,7 +298,7 @@ export default function Finder({
                   onClick={() => toggleType(t)}
                   aria-pressed={types.includes(t)}
                   className={types.includes(t) ? "on" : ""}
-                  style={{ "--tc": typeHex(t) } as CSSProperties}
+                  style={typeVars(t) as CSSProperties}
                 >
                   {t}
                 </button>
@@ -319,7 +321,7 @@ export default function Finder({
               {moveRows.map((m) => (
                 <button key={m.id} className="mf-row" onClick={() => onPickMove(m)}>
                   <span className="t">
-                    {m.type && <span className="lc-tt" style={{ background: TYPE_HEX[m.type] }}>{m.type}</span>}
+                    {m.type && <span className="lc-tt" style={typeChip(m.type)}>{m.type}</span>}
                   </span>
                   <span className="nm" title={m.name}>{m.name}</span>
                   <span className="c">{m.classes.length ? m.classes.map((c) => CAT_SHORT[c]).join("·") : "—"}</span>

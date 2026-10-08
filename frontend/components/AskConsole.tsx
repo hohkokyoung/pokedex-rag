@@ -2,10 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { assetUrl, getAskStatus, type AskSource } from "@/lib/api";
+import { assetUrl, failureKind, getAskStatus, type AskSource, type FailureKind, thumb } from "@/lib/api";
+import ServerNote from "@/components/ServerNote";
 import { parseBlocks, renderInline, type CiteRenderer } from "@/lib/answerFormat";
 import { citedNumbers, followUps } from "@/lib/askEvidence";
-import { typeColor } from "@/lib/pokeTypes";
+import { typeVars } from "@/lib/pokeTypes";
 import ProfilePanel from "@/components/ProfilePanel";
 import { AskBento, SourcePeek } from "@/components/agent/AskBento";
 import { chartedNames, moveTypes } from "@/components/agent/Evidence";
@@ -30,6 +31,9 @@ const sprite = (s: AskSource) => {
 export default function AskConsole() {
   const params = useSearchParams();
   const [enabled, setEnabled] = useState<boolean | null>(null);
+  /** The status check itself failed: the server is unreachable, not "keyless". */
+  const [statusFailed, setStatusFailed] = useState<Exclude<FailureKind, "not-found"> | null>(null);
+  const [statusAttempt, setStatusAttempt] = useState(0);
   const [provider, setProvider] = useState("none");
   const initialQ = params.get("q");
   const [q, setQ] = useState(initialQ ?? "");
@@ -50,11 +54,15 @@ export default function AskConsole() {
   useEffect(() => {
     getAskStatus()
       .then((s) => {
+        setStatusFailed(null);
         setEnabled(s.enabled);
         setProvider(s.provider);
       })
-      .catch(() => setEnabled(false));
-  }, []);
+      .catch((e) => {
+        setEnabled(null);
+        setStatusFailed(failureKind(e) === "offline" ? "offline" : "server");
+      });
+  }, [statusAttempt]);
 
   // /ask?q=… (e.g. from the home Ask tile) runs that question straight away.
   useEffect(() => {
@@ -189,7 +197,7 @@ export default function AskConsole() {
             )
           }
           meta={
-            enabled === null ? null : enabled ? (
+            statusFailed ? <>Server offline</> : enabled === null ? null : enabled ? (
               <>Answers by {provider === "anthropic" ? "Claude" : provider === "groq" ? "Groq" : provider}</>
             ) : (
               <>Data-only mode</>
@@ -197,6 +205,10 @@ export default function AskConsole() {
           }
         />
       </form>
+
+      {statusFailed && (
+        <ServerNote compact kind={statusFailed} what="the assistant" onRetry={() => setStatusAttempt((n) => n + 1)} />
+      )}
 
       {enabled === false && (
         <p className="ax-note">
@@ -336,9 +348,9 @@ export function Answer({
                   onMouseLeave={() => setHot(null)}
                 >
                   {src && sprite(src) ? (
-                    <img src={sprite(src)} alt="" className="ax-li__art" />
+                    <img loading="lazy" decoding="async" src={thumb(sprite(src), 160)} alt="" className="ax-li__art" />
                   ) : mv ? (
-                    <span className="ax-li__mv" style={{ "--tc": typeColor(mv) } as React.CSSProperties} />
+                    <span className="ax-li__mv" style={typeVars(mv) as React.CSSProperties} />
                   ) : (
                     <span className="ax-li__dot" />
                   )}

@@ -4,6 +4,7 @@ import type { AskSource, AskView } from "@/lib/api";
 import type { StepRun } from "./useAsk";
 import { SourceCard, ViewBlock, refIndex, viewCaption, viewRefs } from "./ViewBlock";
 import { sprite, type Linking } from "./views/shared";
+import { thumb } from "@/lib/api";
 
 export const TOOL_TITLE: Record<string, string> = {
   query_pokemon: "Pokédex query",
@@ -108,7 +109,7 @@ export function EvidencePanel({
           <span className="ax-also__avs" aria-hidden>
             {rest.slice(0, 6).map((s) => {
               const art = sprite(s.pokemon_id ?? s.dex_number);
-              return art ? <img key={s.n} src={art} alt="" /> : null;
+              return art ? <img loading="lazy" decoding="async" key={s.n} src={thumb(art, 160)} alt="" /> : null;
             })}
           </span>
           <span className="ax-also__txt">

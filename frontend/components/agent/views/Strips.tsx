@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { LearnCheckView, LearnersView, LearnsetView, TypeChartView } from "@/lib/api";
-import { titleCase, typeColor } from "@/lib/pokeTypes";
+import { titleCase, typeChip, typeVars } from "@/lib/pokeTypes";
 import { PokemonGrid } from "./PokemonCards";
 import { CiteBadge, METHOD_COLOR, METHOD_LABEL, type Linking } from "./shared";
 
@@ -10,7 +10,7 @@ function TypeChips({ types }: { types: string[] }) {
   return (
     <span className="ax-types">
       {types.map((t) => (
-        <span key={t} className="ax-type" style={{ background: typeColor(t) }}>
+        <span key={t} className="ax-type" style={typeChip(t)}>
           {titleCase(t)}
         </span>
       ))}
@@ -38,11 +38,11 @@ export function TypeChartStrip({ view, link }: { view: TypeChartView; link: Link
     >
       <div className="ax-tc__target">
         {view.types.map((t) => (
-          <span key={t} className="ax-type" style={{ background: typeColor(t) }}>
+          <span key={t} className="ax-type" style={typeChip(t)}>
             {titleCase(t)}
           </span>
         ))}
-        <span className="ax-tc__lbl">type chart</span>
+        <span className="ax-tc__lbl">Type chart</span>
       </div>
       {shown.map(([label, types, mult], i) => (
         <div key={label + mult} className={`ax-tc__row ${i === 0 && label === "Weak to" ? "is-key" : ""}`}>
@@ -137,7 +137,7 @@ function LearnGroup({ group, link }: { group: LearnsetView["groups"][number]; li
           <li
             key={m.name}
             className="ax-ls__move"
-            style={{ "--tc": typeColor(m.type) } as React.CSSProperties}
+            style={{ ...typeVars(m.type) } as React.CSSProperties}
             title={`${titleCase(m.type)} · ${titleCase(m.damage_class ?? "status")}${m.power ? ` · ${m.power} power` : ""}`}
           >
             {m.level !== null && (

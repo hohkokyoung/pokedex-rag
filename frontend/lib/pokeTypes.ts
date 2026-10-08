@@ -8,29 +8,15 @@ export const TYPE_ORDER = [
 
 export type PokeType = (typeof TYPE_ORDER)[number];
 
-/** oklch base color per type (kept in sync with the CSS variables). */
-export const TYPE_COLOR: Record<string, string> = {
-  normal: "oklch(0.72 0.03 100)",
-  fire: "oklch(0.7 0.19 45)",
-  water: "oklch(0.66 0.15 250)",
-  electric: "oklch(0.85 0.16 100)",
-  grass: "oklch(0.75 0.17 145)",
-  ice: "oklch(0.83 0.09 200)",
-  fighting: "oklch(0.58 0.18 20)",
-  poison: "oklch(0.6 0.18 320)",
-  ground: "oklch(0.7 0.11 70)",
-  flying: "oklch(0.75 0.09 265)",
-  psychic: "oklch(0.7 0.18 5)",
-  bug: "oklch(0.77 0.17 130)",
-  rock: "oklch(0.68 0.06 90)",
-  ghost: "oklch(0.55 0.13 300)",
-  dragon: "oklch(0.6 0.19 275)",
-  dark: "oklch(0.5 0.04 300)",
-  steel: "oklch(0.72 0.05 230)",
-  fairy: "oklch(0.8 0.11 340)",
-};
-
-/** Solid hex per type — the home page's tag / type-picker palette. */
+/**
+ * Type colours: ONE palette, three roles. Contrast-checked (WCAG AA, 4.5:1):
+ *  - TYPE_HEX   fill: chips, tags, dots, bars, accents (the bright game-style palette).
+ *  - TYPE_ON    text drawn ON a TYPE_HEX fill: plain white. Deliberate exception to
+ *               the AA text floor on the light types (see PRODUCT.md, Accessibility);
+ *               the type name always shows.
+ *  - TYPE_TEXT  the type used AS text on white/light panels.
+ * The CSS --type-* variables in globals.css mirror TYPE_HEX.
+ */
 export const TYPE_HEX: Record<string, string> = {
   normal: "#a8a878", fire: "#f0803c", water: "#5aa0e6", electric: "#f4cf46", grass: "#6fc25a",
   ice: "#8fd4d4", fighting: "#d13b52", poison: "#b25ec4", ground: "#e0c068", flying: "#8aa0e6",
@@ -38,12 +24,54 @@ export const TYPE_HEX: Record<string, string> = {
   dark: "#5a5366", steel: "#a8b0c0", fairy: "#f0a6d0",
 };
 
+export const TYPE_ON: Record<string, string> = {
+  normal: "#ffffff", fire: "#ffffff", water: "#ffffff", electric: "#ffffff", grass: "#ffffff",
+  ice: "#ffffff", fighting: "#ffffff", poison: "#ffffff", ground: "#ffffff", flying: "#ffffff",
+  psychic: "#ffffff", bug: "#ffffff", rock: "#ffffff", ghost: "#ffffff", dragon: "#ffffff",
+  dark: "#ffffff", steel: "#ffffff", fairy: "#ffffff",
+};
+
+export const TYPE_TEXT: Record<string, string> = {
+  normal: "#787749", fire: "#bc570c", water: "#3178bb", electric: "#8a7102", grass: "#338618",
+  ice: "#397e7e", fighting: "#d13b52", poison: "#a552b7", ground: "#8f7105", flying: "#5e72b5",
+  psychic: "#cb3e7a", bug: "#667d08", rock: "#887306", ghost: "#7a5aa0", dragon: "#795aee",
+  dark: "#5a5366", steel: "#6d7584", fairy: "#a25f87",
+};
+
+/** Same palette as TYPE_HEX (kept as a name for existing callers). */
+export const TYPE_COLOR = TYPE_HEX;
+
+const FALLBACK = { fill: "#a8b0c0", on: "#ffffff", text: "#6d7584" };
+
 export function typeHex(type: string | undefined): string {
-  return (type && TYPE_HEX[type]) || "#a8b0c0";
+  return (type && TYPE_HEX[type]) || FALLBACK.fill;
+}
+
+/** Text colour for a label sitting on the type's fill. */
+export function typeOn(type: string | undefined): string {
+  return (type && TYPE_ON[type]) || FALLBACK.on;
+}
+
+/** The type's colour when used for words on a light panel. */
+export function typeText(type: string | undefined): string {
+  return (type && TYPE_TEXT[type]) || FALLBACK.text;
+}
+
+/** Inline style for a filled type chip/tag: fill + white label. */
+export function typeChip(type: string | undefined): { background: string; color: string } {
+  return { background: typeHex(type), color: typeOn(type) };
+}
+
+/**
+ * CSS custom properties for a type-driven element: the fill under `name`
+ * (default --tc), plus --on (label on the fill) and --tx (type as text).
+ */
+export function typeVars(type: string | undefined, name = "--tc"): Record<string, string> {
+  return { [name]: typeHex(type), "--on": typeOn(type), "--tx": typeText(type) };
 }
 
 export function typeColor(type: string | undefined): string {
-  return (type && TYPE_COLOR[type]) || "oklch(0.7 0.02 265)";
+  return typeHex(type);
 }
 
 /** Primary color for a Pokémon = its first type. */

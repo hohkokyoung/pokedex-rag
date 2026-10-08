@@ -1,4 +1,4 @@
-import { titleCase, typeColor } from "@/lib/pokeTypes";
+import { titleCase, typeChip } from "@/lib/pokeTypes";
 
 export default function TypeBadge({
   type,
@@ -7,13 +7,12 @@ export default function TypeBadge({
   type: string;
   size?: "sm" | "md";
 }) {
-  const color = typeColor(type);
-  const pad = size === "sm" ? "3px 9px" : "4px 11px";
-  const fs = size === "sm" ? 10 : 11;
+  // Same face, size and weight as home's .lc-tt type tags (sans, bold, 12px).
+  const pad = size === "sm" ? "3px 8px" : "4px 10px";
+  const fs = 12;
   // Solid type pill — one design language with the home / moveset type tags.
   return (
     <span
-      className="font-mono"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -21,10 +20,9 @@ export default function TypeBadge({
         borderRadius: 6,
         fontSize: fs,
         fontWeight: 700,
-        letterSpacing: "0.06em",
+        letterSpacing: "0.01em",
         textTransform: "capitalize",
-        color: "#fff",
-        background: color,
+        ...typeChip(type),
       }}
     >
       {titleCase(type)}

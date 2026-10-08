@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { assetUrl } from "@/lib/api";
-import { STAT_LABELS, dexLabel, titleCase, typeHex } from "@/lib/pokeTypes";
+import { thumb } from "@/lib/api";
+import { STAT_LABELS, dexLabel, titleCase, typeChip } from "@/lib/pokeTypes";
 import type { PokemonSummary } from "@/lib/types";
 
 /**
@@ -33,14 +33,14 @@ export default function PokemonCard({ p }: { p: PokemonSummary }) {
 
       <div className="poke-card__art">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={assetUrl(p.sprite_url)} alt={p.name} loading="lazy" width={220} height={220} />
+        <img src={thumb(p.sprite_url, 160)} alt={p.name} loading="lazy" width={220} height={220} />
       </div>
 
       <h3 className="poke-card__name">{titleCase(p.name)}</h3>
       {p.genus && <span className="poke-card__genus">{p.genus}</span>}
       <div className="poke-card__types">
         {p.types.map((t) => (
-          <span key={t} className="lc-tt" style={{ background: typeHex(t) }}>
+          <span key={t} className="lc-tt" style={typeChip(t)}>
             {t}
           </span>
         ))}

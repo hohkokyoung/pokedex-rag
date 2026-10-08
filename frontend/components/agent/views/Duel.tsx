@@ -1,7 +1,7 @@
 "use client";
 
 import type { DuelView } from "@/lib/api";
-import { titleCase, typeColor } from "@/lib/pokeTypes";
+import { titleCase, typeVars } from "@/lib/pokeTypes";
 
 const OUTCOME: Record<string, string> = { win: "wins", lose: "loses", even: "is even" };
 
@@ -29,7 +29,7 @@ export function DuelCard({ view }: { view: DuelView }) {
               <b>{name(e.side)}</b>{" "}
               {e.kind === "attack" && e.move ? (
                 <>
-                  uses <i style={{ "--tc": typeColor(e.type ?? "normal") } as React.CSSProperties}>{e.move}</i>
+                  uses <i style={typeVars(e.type ?? "normal") as React.CSSProperties}>{e.move}</i>
                   {e.pct != null && <> — {Math.round(e.pct)}%</>}
                   {e.mult != null && e.mult !== 1 && <> ({e.mult}×)</>}
                 </>

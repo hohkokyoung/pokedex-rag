@@ -4,8 +4,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PokemonCardData } from "@/lib/api";
 import { STAT_LABEL, STAT_ORDER, STAT_SHORT } from "@/lib/askEvidence";
-import { dexLabel, typeColor } from "@/lib/pokeTypes";
+import { dexLabel, typeVars } from "@/lib/pokeTypes";
 import { CiteBadge, Types, sprite, type Linking } from "./shared";
+import { thumb } from "@/lib/api";
 
 /** One Pokémon as evidence: art, types, stats or a dex quote, coverage moves. */
 export function PokemonCard({ c, link, delay = 0 }: { c: PokemonCardData; link: Linking; delay?: number }) {
@@ -36,7 +37,7 @@ export function PokemonCard({ c, link, delay = 0 }: { c: PokemonCardData; link: 
     <>
       <CiteBadge n={n} cited={link.cited} />
       <div className="ax-evc__top">
-        {sprite(c.pokemon_id ?? c.dex_number) && <img src={sprite(c.pokemon_id ?? c.dex_number)} alt="" />}
+        {sprite(c.pokemon_id ?? c.dex_number) && <img loading="lazy" decoding="async" src={thumb(sprite(c.pokemon_id ?? c.dex_number), 160)} alt="" />}
         <div>
           <div className="ax-evc__name">{c.name}</div>
           <div className="ax-evc__meta">
@@ -50,7 +51,7 @@ export function PokemonCard({ c, link, delay = 0 }: { c: PokemonCardData; link: 
       {c.coverage.length > 0 && (
         <span className="ax-evc__moves">
           {c.coverage.map((m) => (
-            <span key={m.move} className="ax-evc__move" style={{ "--tc": typeColor(m.type) } as React.CSSProperties}>
+            <span key={m.move} className="ax-evc__move" style={typeVars(m.type) as React.CSSProperties}>
               {m.move}
             </span>
           ))}

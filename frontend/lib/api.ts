@@ -21,13 +21,50 @@ export function assetUrl(path: string): string {
   return `${API_BASE_URL}${path}`;
 }
 
+/**
+ * A small WebP copy of a sprite for list views (`make thumbs`; see
+ * backend/app/ingest/thumbs.py). `px` is the largest size it's shown at: icons and
+ * rows (≤ 48px) get the 96px file, cards the 320px one — both 2× for sharp screens.
+ * The backend falls back to the full PNG when a thumb hasn't been built, so this is
+ * always safe. Accepts a relative sprite path or a URL from `assetUrl`.
+ */
+export function thumb(pathOrUrl: string | null | undefined, px = 160): string {
+  if (!pathOrUrl) return "";
+  const size = px <= 48 ? 96 : 320;
+  const url = assetUrl(pathOrUrl);
+  return url.replace(/\/sprites\/(?!thumbs\/)(.+)\.png(\?.*)?$/, `/sprites/thumbs/${size}/$1.webp`);
+}
+
+/** A non-2xx response from the backend; `status` lets callers tell 404 from 5xx. */
+export class ApiError extends Error {
+  constructor(public status: number, path: string) {
+    super(`Request failed (${status}): ${path}`);
+    this.name = "ApiError";
+  }
+}
+
+/**
+ * Why a request failed, in the terms a page needs:
+ * - "offline": the server never answered (fetch rejected: backend down, CORS, network);
+ * - "not-found": a 404 for the thing asked for;
+ * - "server": any other error status.
+ * Pages use this so an outage never masquerades as "no results" or "not found".
+ */
+export type FailureKind = "offline" | "not-found" | "server";
+export function failureKind(err: unknown): FailureKind {
+  if (err instanceof ApiError) return err.status === 404 ? "not-found" : "server";
+  const status = err instanceof Error ? /\((\d{3})\)/.exec(err.message)?.[1] : undefined;
+  if (status) return status === "404" ? "not-found" : "server";
+  return "offline";
+}
+
 async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     cache: "no-store",
     ...init,
   });
   if (!res.ok) {
-    throw new Error(`Request failed (${res.status}): ${path}`);
+    throw new ApiError(res.status, path);
   }
   return (await res.json()) as T;
 }

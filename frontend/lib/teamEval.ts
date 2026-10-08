@@ -113,8 +113,8 @@ export function rateTeam(size: number, a: TeamAnalysis): Rating {
     now >= 15
       ? null
       : could > now
-        ? `Learnable moves would reach ${could} of 18 — add them to the empty move slots.`
-        : `Nothing hits ${orList(missing.slice(0, 3))} hard — add a move or member that does.`,
+        ? `Learnable moves would reach ${could} of 18; add them to the empty move slots.`
+        : `Nothing hits ${orList(missing.slice(0, 3))} hard. Add a move or member that does.`,
   );
 
   const worst = problems[0];
@@ -170,13 +170,13 @@ export function rateTeam(size: number, a: TeamAnalysis): Rating {
       avg,
       bits.join(" · "),
       thin.length > setMembers.length / 2
-        ? `${thin.length} members have empty move slots — set their moves so the matchups use what they'll really click.`
+        ? `${thin.length} members have empty move slots. Set their moves so the matchups use what they'll really click.`
         : noItem.length
-          ? `${names(noItem)} ${noItem.length > 1 ? "hold" : "holds"} no item — Life Orb, a Choice item or Leftovers change damage and bulk.`
+          ? `${names(noItem)} ${noItem.length > 1 ? "hold" : "holds"} no item; Life Orb, a Choice item or Leftovers change damage and bulk.`
           : noAbility.length
             ? `Pick an ability for ${names(noAbility)}.`
             : !setup.length && !priorityUsers.length
-              ? "No setup or priority moves — a Swords Dance or Dragon Dance user can snowball a game."
+              ? "No setup or priority moves. A Swords Dance or Dragon Dance user can snowball a game."
               : null,
     );
   }
@@ -191,7 +191,7 @@ export function rateTeam(size: number, a: TeamAnalysis): Rating {
     (unique / 6) * 100,
     `${size} of 6 slots filled${dupes.length ? ` · ${dupes.join(", ")} twice` : ""}`,
     dupes.length
-      ? `Only one of each species is allowed — swap the second ${dupes[0]} for something new.`
+      ? `Only one of each species is allowed. Swap the second ${dupes[0]} for something new.`
       : size < 6
         ? `Fill ${6 - size} more slot${6 - size > 1 ? "s" : ""} — every other grade firms up with a full team.`
         : null,

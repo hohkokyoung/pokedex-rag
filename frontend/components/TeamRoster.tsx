@@ -6,7 +6,7 @@
    opponent; clicking Edit (or an empty tile) opens the slot editor. */
 
 import { useState } from "react";
-import { assetUrl, type Team, type TeamAnalysis } from "@/lib/api";
+import { type Team, type TeamAnalysis, thumb } from "@/lib/api";
 import { typeHex } from "@/lib/pokeTypes";
 import { Chip } from "@/components/TeamCardParts";
 
@@ -20,7 +20,7 @@ const NATURE_STAT: Record<string, string> = {
 
 const Sprite = ({ src, size }: { src: string; size: number }) => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src={assetUrl(src)} alt="" width={size} height={size} style={{ objectFit: "contain", flex: "none" }} />
+  <img loading="lazy" decoding="async" src={thumb(src, size)} alt="" width={size} height={size} style={{ objectFit: "contain", flex: "none" }} />
 );
 const bst = (m: Member) => STATS.reduce((s, [k]) => s + (m.base_stats[k] ?? 0), 0);
 
@@ -79,7 +79,7 @@ function Moves({ m, a }: { m: Member; a: TeamAnalysis | null }) {
           <em>{x.power || "—"}</em>
         </span>
       ))}
-      {!set && <small>Suggested — no moves set yet</small>}
+      {!set && <small>Suggested: no moves set yet</small>}
     </div>
   );
 }
@@ -153,7 +153,7 @@ export default function TeamRoster({
           </div>
           <div className="ro-cols">
             <div>
-              <h5>Set</h5>
+              <h3>Set</h3>
               <dl className="ro-dl">
                 {setRows(analysis, m).map((r) => (
                   <div key={r.k}>
@@ -163,12 +163,12 @@ export default function TeamRoster({
                 ))}
               </dl>
             </div>
-            <div><h5>Base stats</h5><Stats m={m} /></div>
-            <div><h5>Moves</h5><Moves m={m} a={analysis} /></div>
+            <div><h3>Base stats</h3><Stats m={m} /></div>
+            <div><h3>Moves</h3><Moves m={m} a={analysis} /></div>
           </div>
         </div>
       ) : (
-        <p className="ro-empty">No Pokémon yet — tap a slot to add one.</p>
+        <p className="ro-empty">No Pokémon yet. Tap a slot to add one.</p>
       )}
     </>
   );

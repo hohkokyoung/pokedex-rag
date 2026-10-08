@@ -9,6 +9,7 @@ code:
   - backend/app/services/builder.py
   - backend/app/services/encounters.py
   - backend/app/services/versions.py
+  - backend/app/core/static.py        # /sprites mount: cache headers, thumb → PNG fallback
   - frontend/app/pokedex/
   - frontend/components/PokedexBrowser.tsx
   - frontend/components/PokemonDetailView.tsx
@@ -17,6 +18,7 @@ code:
   - frontend/components/EncountersPanel.tsx
   - frontend/app/page.tsx
   - frontend/components/Finder.tsx
+  - frontend/components/ServerNote.tsx  # shared "can't reach the server" notice
   - frontend/components/TypeMatchups.tsx
   - frontend/components/CatchRateTile.tsx
   - frontend/lib/typeChart.ts

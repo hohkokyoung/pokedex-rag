@@ -38,6 +38,8 @@ export default function PointerFX() {
     return () => {
       window.removeEventListener("pointermove", onMove);
       if (raf) cancelAnimationFrame(raf);
+      root.style.removeProperty("--px");
+      root.style.removeProperty("--py");
     };
   }, []);
 

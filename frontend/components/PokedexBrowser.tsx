@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { listPokemon, type ListParams } from "@/lib/api";
+import { failureKind, listPokemon, type FailureKind, type ListParams } from "@/lib/api";
+import ServerNote from "@/components/ServerNote";
 import type { PokemonSummary } from "@/lib/types";
-import { TYPE_ORDER, titleCase, typeHex } from "@/lib/pokeTypes";
+import { TYPE_ORDER, titleCase, typeVars } from "@/lib/pokeTypes";
 import PokemonCard from "@/components/PokemonCard";
 import Dropdown, { type DropdownOption } from "@/components/Dropdown";
 import { useStaggerReveal } from "@/hooks/useStaggerReveal";
@@ -34,6 +35,9 @@ export default function PokedexBrowser() {
   const [items, setItems] = useState<PokemonSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  /** Why the first page failed to load (null = it loaded); never shown as "no results". */
+  const [failed, setFailed] = useState<Exclude<FailureKind, "not-found"> | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const grid = useStaggerReveal<HTMLDivElement>([items]);
   const reqId = useRef(0);
@@ -71,13 +75,15 @@ export default function PokedexBrowser() {
       listPokemon(params(0))
         .then((r) => {
           if (id !== reqId.current) return;
+          setFailed(null);
           setItems(r.items);
           setTotal(r.total);
         })
-        .catch(() => {
+        .catch((e) => {
           if (id === reqId.current) {
             setItems([]);
             setTotal(0);
+            setFailed(failureKind(e) === "offline" ? "offline" : "server");
           }
         })
         .finally(() => {
@@ -87,7 +93,7 @@ export default function PokedexBrowser() {
         });
     }, 220);
     return () => clearTimeout(handle);
-  }, [params]);
+  }, [params, attempt]);
 
   const hasMore = items.length < total;
 
@@ -218,7 +224,7 @@ export default function PokedexBrowser() {
             <button
               className="pk-order"
               onClick={() => setOrder((o) => (o === "asc" ? "desc" : "asc"))}
-              aria-label={order === "asc" ? "Ascending — switch to descending" : "Descending — switch to ascending"}
+              aria-label={order === "asc" ? "Sorted ascending. Switch to descending" : "Sorted descending. Switch to ascending"}
               title={order === "asc" ? "Ascending" : "Descending"}
             >
               {order === "asc" ? "↑" : "↓"}
@@ -240,7 +246,7 @@ export default function PokedexBrowser() {
               onClick={() => toggleType(t)}
               aria-pressed={types.includes(t)}
               className={types.includes(t) ? "on" : ""}
-              style={{ "--tc": typeHex(t) } as React.CSSProperties}
+              style={typeVars(t) as React.CSSProperties}
             >
               {t}
             </button>
@@ -282,7 +288,7 @@ export default function PokedexBrowser() {
       </div>
 
       {/* ---- result meta ---- */}
-      <div className="pk-meta font-mono">
+      <div className="pk-meta font-mono" style={failed ? { visibility: "hidden" } : undefined}>
         <span>
           {total.toLocaleString()} {total === 1 ? "specimen" : "specimens"}
           {generations.length > 0 && ` · ${genLabel}`}
@@ -292,6 +298,7 @@ export default function PokedexBrowser() {
       </div>
 
       {/* ---- grid ---- */}
+      <h2 className="sr-only">Results</h2>
       <div className="poke-grid" ref={grid}>
         {items.map((p) => (
           <PokemonCard key={`${p.id}-${p.form_id ?? ""}`} p={p} />
@@ -302,7 +309,10 @@ export default function PokedexBrowser() {
           Array.from({ length: 5 }, (_, i) => <div key={`sk${i}`} className="poke-card poke-card--skeleton" aria-hidden />)}
       </div>
 
-      {items.length === 0 && !loading && (
+      {failed && !loading && (
+        <ServerNote kind={failed} what="the Pokédex" onRetry={() => setAttempt((n) => n + 1)} />
+      )}
+      {items.length === 0 && !loading && !failed && (
         <div className="pk-empty font-mono">No specimens match these filters.</div>
       )}
 

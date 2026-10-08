@@ -4,7 +4,7 @@ import AskConsole from "@/components/AskConsole";
 import ThemeScope from "@/components/ThemeScope";
 
 export const metadata: Metadata = {
-  title: "pokerag — Ask",
+  title: "pokérag — Ask",
   description: "Ask natural-language questions grounded in real Pokémon data, with citations.",
 };
 

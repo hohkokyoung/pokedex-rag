@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { assetUrl, clearSlot, setSlot, type Candidate, type CandidatesView, type Team } from "@/lib/api";
+import { clearSlot, setSlot, type Candidate, type CandidatesView, type Team, thumb } from "@/lib/api";
 import { Chip } from "@/components/TeamCardParts";
 
 type Member = Team["members"][number];
@@ -125,7 +125,7 @@ export function CandidateCards({
               {[...team.members].sort((a, b) => a.slot - b.slot).map((m) => (
                 <button key={m.slot} className="mon" title={m.name} onClick={() => patchReplace(c.pokemon_id, { slot: m.slot })}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={assetUrl(m.sprite_url)} alt={m.name} width={28} height={28} />
+                  <img loading="lazy" decoding="async" src={thumb(m.sprite_url, 48)} alt={m.name} width={28} height={28} />
                 </button>
               ))}
               <button onClick={() => patchReplace(c.pokemon_id, null)}>Cancel</button>
@@ -137,7 +137,7 @@ export function CandidateCards({
         return (
           <div key={c.pokemon_id} className="co-cand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={assetUrl(c.sprite_url)} alt="" width={40} height={40} />
+            <img loading="lazy" decoding="async" src={thumb(c.sprite_url, 48)} alt="" width={40} height={40} />
             <div>
               <b>{c.name}</b>
               <span className="tp">{c.types.map((ty) => <Chip key={ty} t={ty} />)}<em>{c.role}</em></span>

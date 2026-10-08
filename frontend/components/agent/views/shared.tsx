@@ -1,7 +1,7 @@
 "use client";
 
 import { assetUrl } from "@/lib/api";
-import { titleCase, typeColor } from "@/lib/pokeTypes";
+import { titleCase, typeChip } from "@/lib/pokeTypes";
 
 /**
  * What every view needs to link its rows to the answer's citations: ``n`` maps a
@@ -38,7 +38,7 @@ export function Types({ types }: { types: string[] }) {
   return (
     <span className="ax-types">
       {types.map((t) => (
-        <span key={t} className="ax-type" style={{ background: typeColor(t) }}>
+        <span key={t} className="ax-type" style={typeChip(t)}>
           {titleCase(t)}
         </span>
       ))}

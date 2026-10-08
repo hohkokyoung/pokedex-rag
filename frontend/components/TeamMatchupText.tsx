@@ -6,7 +6,7 @@
    side's set — moves, items, abilities and a setup turn. */
 
 import { Fragment, type ReactNode } from "react";
-import { assetUrl, type Team, type VsOpponent } from "@/lib/api";
+import { type Team, type VsOpponent, thumb } from "@/lib/api";
 import type { Rating } from "@/lib/teamEval";
 
 type Cell = VsOpponent["cells"][number];
@@ -49,7 +49,7 @@ export function tally(vs: VsOpponent) {
 
 const Mini = ({ src, size = 30 }: { src: string; size?: number }) => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src={assetUrl(src)} alt="" width={size} height={size} style={{ objectFit: "contain" }} />
+  <img loading="lazy" decoding="async" src={thumb(src, size)} alt="" width={size} height={size} style={{ objectFit: "contain" }} />
 );
 
 /** The one-on-one results behind the Matchup card, per Pokémon: shared by the card
@@ -176,7 +176,7 @@ export default function TeamMatchupText({ team, opponent, vs }: { team: Team; op
               {ours.map((o) => {
                 const c = cellOf(o.slot, th.x.slot);
                 const res = c?.outcome === "win" ? "win" : c?.outcome === "lose" ? "lose" : "even";
-                const how = c ? (res === "win" ? `${o.name} wins — ${c.our_move} ${Math.round(c.our_pct)}% a hit` : res === "lose" ? `${th.x.name} wins — ${c.their_move} ${Math.round(c.their_pct)}% a hit` : "too close to call") : "";
+                const how = c ? (res === "win" ? `${o.name} wins: ${c.our_move} ${Math.round(c.our_pct)}% a hit` : res === "lose" ? `${th.x.name} wins: ${c.their_move} ${Math.round(c.their_pct)}% a hit` : "too close to call") : "";
                 return (
                   <span key={o.slot} className={res} title={`${o.name} vs ${th.x.name}: ${how}`}>
                     <Mini src={o.sprite_url} size={30} />

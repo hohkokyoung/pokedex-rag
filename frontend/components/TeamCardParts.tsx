@@ -5,17 +5,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import {
-  assetUrl,
-  getTeam,
-  getTeamAnalysis,
-  getTeamStrategy,
-  getTeamSummary,
-  type TeamStrategy,
-  type TeamSummary,
-  type TeamSummaryText,
-} from "@/lib/api";
-import { typeHex } from "@/lib/pokeTypes";
+import { getTeam, getTeamAnalysis, getTeamStrategy, getTeamSummary, type TeamStrategy, type TeamSummary, type TeamSummaryText, thumb } from "@/lib/api";
+import { typeChip } from "@/lib/pokeTypes";
 import { gradeTone } from "@/lib/teamEval";
 import { profileTeam, type Profile } from "@/lib/teamProfile";
 
@@ -76,7 +67,7 @@ export function useInfo(teams: TeamSummary[]) {
 }
 
 export const Chip = ({ t, n }: { t: string; n?: string }) => (
-  <span className="tl-chip" style={{ background: typeHex(t) }}>
+  <span className="tl-chip" style={typeChip(t)}>
     {t}
     {n && <em>{n}</em>}
   </span>
@@ -88,7 +79,7 @@ export function Mini({ team }: { team: TeamSummary }) {
       {Array.from({ length: 6 }, (_, i) => team.sprites[i]).map((s, i) =>
         s ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={i} src={assetUrl(s)} alt="" />
+          <img loading="lazy" decoding="async" key={i} src={thumb(s, 48)} alt="" />
         ) : (
           <i key={i} />
         ),
@@ -176,7 +167,7 @@ export function RatingWhy({ p }: { p: Profile }) {
           ))}
         </ul>
       ) : (
-        <p className="tl-meta">Nothing major to fix — every area is in good shape.</p>
+        <p className="tl-meta">Nothing major to fix: every area is in good shape.</p>
       )}
       {r.capped && <p className="tl-cap">Overall scaled to {Math.round(r.ceiling * 6 / 100)}/6 until the team has six different Pokémon.</p>}
     </div>

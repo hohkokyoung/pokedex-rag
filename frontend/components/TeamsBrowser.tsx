@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type MouseEvent } from "react";
-import { deleteTeam, listTeams, type TeamSummary } from "@/lib/api";
+import { deleteTeam, failureKind, listTeams, type FailureKind, type TeamSummary } from "@/lib/api";
+import ServerNote from "@/components/ServerNote";
 import { Facts, GradeBadge, Mini, RatingWhy, StrategyBars, SummaryText, useInfo, type Info } from "@/components/TeamCardParts";
 import { createDraft, discarding, sweepDrafts } from "@/lib/draftTeams";
 
@@ -64,6 +65,9 @@ export default function TeamsBrowser() {
   // Cards animate in on the first visit only; coming back should look exactly as you left it.
   const [animate] = useState(lastTeams === null);
   const [creating, setCreating] = useState(false);
+  /** Set when the list (or creating a team) failed; replaces "Build your first team". */
+  const [failed, setFailed] = useState<Exclude<FailureKind, "not-found"> | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const info = useInfo(teams);
 
   useEffect(() => {
@@ -75,13 +79,14 @@ export default function TeamsBrowser() {
         const shown = teams.filter((t) => !discarding.has(t.id) && !swept.has(t.id));
         lastTeams = shown;
         setTeams(shown);
+        setFailed(null);
       })
-      .catch(() => {})
+      .catch((e) => alive && setFailed(failureKind(e) === "offline" ? "offline" : "server"))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [attempt]);
 
   /** One click: create an empty team and open it, where Pokémon are added. Rename it there. */
   const newTeam = async () => {
@@ -90,8 +95,9 @@ export default function TeamsBrowser() {
     try {
       const id = await createDraft();
       router.push(`/teams/${id}?new=1`); // a draft until its first Pokémon is added
-    } catch {
+    } catch (e) {
       setCreating(false);
+      setFailed(failureKind(e) === "offline" ? "offline" : "server");
     }
   };
 
@@ -115,7 +121,7 @@ export default function TeamsBrowser() {
       <div className="tl-top">
         <div>
           <h2>Your teams</h2>
-          {!loading && (
+          {!loading && !failed && (
             <span>
               {teams.length} saved · rated by coverage, defence, speed, roles, sets and roster
             </span>
@@ -131,6 +137,8 @@ export default function TeamsBrowser() {
 
       {loading ? (
         <div className="tl-card"><span className="lab-skel" /></div>
+      ) : failed && teams.length === 0 ? (
+        <ServerNote kind={failed} what="your teams" onRetry={() => { setLoading(true); setAttempt((n) => n + 1); }} />
       ) : teams.length === 0 ? (
         <button className="tl-first" onClick={newTeam}>
           <b>Build your first team</b>
@@ -146,7 +154,7 @@ export default function TeamsBrowser() {
               <Link href={`/teams/${t.id}`}>
                 <b>{t.name}</b>
                 <Mini team={t} />
-                <span>Empty — tap to add Pokémon</span>
+                <span>Empty: tap to add Pokémon</span>
               </Link>
               <button className="tl-del" onClick={() => remove(t.id)}>Delete</button>
             </div>

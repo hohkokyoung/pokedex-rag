@@ -26,7 +26,7 @@ export default function AskTile() {
   useEffect(() => {
     getAskStatus()
       .then((s) => setProvider(s.enabled ? s.provider : "none"))
-      .catch(() => setProvider("none"));
+      .catch(() => setProvider("offline")); // unreachable ≠ "no key": don't claim data-only
   }, []);
 
   function ask(question: string) {
@@ -64,7 +64,10 @@ export default function AskTile() {
 
   return (
     <section className="card lc-ask">
-      <div className="lbl">Ask pokérag{by && <span className="mono">answers by {by}</span>}</div>
+      <div className="lbl">
+        <h2 className="lbl-t">Ask pokérag</h2>
+        {provider === "offline" ? <span className="mono">server offline</span> : by && <span className="mono">answers by {by}</span>}
+      </div>
       <form
         className="ax-composer"
         onSubmit={(e) => {

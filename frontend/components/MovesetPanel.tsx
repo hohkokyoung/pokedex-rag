@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import Dropdown from "@/components/Dropdown";
 import { getPokemonMoves, getFormMoves, getPokemonMovesByGame, type GameMove, type PokemonGame } from "@/lib/api";
-import { TYPE_HEX, TYPE_ORDER, typeHex } from "@/lib/pokeTypes";
+import { TYPE_ORDER, typeChip, typeVars } from "@/lib/pokeTypes";
 import { MoveLearnersModal } from "@/components/MoveLearners";
 
 /**
@@ -223,7 +223,7 @@ export default function MovesetPanel({
               onClick={() => toggleType(t)}
               aria-pressed={types.includes(t)}
               className={types.includes(t) ? "on" : ""}
-              style={{ "--tc": typeHex(t) } as CSSProperties}
+              style={typeVars(t) as CSSProperties}
             >
               {t}
             </button>
@@ -253,7 +253,7 @@ export default function MovesetPanel({
           >
             {slotLabel && <span className="lv">{isLevel ? (m.level ? m.level : "Evo") : (m.machine ?? "—")}</span>}
             <span className="t">
-              {m.type && <span className="lc-tt" style={{ background: TYPE_HEX[m.type] }}>{m.type}</span>}
+              {m.type && <span className="lc-tt" style={typeChip(m.type)}>{m.type}</span>}
             </span>
             <span className="nm">{m.name}</span>
             <span className="c">{m.damage_class ? CAT_SHORT[m.damage_class] : "—"}</span>
