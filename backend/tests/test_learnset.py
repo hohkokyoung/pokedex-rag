@@ -193,6 +193,10 @@ async def test_pokemon_learnset_levels_name_their_games(session) -> None:
     ("Scarlet/Violet", "Scarlet / Violet"), ("SwSh", "Sword / Shield"), ("sv", "Scarlet / Violet"),
     ("Sword & Shield", "Sword / Shield"), ("Let's Go", "Let’s Go, Pikachu / Eevee"),
     ("BDSP", "Brilliant Diamond / Shining Pearl"), ("Pokémon Emerald", "Emerald"),
+    # A bare name is the original game, not its remake ("diamond" ⊂ brilliant-diamond-…).
+    ("diamond", "Diamond / Pearl"), ("Sun", "Sun / Moon"), ("ruby", "Ruby / Sapphire"),
+    ("black", "Black / White"), ("brilliant diamond", "Brilliant Diamond / Shining Pearl"),
+    ("ultra sun", "Ultra Sun / Ultra Moon"), ("black 2", "Black 2 / White 2"),
 ])
 async def test_resolve_game_spellings(session, text, want) -> None:
     vg = await learnset.resolve_game(session, text)
@@ -203,6 +207,13 @@ async def test_resolve_game_spellings(session, text, want) -> None:
     ("Top 5 by base stat total that are in Scarlet/Violet", "Scarlet / Violet"),
     ("strongest dragon in Pokémon Emerald", "Emerald"),
     ("Can Garchomp learn Earthquake in Emerald?", "Emerald"),
+    ("can garchomp learn crunch in old diamond and pearl game", "Diamond / Pearl"),
+    ("does it learn it in the original Pokémon Ruby", "Ruby / Sapphire"),
+    # "new" / "remake" means the remake.
+    ("can garchomp learn crunch below level 50 in new diamond and pearl game",
+     "Brilliant Diamond / Shining Pearl"),
+    ("in the Ruby and Sapphire remakes", "Omega Ruby / Alpha Sapphire"),
+    ("in the remake of diamond and pearl", "Brilliant Diamond / Shining Pearl"),
     ("best water types in sun and moon", "Sun / Moon"),
     ("which fire types are strong in the sun", None),  # everyday words need "Pokémon"
     ("top attack in red", None),
@@ -221,3 +232,43 @@ async def test_pair_says_when_the_pokemon_isnt_in_the_game(session) -> None:
     out = await retrieve_typed(session, LearnsetPlan(garchomp, eq, [], None,
                                                      version_group_id=vg.id, game=vg.name))
     assert out.data["absent"] and "isn't in Emerald at all" in out.chunks[0].content
+
+
+async def test_level_cap_on_a_pair(session) -> None:
+    """Garchomp gets Crunch at Lv 48 (DP–ORAS) or on evolving, also Lv 48 (SM onward):
+    never below Lv 30."""
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    crunch = await session.scalar(select(Move.id).where(Move.name == "Crunch"))
+    garchomp = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Garchomp"))
+    out = await retrieve_typed(session, LearnsetPlan(garchomp, crunch, [], None,
+                                                     method="level-up", max_level=29))
+    assert not out.data["ok"] and out.data["max_level"] == 29
+    text = out.chunks[0].content
+    assert "doesn't learn Crunch by level-up by Lv 29" in text and "Lv 48" in text, text
+    out = await retrieve_typed(session, LearnsetPlan(garchomp, crunch, [], None,
+                                                     method="level-up", max_level=48))
+    assert out.data["ok"]
+
+
+async def test_evolution_move_says_when(session) -> None:
+    """Level 0 means "learned on evolving" — not a level-less "by level-up"."""
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    crunch = await session.scalar(select(Move.id).where(Move.name == "Crunch"))
+    garchomp = await session.scalar(select(Pokemon.id).where(Pokemon.name == "Garchomp"))
+    vg = await learnset.resolve_game(session, "Scarlet/Violet")
+    out = await retrieve_typed(session, LearnsetPlan(garchomp, crunch, [], None, method="level-up",
+                                                     version_group_id=vg.id, game=vg.name))
+    assert out.data["ok"] and out.data["how"] == "on evolving (Lv 48)", out.data["how"]
+
+
+async def test_level_cap_on_learners(session) -> None:
+    from app.rag.learnset import LearnsetPlan, retrieve_typed
+
+    crunch = await session.scalar(select(Move.id).where(Move.name == "Crunch"))
+    capped = await retrieve_typed(session, LearnsetPlan(None, crunch, [], None,
+                                                        method="level-up", max_level=20))
+    every = await retrieve_typed(session, LearnsetPlan(None, crunch, [], None, method="level-up"))
+    assert 0 < capped.data["total"] < every.data["total"]
+    assert "Garchomp" not in {pk.name for pk, _m, _l in capped.data["users"]}

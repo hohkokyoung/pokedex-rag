@@ -68,7 +68,11 @@ export function LearnCheckStrip({ view, link }: { view: LearnCheckView; link: Li
       </span>
       <span className="ax-check__text">
         <b>{view.ok ? "Yes" : "No"}</b> — {view.pokemon.name}{" "}
-        {view.ok ? `can learn ${view.move.name} ${view.how ?? ""}${game}` : `can’t learn ${view.move.name}${game}`}
+        {view.ok
+          ? `can learn ${view.move.name} ${view.how ?? ""}${game}`
+          : view.max_level
+            ? `doesn’t learn ${view.move.name} by Lv ${view.max_level}${game}${view.how ? ` — it learns it ${view.how}` : ""}`
+            : `can’t learn ${view.move.name}${game}`}
       </span>
       <CiteBadge n={n} cited={link.cited} />
     </div>

@@ -13,8 +13,11 @@ in [ask-agent.md §3](ask-agent.md#3-choosing-a-planner).
    `similar_to`; type + "weak" → `type_matchup`; nothing named → `query_pokemon` if a
    ranking/filter is recognised, else `semantic_search`.
 3. **Fill the other args** with small parsers: `nlfilters.restricted_filters`
-   (legendary/mythical, with negation), physical/special, learn method, game
-   (`learnset.find_game_in_text`), stat words and thresholds (`sql_retrieval.plan`).
+   (legendary/mythical, with negation), physical/special, learn method, a level cap
+   ("below lvl 30" → `max_level=29`, "by level 30" → 30; implies level-up), game
+   (`learnset.find_game_in_text`), stat words and thresholds (`sql_retrieval.plan`). A game
+   the question clearly names but no version group matches ("in the gizmo game") goes in the
+   plan's `unhandled` (`learnset.unresolved_game`), so the answer says it wasn't applied.
 
 **Confident** means: one valid step, every name has one meaning, no extra filters
 (game, method, types, legendary), and the question — with names replaced by
@@ -39,8 +42,8 @@ The prompt lists tool names + one-line descriptions, rules ("set a filter only w
 the question states it", "use names as written", "never supply a Pokémon's stats from
 memory"), and four examples. It must stay under `PROMPT_BUDGET` (11k characters,
 ~2.75k tokens) for Groq's free-tier tokens-per-minute limit; a test fails any scope
-that goes over. **The budget is nearly full** (Oct 2026: ask ~9.8k, team ~10.6k, calc
-~10.4k) — a new tool in team or calc scope will likely need a shorter description or
+that goes over. **The budget is nearly full** (Oct 2026: ask ~10.0k, team ~10.7k, calc
+~10.5k) — a new tool in team or calc scope will likely need a shorter description or
 another tool trimmed. Check with `llm_planner.prompt_size(scope)`.
 
 The plan also has `unhandled`: constraints no argument can express ("cute"). The

@@ -217,7 +217,8 @@ export type LearnCheckView = ViewBase & {
   pokemon: PokemonCardData;
   move: MoveRowData;
   ok: boolean;
-  how: string | null;
+  how: string | null; // when not ok under a level cap: how it does learn it
+  max_level?: number | null;
   game: string | null;
 };
 /* Team-coach views. */

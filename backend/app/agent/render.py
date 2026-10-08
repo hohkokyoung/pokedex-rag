@@ -44,8 +44,9 @@ def _learn_check(v: LearnCheckView) -> str:
         return (f"No — **{v.pokemon.name}** isn't in {v.game} at all, so it can't learn "
                 f"**{v.move.name}** there [1].")
     if v.method:
+        later = f"; it learns it {v.how}" if v.how else ""
         return (f"No — **{v.pokemon.name}** doesn't learn **{v.move.name}** "
-                f"{learnset_rag._by(v.method)}{game} [1].")
+                f"{learnset_rag._by(v.method, v.max_level)}{game}{later} [1].")
     return (f"No — **{v.pokemon.name}** can't learn **{v.move.name}**{game}: it isn't in "
             f"{v.pokemon.name}'s learnset [1].")
 
@@ -53,7 +54,7 @@ def _learn_check(v: LearnCheckView) -> str:
 def _learners(v: LearnersView) -> str:
     game = f" in {v.game}" if v.game else ""
     who = " ".join([*v.scope, "Pokémon"])
-    only = f" {learnset_rag._by(v.method)}" if v.method else ""
+    only = f" {learnset_rag._by(v.method, v.max_level)}" if v.method else ""
     if not v.total:
         return f"No {who} learn **{v.move.name}**{only}{game} [1]."
     methods = ", ".join(

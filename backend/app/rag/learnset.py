@@ -26,6 +26,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models import Move, Pokemon, PokemonMove, PokemonType, Type
 from app.models.moves import PokemonMoveLearn, VersionGroup
+from app.models.pokemon import PokemonEvolution
 from app.rag.retrieval import RetrievedChunk
 from app.rag.similarity import target_profile_chunk
 from app.rag.sql_retrieval import _row_to_chunk
@@ -84,6 +85,7 @@ class LearnsetPlan:
     version_group_id: int | None = None  # one game's learnset; None = any game
     game: str | None = None  # that game's display name
     method: str | None = None  # only this learn method ("level-up", "machine", "tutor", "egg")
+    max_level: int | None = None  # learned by level-up at or below this level (implies level-up)
 
 
 @dataclass
@@ -143,11 +145,21 @@ def _gnorm(text: str) -> str:
     return " ".join(re.sub(r"[^a-z0-9']+", " ", text).replace("'", "").split())
 
 
-async def resolve_game(session: AsyncSession, game: str) -> VersionGroup | None:
+async def resolve_game(
+    session: AsyncSession, game: str, *, remake: bool = False
+) -> VersionGroup | None:
     """A version group by name, identifier, initials or common short name ("Scarlet / Violet",
-    "scarlet-violet", "Scarlet/Violet", "sv", "SwSh", "BDSP")."""
+    "scarlet-violet", "Scarlet/Violet", "sv", "SwSh", "BDSP"). With ``remake``, the newest
+    remake whose name contains every word ("diamond pearl" → Brilliant Diamond / Shining
+    Pearl), or None if there isn't one."""
     key = _gnorm(game).removeprefix("pokemon ")
     groups = (await session.execute(select(VersionGroup))).scalars().all()
+    if remake:
+        words = set(key.split())
+        remakes = [vg for vg in groups if words
+                   and words < set(_gnorm(vg.identifier).split())]
+        return max(remakes, key=lambda g: (len(g.identifier.split("-")), g.sort_order),
+                   default=None)
     for vg in groups:
         initials = "".join(w[0] for w in vg.identifier.split("-") if w)
         short = _SHORT_GAME.get(vg.identifier, "").lower()
@@ -157,11 +169,17 @@ async def resolve_game(session: AsyncSession, game: str) -> VersionGroup | None:
     for vg in groups:
         if len(key.split()) >= 2 and _gnorm(vg.name).startswith(key):
             return vg
-    # A single game named inside a pair ("scarlet" → Scarlet / Violet), newest first.
-    for vg in sorted(groups, key=lambda g: -g.sort_order):
-        if key and key in _gnorm(vg.identifier).split():
-            return vg
-    return None
+    # A game named inside a group ("scarlet" → Scarlet / Violet). A bare name is the
+    # original, not a remake that contains it ("diamond" → DP, not Brilliant Diamond):
+    # fewest other words first, then newest.
+    words = key.split()
+
+    def contains(vg: VersionGroup) -> bool:
+        ids = _gnorm(vg.identifier).split()
+        return any(ids[i:i + len(words)] == words for i in range(len(ids)))
+
+    hits = [vg for vg in groups if words and contains(vg)]
+    return min(hits, key=lambda g: (len(g.identifier.split("-")), -g.sort_order), default=None)
 
 
 # "in Scarlet/Violet", "available in SwSh", "from Pokémon Emerald" — the phrase after the cue.
@@ -170,22 +188,48 @@ _GAME_CUE = re.compile(r"\b(?:in|from|on)\s+(?:the\s+)?((?:pok[eé]mon\s+)?[\w'�
 # Single words that are also everyday words ("in the sun", "in red") only count with "Pokémon".
 _COMMON = {"red", "blue", "yellow", "gold", "silver", "crystal", "black", "white", "x", "y",
            "sun", "moon", "sword", "shield", "scarlet", "violet"}
+_FILLER = {"old", "original", "classic", "the", "of"}
+_REMAKE = {"new", "remake", "remakes", "remade"}  # "new Diamond and Pearl" → BDSP
+_GAME_WORDS = {"game", "games", "version", "versions", "remake", "remakes"}
+
+
+def _game_phrases(question: str):
+    """Per "in/from/on …" cue: (its words without filler, wants a remake, names a game,
+    the phrase as written)."""
+    for m in _GAME_CUE.finditer(question):
+        words = m.group(1).split()
+        while words and words[0].lower() in _FILLER:  # "in (the) old Diamond and Pearl"
+            words = words[1:]
+        lowered = [w.lower() for w in words]
+        remake = any(w in _REMAKE for w in lowered)
+        named = any(w in _GAME_WORDS for w in lowered)
+        words = [w for w in words if w.lower() not in _REMAKE]
+        while words and words[0].lower() in _FILLER:  # "the remake of Diamond"
+            words = words[1:]
+        yield words, remake, named or remake, m.group(1).strip()
 
 
 async def find_game_in_text(session: AsyncSession, question: str) -> VersionGroup | None:
     """The game a question restricts to, if it names one after "in/from/on" — longest phrase
     first. A bare everyday word ("in the sun") only counts as a game after "Pokémon"."""
-    for m in _GAME_CUE.finditer(question):
-        words = m.group(1).split()
+    for words, remake, _named, _raw in _game_phrases(question):
         for n in range(len(words), 0, -1):
             phrase = " ".join(words[:n])
             key = _gnorm(phrase)
-            if key in _COMMON:  # needs "Pokémon …" or a pair ("Sun/Moon")
+            if key in _COMMON and not remake:  # needs "Pokémon …" or a pair ("Sun/Moon")
                 continue
-            vg = await resolve_game(session, phrase)
+            vg = await resolve_game(session, phrase, remake=remake)
             if vg is not None:
                 return vg
     return None
+
+
+async def unresolved_game(session: AsyncSession, question: str) -> str | None:
+    """A game the question clearly names ("in the gizmo game", "in the new …") that no
+    version group matches — so a planner can say it couldn't apply it instead of dropping it."""
+    if await find_game_in_text(session, question) is not None:
+        return None
+    return next((raw for _w, _r, named, raw in _game_phrases(question) if named), None)
 
 
 async def plan_typed(
@@ -199,6 +243,7 @@ async def plan_typed(
     legendary: bool | None = None,
     mythical: bool | None = None,
     method: str | None = None,
+    max_level: int | None = None,
 ) -> LearnsetPlan:
     """A plan from explicit names and filters. Raises ``UnresolvedName`` for an unknown name.
 
@@ -231,18 +276,24 @@ async def plan_typed(
         mythical=mythical,
         version_group_id=vg.id if vg else None,
         game=vg.name if vg else None,
-        method=method if method in METHOD_LABEL else None,
+        method="level-up" if max_level else method if method in METHOD_LABEL else None,
+        max_level=max_level or None,
     )
 
 
-def _learn_rows(version_group_id: int | None, method: str | None = None):
+def _learn_rows(version_group_id: int | None, method: str | None = None,
+                max_level: int | None = None):
     """(pokemon_id, move_id, learn_method, level) — any game, or one game's learnset.
 
     A move learnable several ways in one game keeps the most direct method
     (level-up, then TM, tutor, egg), matching the any-game table's single row. With
     ``method``, only that method counts — read per game, since the any-game table keeps
     one method per move (a level-up learner that also takes the TM would be missed).
+    ``max_level`` keeps level-up rows learned at or below it; an evolution move (level 0)
+    counts at the level the Pokémon evolves (unknown for item/trade evolutions → excluded).
     """
+    if max_level is not None:
+        method = "level-up"
     if version_group_id is None and method is None:
         L = PokemonMove
         return select(
@@ -261,6 +312,12 @@ def _learn_rows(version_group_id: int | None, method: str | None = None):
         stmt = stmt.where(L.version_group_id == version_group_id)
     if method is not None:
         stmt = stmt.where(L.learn_method == method)
+    if max_level is not None:
+        evo = PokemonEvolution
+        learned_at = case((L.level == 0, evo.min_level), else_=L.level)
+        stmt = stmt.outerjoin(evo, evo.to_pokemon_id == L.pokemon_id).where(
+            learned_at <= max_level
+        )
     return (
         stmt.distinct(L.pokemon_id, L.move_id)
         .order_by(L.pokemon_id, L.move_id, rank, L.level)
@@ -358,9 +415,10 @@ def _how_by_game(history: list[tuple[int, str, int]] | None) -> str | None:
     return f"by level-up (Lv {newest} in {'/'.join(games)}; {span} in other games)"
 
 
-def _by(method: str) -> str:
-    """'by level-up' / 'by TM' / 'as an egg move'."""
-    return "as an egg move" if method == "egg" else f"by {METHOD_LABEL.get(method, method)}"
+def _by(method: str, max_level: int | None = None) -> str:
+    """'by level-up' / 'by TM' / 'as an egg move' / 'by level-up by Lv 29'."""
+    by = "as an egg move" if method == "egg" else f"by {METHOD_LABEL.get(method, method)}"
+    return f"{by} by Lv {max_level}" if max_level else by
 
 
 def _at_level(move_id: int, level: int | None, varies: dict[int, str]) -> str:
@@ -370,8 +428,10 @@ def _at_level(move_id: int, level: int | None, varies: dict[int, str]) -> str:
     return f" at Lv {level}" if level else ""
 
 
-def _how(method: str | None, level: int | None) -> str:
+def _how(method: str | None, level: int | None, evo_level: int | None = None) -> str:
     if method == "level-up":
+        if level == 0:  # an evolution move: learned the moment it evolves
+            return f"on evolving (Lv {evo_level})" if evo_level else "on evolving"
         return f"by level-up at Lv {level}" if level else "by level-up"
     if method == "machine":
         return "by TM"
@@ -421,7 +481,7 @@ async def _move_with_type(
 async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> LearnsetOutcome:
     """Who learns a move: the move, a by-method count, then its best users."""
     move, mtype, total = await _move_with_type(session, p.move_id, p.version_group_id)
-    L = _learn_rows(p.version_group_id, p.method)
+    L = _learn_rows(p.version_group_id, p.method, p.max_level)
 
     base = (
         select(Pokemon, L.c.learn_method, L.c.level)
@@ -452,7 +512,7 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
     ).all()
     by_method = {m: n for m, n in counts}
     who = " ".join([str(sum(by_method.values())), *scope, "Pokémon"])
-    only = f" {_by(p.method)}" if p.method else ""
+    only = f" {_by(p.method, p.max_level)}" if p.method else ""
     breakdown = ", ".join(
         f"{by_method[m]} {'as egg moves' if m == 'egg' else 'by ' + METHOD_LABEL.get(m, m)}"
         for m in _METHOD_ORDER
@@ -517,7 +577,7 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
             "move": move, "move_type": mtype, "move_learners": total,
             "total": sum(by_method.values()), "by_method": by_method, "scope": scope,
             "game": p.game, "users": [(pk, m, lv) for pk, m, lv in rows], "hows": hows,
-            "method": p.method,
+            "method": p.method, "max_level": p.max_level,
         },
     )
 
@@ -525,7 +585,7 @@ async def _learners(session: AsyncSession, p: LearnsetPlan, *, k: int) -> Learns
 async def _learnset(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     """A Pokémon's moves, one chunk per learn method."""
     pokemon = await session.get(Pokemon, p.pokemon_id)
-    L = _learn_rows(p.version_group_id, p.method)
+    L = _learn_rows(p.version_group_id, p.method, p.max_level)
     stmt = (
         select(Move, Type.identifier, L.c.learn_method, L.c.level)
         .join(L, L.c.move_id == Move.id)
@@ -607,11 +667,16 @@ async def _learnset(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     )
 
 
-async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
-    """Can this Pokémon learn this move? Yes (with how) or no, from the learnset."""
-    pokemon = await session.get(Pokemon, p.pokemon_id)
-    move, mtype, total = await _move_with_type(session, p.move_id, p.version_group_id)
-    L = _learn_rows(p.version_group_id, p.method)
+async def _evo_level(session: AsyncSession, pokemon_id: int) -> int | None:
+    """The level this Pokémon evolves at (None for item/trade/friendship evolutions)."""
+    return await session.scalar(
+        select(PokemonEvolution.min_level).where(PokemonEvolution.to_pokemon_id == pokemon_id)
+    )
+
+
+async def _pair_how(session: AsyncSession, p: LearnsetPlan, max_level: int | None) -> str | None:
+    """How this Pokémon learns this move ("by TM", "on evolving (Lv 48)"), or None."""
+    L = _learn_rows(p.version_group_id, p.method, max_level)
     row = (
         await session.execute(
             select(L.c.learn_method, L.c.level).where(
@@ -619,10 +684,24 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
             )
         )
     ).first()
-    how = _how(row[0], row[1]) if row else None
-    if row and row[0] == "level-up" and p.version_group_id is None:
+    if row is None:
+        return None
+    evo = await _evo_level(session, p.pokemon_id) if row[1] == 0 else None
+    how = _how(row[0], row[1], evo)
+    if row[0] == "level-up" and p.version_group_id is None:
         history = await _level_history(session, p.move_id, [p.pokemon_id])
         how = _how_by_game(history.get(p.pokemon_id)) or how
+    return how
+
+
+async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
+    """Can this Pokémon learn this move? Yes (with how) or no, from the learnset."""
+    pokemon = await session.get(Pokemon, p.pokemon_id)
+    move, mtype, total = await _move_with_type(session, p.move_id, p.version_group_id)
+    how = await _pair_how(session, p, p.max_level)
+    # Capped and not learned by then: say when it does learn it, so "no" isn't the whole story.
+    instead = (await _pair_how(session, p, None)) if how is None and p.max_level else None
+    row = how is not None
     absent = False
     if not row and p.version_group_id is not None:  # not in that game at all?
         absent = not await session.scalar(
@@ -637,7 +716,8 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
         verdict = (f"{pokemon.name} can't learn {move.name}{_in_game(p)}: {pokemon.name} isn't "
                    f"in {p.game} at all.")
     elif p.method:
-        verdict = f"{pokemon.name} doesn't learn {move.name} {_by(p.method)}{_in_game(p)}."
+        verdict = (f"{pokemon.name} doesn't learn {move.name} {_by(p.method, p.max_level)}"
+                   f"{_in_game(p)}" + (f"; it learns it {instead}." if instead else "."))
     else:
         verdict = (f"{pokemon.name} cannot learn {move.name}{_in_game(p)}: it is not in "
                    f"{pokemon.name}'s learnset.")
@@ -656,12 +736,13 @@ async def _pair(session: AsyncSession, p: LearnsetPlan) -> LearnsetOutcome:
     if own is not None:
         chunks.append(own)
     note = (
-        f"NOTE: The user asked whether {pokemon.name} can learn {move.name}{_in_game(p)}. Answer "
+        f"NOTE: The user asked whether {pokemon.name} can learn {move.name}"
+        f"{f' by Lv {p.max_level}' if p.max_level else ''}{_in_game(p)}. Answer "
         "yes or no first from the learnset check, and how it learns it if yes."
     )
     return LearnsetOutcome(
         "pair", chunks, note,
         {"pokemon": pokemon, "move": move, "move_type": mtype, "move_learners": total,
-         "ok": row is not None, "how": how, "game": p.game, "method": p.method,
-         "absent": absent},
+         "ok": row, "how": how or instead, "game": p.game, "method": p.method,
+         "max_level": p.max_level, "absent": absent},
     )
