@@ -22,8 +22,10 @@ Pick 1–2 types to see what the type combination **takes more damage from** (×
 
 ## Ask tile
 
-The same assistant as [`/ask`](ask.md), in compact form, with example questions
-(rank, lore, multi-part, matchup, for you) and a link to the full page.
+The same assistant as [`/ask`](ask.md), with the same answer tiles and citation
+popovers (stacked to fit the card), example questions (rank, lore, multi-part,
+matchup, for you) and a link to the full page. Finished answers are cached per
+question for the session.
 
 ## Damage calculator
 

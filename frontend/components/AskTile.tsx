@@ -3,24 +3,20 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getAskStatus } from "@/lib/api";
-import type { CiteRenderer } from "@/lib/answerFormat";
 import { citedNumbers, followUps } from "@/lib/askEvidence";
-import { ABSTAIN, Answer, FollowUps, SUGGESTIONS } from "@/components/AskConsole";
-import { EvidencePanel, chartedNames, moveTypes } from "@/components/agent/Evidence";
-import { PlanSteps } from "@/components/agent/PlanSteps";
+import { ABSTAIN, FollowUps, SUGGESTIONS } from "@/components/AskConsole";
+import { AskResults } from "@/components/agent/AskResults";
 import { useAsk } from "@/components/agent/useAsk";
 
 /**
- * The home Ask tile: the /ask console in miniature (composer, starter chips, the
- * live plan, verdict-first answer, the first evidence view). Answers can be a paid
+ * The home Ask tile: the /ask console in miniature — composer and starter chips, with
+ * answers drawn as the same bento of tiles as /ask (``AskResults``). Answers can be a paid
  * LLM call, so nothing runs until the user asks, and finished answers are cached per
  * question for the session.
  */
 export default function AskTile() {
   const [provider, setProvider] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [hot, setHot] = useState<number | null>(null);
-  const [showAll, setShowAll] = useState(false);
   const { run, ask: start } = useAsk({ cacheRuns: true });
 
   useEffect(() => {
@@ -33,32 +29,13 @@ export default function AskTile() {
     const trimmed = question.trim();
     if (!trimmed || run.status === "streaming") return;
     setQ(trimmed);
-    setHot(null);
-    setShowAll(false);
     start(trimmed);
   }
 
-  const { answer, sources, views, status } = run;
+  const { answer, sources, status } = run;
   const cited = useMemo(() => citedNumbers(answer), [answer]);
   const streaming = status === "streaming";
   const abstained = status === "done" && ABSTAIN.test(answer) && cited.size === 0;
-  const charted = useMemo(() => chartedNames(views.slice(0, 1)), [views]);
-  const moves = useMemo(() => moveTypes(views), [views]);
-
-  const cite: CiteRenderer = (n, key) => (
-    <button
-      key={key}
-      type="button"
-      className={`ax-cite ${hot === n ? "is-hot" : ""}`}
-      onMouseEnter={() => setHot(n)}
-      onMouseLeave={() => setHot(null)}
-      onFocus={() => setHot(n)}
-      onBlur={() => setHot(null)}
-      aria-label={`Source ${n}`}
-    >
-      {n}
-    </button>
-  );
 
   const by = provider === "anthropic" ? "Claude" : provider === "groq" ? "Groq" : provider === "none" ? "data-only" : provider;
 
@@ -99,48 +76,9 @@ export default function AskTile() {
 
       {status !== "idle" && (
         <div className="lc-ask-out">
-          <div className="ax-q">{run.question}</div>
-          <PlanSteps
-            key={run.question}
-            steps={run.steps}
-            planner={run.planner}
-            cached={run.cached}
-            status={status}
-            elapsed={run.elapsed}
-            usage={run.usage}
-            answering={answer.length > 0}
-          />
-          {status === "error" ? (
-            <p className="ax-error">{run.error}</p>
-          ) : (
-            <>
-              <Answer
-                text={answer}
-                streaming={streaming}
-                abstained={abstained}
-                sources={sources}
-                charted={charted}
-                moveTypes={moves}
-                cite={cite}
-                hot={hot}
-                setHot={setHot}
-              />
-              <EvidencePanel
-                steps={run.steps}
-                views={views}
-                sources={sources}
-                cited={cited}
-                done={status === "done"}
-                hot={hot}
-                setHot={setHot}
-                showAll={showAll}
-                setShowAll={setShowAll}
-                maxViews={1}
-              />
-              {status === "done" && !abstained && (
-                <FollowUps items={followUps(sources.filter((s) => cited.has(s.n)))} onAsk={ask} />
-              )}
-            </>
+          <AskResults key={run.question} run={run} />
+          {status === "done" && !abstained && (
+            <FollowUps items={followUps(sources.filter((s) => cited.has(s.n)))} onAsk={ask} />
           )}
         </div>
       )}

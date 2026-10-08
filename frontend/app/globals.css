@@ -1937,8 +1937,8 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
 .ab-peek__list .ab-peek__text{font-size:12.5px;line-height:1.5;max-height:none;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .ab-peek .ab-peek__go{flex:none;align-self:center;padding:4px 10px;font-size:12px;}
 /* In "From …" lines the citations sit on the text line, not raised like footnotes. */
-.ax-page .ab-from .ax-cite{vertical-align:1px;margin-left:5px;}
-.ax-page .ax-cite--range{width:auto;padding:0 6px;}
+:is(.ax-page,.lc-ask) .ab-from .ax-cite{vertical-align:1px;margin-left:5px;}
+:is(.ax-page,.lc-ask) .ax-cite--range{width:auto;padding:0 6px;}
 .ax-li--more{padding:4px 10px;}
 .ax-li--more button{border:0;background:rgba(20,23,29,.045);border-radius:var(--radius);padding:6px 12px;font:500 13px var(--font-sans),sans-serif;color:var(--ink-dim);cursor:pointer;}
 .ax-li--more button:hover{background:var(--accent-soft);color:var(--accent-text);}
@@ -1993,11 +1993,11 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
 .ab-more{align-self:flex-start;margin-top:10px;border:0;background:rgba(20,23,29,.045);border-radius:var(--radius);padding:7px 12px;font:500 13px var(--font-sans),sans-serif;color:var(--ink-dim);cursor:pointer;}
 .ab-more:hover{background:var(--accent-soft);color:var(--accent-text);}
 /* the shared views inside tiles: sentence-case labels, grey citations, thin bars */
-.ax-page .ab-tile .ax-evc__n,.ax-page .ab-tile .ax-rank__n{background:var(--surface-2);color:var(--muted);font:600 12px var(--font-sans),sans-serif;}
-.ax-page .ab-tile .is-hot .ax-evc__n,.ax-page .ab-tile .is-hot.ax-rank__row .ax-rank__n{background:var(--accent);color:#fff;}
-.ax-page .ab-tile .ax-rank{margin-top:0;}
-.ax-page .ab-tile .ax-rank__row{grid-template-columns:16px 40px minmax(110px,170px) 1fr 40px 22px;gap:12px;padding:5px 8px;}
-.ax-page .ab-tile .ax-rank__pos{font:400 12.5px var(--font-sans),sans-serif;}
+:is(.ax-page,.lc-ask) .ab-tile .ax-evc__n,:is(.ax-page,.lc-ask) .ab-tile .ax-rank__n{background:var(--surface-2);color:var(--muted);font:600 12px var(--font-sans),sans-serif;}
+:is(.ax-page,.lc-ask) .ab-tile .is-hot .ax-evc__n,:is(.ax-page,.lc-ask) .ab-tile .is-hot.ax-rank__row .ax-rank__n{background:var(--accent);color:#fff;}
+:is(.ax-page,.lc-ask) .ab-tile .ax-rank{margin-top:0;}
+:is(.ax-page,.lc-ask) .ab-tile .ax-rank__row{grid-template-columns:16px 40px minmax(110px,170px) 1fr 40px 22px;gap:12px;padding:5px 8px;}
+:is(.ax-page,.lc-ask) .ab-tile .ax-rank__pos{font:400 12.5px var(--font-sans),sans-serif;}
 .ax-page .ab-tile .ax-rank__art{width:40px;height:40px;}
 .ax-page .ab-tile .ax-rank__name{font-size:14.5px;gap:3px;}
 .ax-page .ab-tile .ax-rank__track{height:8px;}
@@ -2250,6 +2250,20 @@ html[data-lab] ::selection{background:var(--accent);color:#fff;}
 .lc-ask .ax-sugg__k{font-size:12px;}
 .lc-ask-out{margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);animation:ax-in .45s var(--ease-out-expo,cubic-bezier(.2,.8,.2,1)) both;}
 .lc-ask .ax-q{font-size:13.5px;margin-bottom:10px;}
+/* The /ask bento inside the home card: flat inner tiles, stacked unless the card is wide. */
+.lc-ask-out{container-type:inline-size;}
+.lc-ask .ax-results{margin-top:0;}
+.lc-ask .ab-grid{gap:10px;}
+.lc-ask .ab-tile{padding:14px 16px;box-shadow:none;background:var(--surface-2);border-color:var(--line-soft);}
+.lc-ask .ab-parts li{background:var(--surface);}
+/* Fixed columns (as /ask), not auto-fill: lists come in 4s/8s, so rows stay full. */
+.lc-ask .ab-dex{grid-template-columns:repeat(4,minmax(0,1fr));}
+@container (max-width:640px){.lc-ask .ab-dex{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@container (max-width:460px){.lc-ask .ab-dex{grid-template-columns:repeat(2,minmax(0,1fr));}}
+/* Cards here are phone-narrow: best/worst stats get their own line above BST (as .poke-grid on phones). */
+.lc-ask .ab-dex__card .poke-card__foot{flex-wrap:wrap;row-gap:6px;}
+.lc-ask .ab-dex__card .poke-card__ext{order:-1;width:100%;margin:0;gap:10px;}
+@container (max-width:720px){.lc-ask .ab-grid.has-side .ab-answer,.lc-ask .ab-side{grid-column:1/-1;}}
 
 .lc-ask .ax-verdict{font-size:1.35rem;max-width:none;}
 .lc-ask .ax-p,.lc-ask .ax-li{font-size:15px;}
