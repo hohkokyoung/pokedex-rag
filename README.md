@@ -10,6 +10,15 @@ Local and single-user. All Pokémon data is ingested from the
 PokéAPI at runtime. Everything works without an LLM key; a key adds narrated answers,
 smarter planning, set suggestions and team summaries.
 
+## Showcase
+
+[![pokérag tour: asking for the fastest non-legendary Fire types and getting a cited ranking](docs/media/pokerag-tour.gif)](docs/media/pokerag-tour.mp4)
+
+**[Watch the full two-minute tour (MP4)](docs/media/pokerag-tour.mp4)**: the home
+dashboard (search, team coach, type calculator, Ask tile, lookup), the Pokédex catalog
+and a detail page, Ask answering a ranking and a learnset question with citations, and
+the team list and team page.
+
 ## What's in it
 
 - **Home** — a dashboard: your teams at a glance, a type calculator, the Ask tile, a
