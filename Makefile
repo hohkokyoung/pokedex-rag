@@ -5,7 +5,7 @@
 DB_URL ?= postgresql+asyncpg://pokedex:pokedex@localhost:5433/pokedex
 BACKEND = cd backend && DATABASE_URL=$(DB_URL)
 
-.PHONY: traces damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites data test lint
+.PHONY: traces damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites thumbs data test lint
 
 up:            ## Build and start the full stack
 	docker compose up --build -d
@@ -67,13 +67,16 @@ variant-sprites: ## Download HOME artwork for cosmetic variants (Alcremie, Vivil
 female-sprites: ## Download + record female artwork (visual gender differences: Pyroar, …)
 	$(BACKEND) uv run python -m app.ingest.female_sprites
 
+thumbs:        ## Small WebP copies of all artwork for list views (96px, 320px); idempotent
+	$(BACKEND) uv run python -m app.ingest.thumbs
+
 chart:         ## Ingest the type-effectiveness chart (matchups)
 	$(BACKEND) uv run python -m app.ingest.type_chart
 
 enrich:        ## Add training & breeding info (gender, eggs, growth, EVs)
 	$(BACKEND) uv run python -m app.ingest.enrich
 
-data: migrate ingest items learnsets encounters enrich chart sprites variant-sprites female-sprites chunks  ## Full data pipeline
+data: migrate ingest items learnsets encounters enrich chart sprites variant-sprites female-sprites thumbs chunks  ## Full data pipeline
 	@echo "Data pipeline complete."
 
 test:          ## Run backend tests

@@ -14,7 +14,7 @@ make data
 ```
 
 runs, in order: `migrate` → `ingest` → `items` → `learnsets` → `encounters` →
-`enrich` → `chart` → `sprites` → `variant-sprites` → `female-sprites` → `chunks`.
+`enrich` → `chart` → `sprites` → `variant-sprites` → `female-sprites` → `thumbs` → `chunks`.
 
 | Target | Does |
 |---|---|
@@ -29,6 +29,7 @@ runs, in order: `migrate` → `ingest` → `items` → `learnsets` → `encounte
 | `ability-effects`, `move-targets` | backfills: ability short effects; move targeting for doubles |
 | `flavor`, `evolutions` | rebuild dex entries (one per game) or evolution edges |
 | `sprites`, `variant-sprites`, `female-sprites` | official artwork; HOME artwork for cosmetic variants; female artwork where it differs |
+| `thumbs` | 96px and 320px WebP copies of every sprite (`data/sprites/thumbs/`) for list views; ~6 min first run, then only new/changed files. Optional: the backend serves the PNG when a thumb is missing |
 | `chunks` | build `profile` + `dex_entry` chunks and embed them locally (fastembed — no API key needed) |
 
 ## Changing data on a populated DB

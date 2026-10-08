@@ -8,10 +8,10 @@ import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.api import ask, builder, calc, health, pokemon, profile, teams, traces
 from app.core.config import get_settings
+from app.core.static import CachedStaticFiles
 
 settings = get_settings()
 
@@ -60,9 +60,10 @@ async def ask_status() -> dict[str, object]:
     """Whether the RAG assistant is configured, and which provider is active."""
     return {"enabled": settings.llm_enabled, "provider": settings.llm_provider}
 
-# Serve downloaded Pokémon sprites as static files (e.g. /sprites/official-artwork/1.png).
+# Serve downloaded Pokémon sprites as static files (e.g. /sprites/official-artwork/1.png),
+# browser-cacheable: they only change when `make sprites` is re-run.
 if os.path.isdir(settings.sprites_dir):
-    app.mount("/sprites", StaticFiles(directory=settings.sprites_dir), name="sprites")
+    app.mount("/sprites", CachedStaticFiles(directory=settings.sprites_dir), name="sprites")
 
 
 @app.get("/", tags=["root"])

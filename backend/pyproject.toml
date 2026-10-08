@@ -17,6 +17,7 @@ dependencies = [
     "fastembed>=0.4.2",
     "anthropic>=0.40.0",
     "groq>=0.11.0",
+    "pillow>=12.3.0",
 ]
 
 [dependency-groups]
