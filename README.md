@@ -12,12 +12,10 @@ smarter planning, set suggestions and team summaries.
 
 ## Showcase
 
-[![pokérag tour: asking for the fastest non-legendary Fire types and getting a cited ranking](docs/media/pokerag-tour.gif)](docs/media/pokerag-tour.mp4)
+[![pokérag in 34 seconds: the Pokédex, a Garchomp detail page, Ask answering with citations, team grades and the dashboard calculators](docs/media/pokerag-promo.gif)](docs/media/pokerag-promo.mp4)
 
-**[Watch the full two-minute tour (MP4)](docs/media/pokerag-tour.mp4)**: the home
-dashboard (search, team coach, type calculator, Ask tile, lookup), the Pokédex catalog
-and a detail page, Ask answering a ranking and a learnset question with citations, and
-the team list and team page.
+[Motion video in full quality (MP4, 1080p)](docs/media/pokerag-promo.mp4) ·
+[Two-minute screen tour of every page (MP4)](docs/media/pokerag-tour.mp4)
 
 ## What's in it
 
