@@ -855,6 +855,8 @@ html[data-home] ::selection{background:var(--red);color:#fff;}
 .ga-look{grid-area:3/1/5/5;}.ga-tc{grid-area:3/5/5/9;}.ga-nat{grid-area:3/9/4/13;}.ga-cr{grid-area:4/9/5/13;}
 @media(max-width:1200px){.ga-look{grid-area:3/1/4/7;}.ga-tc{grid-area:3/7/4/13;}.ga-nat{grid-area:4/1/5/7;}.ga-cr{grid-area:4/7/5/13;}}
 @media(max-width:1000px){.ga-coach{grid-area:1/1/2/7;}.ga-ask{grid-area:1/7/2/13;}}
+/* a half-width nature tile is too narrow for "Adamant" below 800px: give it the row */
+@media(max-width:800px){.ga-nat{grid-area:4/1/5/13;}.ga-cr{grid-area:5/1/6/13;}}
 @media(max-width:620px){
   .ga-coach,.ga-ask,.ga-dc,.ga-look,.ga-tc,.ga-nat,.ga-cr{grid-column:1/13;}
   .ga-coach{grid-row:1;}.ga-ask{grid-row:2;}.ga-dc{grid-row:3;}.ga-look{grid-row:4;}.ga-tc{grid-row:5;}.ga-nat{grid-row:6;}.ga-cr{grid-row:7;}
@@ -1403,24 +1405,25 @@ html[data-home] ::selection{background:var(--red);color:#fff;}
 .lc-natmx .hc{font-family:var(--mono);font-size:11px;font-weight:700;text-transform:uppercase;display:flex;align-items:center;justify-content:center;padding:4px 0;}
 .lc-natmx .hc.dn{color:var(--red-text);} .lc-natmx .hc.up{color:var(--ok-text);}
 .lc-natmx .corner{font-family:var(--mono);font-size:12px;color:var(--dim);display:flex;align-items:center;justify-content:center;}
-.lc-natmx .cell{border-radius:7px;padding:9px 3px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;transition:background .12s,color .12s;line-height:1.05;color:var(--ink);white-space:nowrap;overflow:hidden;}
+.lc-natmx .cell{border-radius:7px;padding:9px 0;text-align:center;font-size:12px;letter-spacing:-.01em;font-weight:500;cursor:pointer;transition:background .12s,color .12s;line-height:1.05;color:var(--ink);white-space:nowrap;overflow:hidden;}
 .lc-natmx .cell:hover{background:#eef1f6;}
 .lc-natmx .cell.diag{color:var(--faint);}
-.lc-natmx .cell.on{background:var(--red);color:#fff;font-weight:600;}
+.lc-natmx .cell.on{background:var(--red);color:#fff;font-weight:500;box-shadow:0 0 0 2px var(--red);}  /* no bold, no side padding: "Adamant"/"Naughty" nearly fill a cell; the ring (= the gap) adds air */
 .ga-nat > .card{container-type:inline-size;}
 @container (max-width:325px){.lc-natmx .cell{font-size:12px;letter-spacing:-.01em;}}
 .lc-natnote{margin-top:14px;font-size:14px;color:var(--dim);}.lc-natnote b{color:var(--ink);}
 /* nature matrix on phones: tighter cells so all 6 columns fit, but text never shrinks
    below the legible floor (12px words, 11px caps codes). Measured: 12px fits a 313px
-   matrix (375px phone); a tile under 290px (320px phone) needs 11px for "Adamant". */
+   matrix (375px phone); a matrix under 302px (320px phone, narrow wide-screen column) needs 11px for "Adamant". */
 @media(max-width:620px){
   .lc-natmx{gap:2px;}
   .lc-natmx .cell{padding:8px 0;font-size:12px;letter-spacing:-.02em;}
-  .lc-natmx .cell.on{font-weight:600;}
+  .lc-natmx .cell.on{font-weight:500;}
   .lc-natmx .hc{font-size:11px;letter-spacing:0;}
   .lc-natmx .corner{font-size:12px;}
 }
-@container (max-width:290px){.lc-natmx{column-gap:2px;}.lc-natmx .hc.up{padding-right:0;}.lc-natmx .cell{font-size:11px;}}
+@media(max-width:340px){.ga-nat > .card{padding-inline:10px;}}  /* 320px phones: the 4px buys "Adamant" its last pixel */
+@container (max-width:301px){.lc-natmx{column-gap:2px;}.lc-natmx .hc.up{padding-right:0;}.lc-natmx .cell{font-size:11px;}}
 
 /* ============================================================================
    LIGHT "INSTRUMENT" THEME — scoped to html[data-lab] (Teams / Ask / Pokédex)
@@ -2769,5 +2772,5 @@ html[data-lab] .btn,html[data-home] .btn{font-family:var(--font-sans),sans-serif
 .tb__k{font-family:var(--font-sans),sans-serif;text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:500;color:var(--muted);}
 .ro-stats small{font-size:12px;}
 .se-mv .se-ibox .k{text-transform:capitalize;}  /* the move-type key ("dragon") is a flex box, so ::first-letter cannot reach it */
-@container (max-width:290px){.lc-natmx .cell{letter-spacing:-.03em;}.lc-natmx .cell.on{font-weight:500;}}
+@container (max-width:301px){.lc-natmx .cell{letter-spacing:-.03em;}.lc-natmx .cell.on{font-weight:500;}}
 
