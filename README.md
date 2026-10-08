@@ -15,7 +15,7 @@ smarter planning, set suggestions and team summaries.
 [![pokérag in 34 seconds: the Pokédex, a Garchomp detail page, Ask answering with citations, team grades and the dashboard calculators](docs/media/pokerag-promo.webp)](docs/media/pokerag-promo.mp4)
 
 [Motion video in full quality (MP4, 1440p)](docs/media/pokerag-promo.mp4) ·
-[Two-minute screen tour of every page (MP4)](docs/media/pokerag-tour.mp4)
+[Two-minute screen tour of every page (MP4, 1080p)](docs/media/pokerag-tour.mp4)
 
 ## What's in it
 
