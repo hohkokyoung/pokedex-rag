@@ -1,0 +1,237 @@
+<!doctype html>
+<!-- The README promo: a 34 s GSAP timeline over stills from capture.mjs.
+     render.mjs seeks it frame by frame (window.seek / window.TOTAL); open it in a
+     browser after `npm run capture` to preview. Scenes: s1 intro · s2 Pokédex ·
+     s3 Garchomp · s4 Ask · s5 Teams · s6 dashboard · s7 outro. -->
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
+<style>
+:root{--red:#e3350d;--ink:#14171d;--dim:#3f4650;--slate:#5f6773;--ground:#eef0f4;--panel:#fff;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
+body{font-family:'Space Grotesk',sans-serif;color:var(--ink);
+ background:radial-gradient(1200px 800px at 20% 10%,#f6f4f1 0,transparent 60%),radial-gradient(1000px 700px at 90% 100%,#e6e8f2 0,transparent 60%),var(--ground)}
+.scene{position:absolute;inset:0;visibility:hidden}
+.h{font-family:'Chakra Petch',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1}
+.sub{font-size:34px;line-height:1.35;color:var(--slate)}
+.card-shot{position:absolute;border-radius:22px;box-shadow:0 30px 70px -20px rgba(20,23,29,.28),0 0 0 1px rgba(20,23,29,.06);background:#fff;overflow:hidden}
+.card-shot img{display:block;width:100%}
+.mask{overflow:hidden;display:inline-block;vertical-align:bottom;padding-bottom:.08em}
+.mask>span{display:inline-block}
+.pill{display:inline-block;color:#fff;font-weight:600;font-size:30px;padding:8px 22px;border-radius:12px;margin-right:12px}
+/* S1 */
+#s1 .wrap{position:absolute;left:0;right:0;top:330px;display:flex;flex-direction:column;align-items:center}
+#s1 .row{display:flex;align-items:center;gap:40px}
+#s1 .logo{width:190px}
+#s1 .word{font-size:200px}
+#s1 .line{height:8px;width:620px;background:var(--red);border-radius:4px;margin-top:40px;transform-origin:left}
+#s1 .sub{margin-top:34px;font-size:44px;color:var(--dim)}
+/* S2 */
+#s2 .txt{position:absolute;left:140px;top:330px;width:700px}
+#s2 .txt .h{font-size:112px}
+#s2 .txt .sub{margin-top:36px}
+#s2 .stage{position:absolute;left:820px;top:-40px;width:1300px;height:1200px;perspective:1800px}
+#s2 .wall{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(22deg) rotateY(-24deg) rotateZ(6deg)}
+#s2 .wall img{position:absolute;width:272px;border-radius:18px;box-shadow:0 30px 60px -20px rgba(20,23,29,.35)}
+/* S3 */
+#s3 .num{position:absolute;left:40px;top:120px;font-size:640px;color:rgba(122,92,240,.10)}
+#s3 .art{position:absolute;left:150px;top:150px;width:800px;filter:drop-shadow(0 40px 50px rgba(60,40,140,.28))}
+#s3 .info{position:absolute;left:1020px;top:190px;width:780px}
+#s3 .meta{font-family:'JetBrains Mono',monospace;font-size:26px;letter-spacing:.25em;color:#c42b08}
+#s3 .name{font-size:160px;margin:18px 0 10px}
+#s3 .cat{font-size:38px;font-style:italic;color:var(--dim);margin-bottom:30px}
+#s3 .stats{margin-top:54px}
+#s3 .st{display:flex;align-items:center;gap:24px;height:58px;font-size:30px}
+#s3 .st b{width:90px;font-weight:600;color:var(--slate)}
+#s3 .st i{font-style:normal;width:70px;text-align:right;font-family:'JetBrains Mono',monospace;font-weight:500}
+#s3 .bar{flex:1;height:14px;border-radius:7px;background:#dfe2ea;overflow:hidden}
+#s3 .bar>div{height:100%;border-radius:7px;background:#7a5cf0;transform-origin:left}
+#s3 .bar.hi>div{background:#2fae6a}
+/* S4 */
+#s4 .head{position:absolute;left:410px;top:58px;height:110px;width:1200px}
+#s4 .head .h{position:absolute;left:0;top:0;font-size:96px;white-space:nowrap}
+#s4 .search{position:absolute;left:410px;top:196px;width:1100px;height:92px;background:#fff;border-radius:22px;
+ box-shadow:0 0 0 2px rgba(227,53,13,.35),0 20px 50px -20px rgba(20,23,29,.25);display:flex;align-items:center;padding:0 16px 0 34px;gap:22px;font-size:36px}
+#s4 .search svg{flex:none}
+#s4 .q{flex:1;white-space:nowrap}
+#s4 .caret{display:inline-block;width:3px;height:40px;background:var(--ink);vertical-align:middle;margin-left:2px}
+#s4 .btn{background:var(--red);color:#fff;font-weight:600;font-size:30px;padding:16px 34px;border-radius:14px}
+#s4 .t0{left:410px;top:312px;width:1100px}
+#s4 .t1{left:410px;top:526px;width:1100px}
+#s4 .ring{position:absolute;left:1447px;top:572px;width:46px;height:330px;border:5px solid var(--red);border-radius:18px;transform-origin:top}
+/* S5 */
+#s5 .txt{position:absolute;left:140px;top:300px;width:760px}
+#s5 .txt .h{font-size:104px}
+#s5 .txt .sub{margin-top:36px}
+#s5 .sprites{margin-top:56px;display:flex;gap:10px}
+#s5 .sprites img{width:96px;height:96px;object-fit:contain;background:#fff;border-radius:18px;box-shadow:0 0 0 1px rgba(20,23,29,.07)}
+#s5 .rate{left:1000px;top:120px;width:820px}
+/* S6 */
+#s6 .top{position:absolute;left:0;right:0;top:56px;text-align:center}
+#s6 .top .h{font-size:84px}
+#s6 .top .sub{margin-top:20px}
+#s6 .bento{position:absolute;inset:0;transform-origin:960px 560px}
+#s6 .a{left:337px;top:250px;width:300px}
+#s6 .b{left:665px;top:250px;width:589px}
+#s6 .c{left:1282px;top:250px;width:300px}
+#s6 .d{left:1282px;top:719px;width:300px}
+/* S7 */
+#s7 .wrap{position:absolute;left:0;right:0;top:300px;display:flex;flex-direction:column;align-items:center}
+#s7 .row{display:flex;align-items:center;gap:34px}
+#s7 .logo{width:150px}
+#s7 .word{font-size:160px}
+#s7 .tags{margin-top:56px;display:flex;gap:18px}
+#s7 .tags span{font-size:32px;font-weight:500;padding:14px 28px;border-radius:999px;background:#fff;box-shadow:0 0 0 1px rgba(20,23,29,.08)}
+#s7 .url{margin-top:60px;font-family:'JetBrains Mono',monospace;font-size:34px;color:#c42b08}
+#wipe{position:absolute;inset:0;background:var(--red);transform:scaleX(0);transform-origin:left;z-index:10}
+</style></head>
+<body>
+<section class="scene" id="s1"><div class="wrap">
+  <div class="row"><img class="logo" src="../build/assets/logo.svg"><div class="h word"><span class="mask"><span>poké</span></span><span class="mask"><span>rag</span></span></div></div>
+  <div class="line"></div>
+  <div class="sub">The Pokédex that shows its sources.</div>
+</div></section>
+
+<section class="scene" id="s2">
+  <div class="txt"><div class="h"><span class="mask"><span>Every one of</span></span><br><span class="mask"><span>1,025 Pokémon.</span></span></div>
+  <div class="sub">Stats, moves, matchups, evolutions and where to catch them.</div></div>
+  <div class="stage"><div class="wall"></div></div>
+</section>
+
+<section class="scene" id="s3">
+  <div class="h num">0445</div>
+  <img class="art" src="../build/assets/art445.png">
+  <div class="info">
+    <div class="meta">#0445 · GENERATION IV</div>
+    <div class="h name"><span class="mask"><span>Garchomp</span></span></div>
+    <div class="cat">Mach Pokémon</div>
+    <div><span class="pill" style="background:#7a5cf0">Dragon</span><span class="pill" style="background:#e0c068">Ground</span></div>
+    <div class="stats"></div>
+  </div>
+</section>
+
+<section class="scene" id="s4">
+  <div class="head"><div class="h h1">Ask in plain English.</div><div class="h h2">Every answer cites its source.</div></div>
+  <div class="search"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#5f6773" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <div class="q"></div><div class="btn">Ask</div></div>
+  <div class="card-shot t0"><img src="../build/assets/asktile0.png"></div>
+  <div class="card-shot t1"><img src="../build/assets/asktile1.png"></div>
+  <div class="ring"></div>
+</section>
+
+<section class="scene" id="s5">
+  <div class="txt"><div class="h"><span class="mask"><span>Build a team.</span></span><br><span class="mask"><span>Get a grade.</span></span></div>
+  <div class="sub">Six grades, strategy axes, and a coach that drafts changes. Nothing saves until you apply.</div>
+  <div class="sprites"></div></div>
+  <div class="card-shot rate"><img src="../build/assets/rating.png"></div>
+</section>
+
+<section class="scene" id="s6">
+  <div class="top"><div class="h"><span class="mask"><span>The maths, on one dashboard.</span></span></div>
+  <div class="sub">Damage ranges, type matchups, natures and catch rates.</div></div>
+  <div class="bento"><div class="card-shot a"><img src="../build/assets/typecalc.png"></div>
+  <div class="card-shot b"><img src="../build/assets/damage.png"></div>
+  <div class="card-shot c"><img src="../build/assets/catch.png"></div>
+  <div class="card-shot d"><img src="../build/assets/nature.png"></div></div>
+</section>
+
+<section class="scene" id="s7"><div class="wrap">
+  <div class="row"><img class="logo" src="../build/assets/logo.svg"><div class="h word">pokérag</div></div>
+  <div class="tags"><span>Grounded answers</span><span>Runs locally</span><span>Works without an LLM key</span></div>
+  <div class="url">github.com/hohkokyoung/pokedex-rag</div>
+</div></section>
+<div id="wipe"></div>
+
+<script src="../build/assets/gsap.min.js"></script>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+// build dynamic bits
+const wall=$('#s2 .wall');
+[1,4,7,25,6,9,65,59].forEach((d,i)=>{const im=new Image();im.src=`../build/assets/card${d}.png`;
+  im.style.left=(i%4)*300+'px';im.style.top=(Math.floor(i/4)*430+180+(i%2)*60)+'px';wall.appendChild(im);});
+const stats=[['HP',108],['Atk',130],['Def',95],['SpA',80],['SpD',85],['Spe',102]];
+$('#s3 .stats').innerHTML=stats.map(([k,v])=>`<div class="st"><b>${k}</b><div class="bar ${k==='Atk'?'hi':''}"><div style="transform:scaleX(${v/160})"></div></div><i>${v}</i></div>`).join('');
+const Q='Fastest non-legendary Fire types';
+$('#s4 .q').innerHTML=[...Q].map(c=>`<span class="ch" style="display:none">${c===' '?'&nbsp;':c}</span>`).join('')+'<span class="caret"></span>';
+$('#s5 .sprites').innerHTML=[0,1,2,3,4,5].map(i=>`<img src="../build/assets/team${i}.png" onerror="this.remove()">`).join('');
+
+const tl=gsap.timeline({paused:true,defaults:{ease:'power3.out'}});
+const show=(s,t)=>tl.set(s,{visibility:'visible'},t), hide=(s,t)=>tl.set(s,{visibility:'hidden'},t);
+// S1 0–3.6
+show('#s1',0);
+tl.from('#s1 .logo',{scale:0,rotation:-120,duration:.9,ease:'back.out(1.6)'},.15)
+  .from('#s1 .mask>span',{yPercent:110,duration:.8,stagger:.12},.55)
+  .from('#s1 .line',{scaleX:0,duration:.7,ease:'power2.inOut'},1.2)
+  .from('#s1 .sub',{y:30,opacity:0,duration:.7},1.5)
+  .to('#s1 .wrap',{scale:.92,opacity:0,y:-40,duration:.5,ease:'power2.in'},3.1);
+hide('#s1',3.6);
+// S2 3.6–8.4
+show('#s2',3.6);
+tl.from('#s2 .mask>span',{yPercent:110,duration:.8,stagger:.12},3.7)
+  .from('#s2 .sub',{y:30,opacity:0,duration:.7},4.2)
+  .from('#s2 .wall img',{z:-900,y:500,opacity:0,rotationX:-40,duration:1.1,stagger:.08,ease:'expo.out'},3.75)
+  .fromTo('#s2 .wall',{y:60},{y:-90,duration:4.8,ease:'none'},3.6)
+  .to('#s2 .txt',{x:-80,opacity:0,duration:.45,ease:'power2.in'},8.0)
+  .to('#s2 .stage',{x:200,opacity:0,duration:.45,ease:'power2.in'},8.0);
+hide('#s2',8.45);
+// S3 8.45–12.8
+show('#s3',8.45);
+tl.from('#s3 .num',{x:-200,opacity:0,duration:1.2},8.45)
+  .from('#s3 .art',{scale:.6,x:-120,rotation:-8,opacity:0,duration:1,ease:'back.out(1.3)'},8.55)
+  .to('#s3 .art',{y:-18,duration:3,ease:'sine.inOut'},9.5)
+  .from('#s3 .meta',{opacity:0,y:20,duration:.5},8.8)
+  .from('#s3 .name .mask>span',{yPercent:110,duration:.8},8.9)
+  .from('#s3 .cat',{opacity:0,y:20,duration:.5},9.2)
+  .from('#s3 .pill',{scale:0,duration:.5,stagger:.1,ease:'back.out(2)'},9.35)
+  .from('#s3 .st',{opacity:0,x:40,duration:.5,stagger:.07},9.6)
+  .from('#s3 .bar>div',{scaleX:0,duration:1.1,stagger:.07,ease:'power2.out'},9.7)
+  .to('#s3',{opacity:0,duration:.4,ease:'power2.in'},12.4);
+hide('#s3',12.8);
+// S4 12.8–20.6
+show('#s4',12.8);
+tl.from('#s4 .h1',{y:40,opacity:0,duration:.6},12.85)
+  .from('#s4 .search',{y:60,opacity:0,scale:.96,duration:.7},12.95)
+  
+  .to('#s4 .btn',{scale:.9,duration:.12,yoyo:true,repeat:1,ease:'power1.inOut'},15.5)
+  .from('#s4 .t0',{y:120,opacity:0,duration:.8},15.8)
+  .from('#s4 .t1',{y:160,opacity:0,duration:.9},16.15)
+  .to('#s4 .h1',{y:-40,opacity:0,duration:.4,ease:'power2.in'},17.6)
+  .from('#s4 .h2',{y:40,opacity:0,duration:.6},17.9)
+  .from('#s4 .ring',{scaleY:0,opacity:0,duration:.6,ease:'power2.inOut'},18.1)
+  .to('#s4 .ring',{scale:1.06,duration:.35,yoyo:true,repeat:3,ease:'sine.inOut'},18.7)
+  .to('#s4',{opacity:0,y:-30,duration:.4,ease:'power2.in'},20.2);
+tl.set('#s4 .caret',{opacity:0},15.6);
+$$('#s4 .ch').forEach((c,i)=>tl.set(c,{display:'inline'},13.6+i*.055));
+hide('#s4',20.6);
+// S5 20.6–25.6
+show('#s5',20.6);
+tl.from('#s5 .mask>span',{yPercent:110,duration:.8,stagger:.12},20.7)
+  .from('#s5 .sub',{y:30,opacity:0,duration:.7},21.1)
+  .from('#s5 .sprites img',{y:40,opacity:0,scale:.6,duration:.6,stagger:.07,ease:'back.out(1.8)'},21.4)
+  .from('#s5 .rate',{x:300,opacity:0,rotation:3,duration:1,ease:'expo.out'},20.75)
+  .to('#s5 .rate',{y:-420,duration:3.8,ease:'power1.inOut'},21.5)
+  .to('#s5',{opacity:0,duration:.4,ease:'power2.in'},25.2);
+hide('#s5',25.6);
+// S6 25.6–30
+show('#s6',25.6);
+tl.from('#s6 .mask>span',{yPercent:110,duration:.8},25.7)
+  .from('#s6 .sub',{y:30,opacity:0,duration:.7},26.0)
+  .from('#s6 .card-shot',{y:500,rotation:i=>[-8,4,8,-6][i],opacity:0,duration:1,stagger:.12,ease:'expo.out'},25.8)
+  .to('#s6 .top',{y:-60,opacity:0,duration:.5,ease:'power2.in'},27.2)
+  .to('#s6 .bento',{scale:1.42,y:-40,duration:2.2,ease:'power2.inOut'},27.2);
+// wipe into outro
+tl.to('#wipe',{scaleX:1,duration:.45,ease:'power3.in'},29.6)
+  .set('#wipe',{transformOrigin:'right'},30.05);
+hide('#s6',30.05); show('#s7',30.05);
+tl.to('#wipe',{scaleX:0,duration:.5,ease:'power3.out'},30.05)
+  .from('#s7 .logo',{scale:0,rotation:-90,duration:.8,ease:'back.out(1.6)'},30.25)
+  .from('#s7 .word',{x:-40,opacity:0,duration:.7},30.45)
+  .from('#s7 .tags span',{y:30,opacity:0,duration:.6,stagger:.12},30.9)
+  .from('#s7 .url',{opacity:0,y:20,duration:.6},31.4)
+  .set({},{},34.0);
+window.TOTAL=tl.duration();
+window.seek=t=>{tl.seek(t,false);};
+window.ready=Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode().catch(()=>{}))]);
+</script>
+</body></html>

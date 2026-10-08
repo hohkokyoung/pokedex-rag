@@ -1,0 +1,16 @@
+{
+  "name": "pokerag-video",
+  "private": true,
+  "type": "module",
+  "description": "Renders the README promo and screen tour from the running app.",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "render": "node render.mjs",
+    "promo": "node capture.mjs && node render.mjs",
+    "tour": "node tour.mjs"
+  },
+  "dependencies": {
+    "gsap": "3.12.5",
+    "playwright": "1.56.1"
+  }
+}

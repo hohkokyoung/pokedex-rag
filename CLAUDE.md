@@ -33,6 +33,7 @@ backend/   FastAPI · SQLAlchemy (async) · Alembic · Pydantic
   app/ingest/    CSV → DB, chunk embedding
   eval/          labelled eval set + harness
 data/raw/pokeapi/  CSV dataset (git-ignored)   data/sprites/  artwork (git-ignored)
+tools/video/  README promo + screen tour, rendered from the running app → docs/media/
 ```
 
 ## Commands
@@ -46,6 +47,7 @@ make eval      # eval report (LLM if keyed; paced to Groq TPM — spends tokens)
 make lint      # ruff + eslint
 make damage-fixtures  # regenerate the calc's TS→Python reference cases (Node ≥ 22.18)
 make traces    # how recent questions were planned (ARGS="--fallback" / "--id N")
+make video-promo  # re-render the README promo + preview from the running app (also video-tour)
 ```
 
 Backend runs in Docker; the data pipeline scripts run on the **host** against the

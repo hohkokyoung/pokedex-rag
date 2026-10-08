@@ -17,6 +17,9 @@ smarter planning, set suggestions and team summaries.
 [Motion video in full quality (MP4, 1440p)](docs/media/pokerag-promo.mp4) ·
 [Two-minute screen tour of every page (MP4, 1080p)](docs/media/pokerag-tour.mp4)
 
+Both are rendered from the running app: `make video-promo` and `make video-tour`
+([how](docs/guides/media.md)).
+
 ## What's in it
 
 - **Home** — a dashboard: your teams at a glance, a type calculator, the Ask tile, a

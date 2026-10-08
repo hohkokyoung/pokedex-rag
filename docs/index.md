@@ -4,8 +4,8 @@
 |---|---|---|
 | **product/** | what each page of the site does | [home](product/home.md) · [pokedex](product/pokedex.md) · [ask](product/ask.md) · [teams](product/teams.md) |
 | **architecture/** | how it works and why | [overview](architecture/overview.md) · [data](architecture/data.md) · [ask-agent](architecture/ask-agent.md) ([planners](architecture/ask-agent-planners.md), [traces](architecture/ask-agent-traces.md)) · [retrieval](architecture/retrieval.md) · [team-coach](architecture/team-coach.md) · [damage-calc](architecture/damage-calc.md) |
-| **guides/** | how to do things | [local-dev](guides/local-dev.md) · [data-pipeline](guides/data-pipeline.md) · [eval](guides/eval.md) |
-| **components/** | code → docs/specs/decisions index (YAML, for tooling) | [about](components/README.md) · [pokedex](components/pokedex.yaml) · [ask-agent](components/ask-agent.yaml) · [retrieval](components/retrieval.yaml) · [team-coach](components/team-coach.yaml) · [damage-calc](components/damage-calc.yaml) · [data-pipeline](components/data-pipeline.yaml) |
+| **guides/** | how to do things | [local-dev](guides/local-dev.md) · [data-pipeline](guides/data-pipeline.md) · [eval](guides/eval.md) · [media](guides/media.md) |
+| **components/** | code → docs/specs/decisions index (YAML, for tooling) | [about](components/README.md) · [pokedex](components/pokedex.yaml) · [ask-agent](components/ask-agent.yaml) · [retrieval](components/retrieval.yaml) · [team-coach](components/team-coach.yaml) · [damage-calc](components/damage-calc.yaml) · [data-pipeline](components/data-pipeline.yaml) · [media](components/media.yaml) |
 | **decisions/** | why it's built this way (ADRs) | [all ADRs](decisions/README.md) |
 
 Elsewhere:

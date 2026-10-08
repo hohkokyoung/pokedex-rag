@@ -5,7 +5,7 @@
 DB_URL ?= postgresql+asyncpg://pokedex:pokedex@localhost:5433/pokedex
 BACKEND = cd backend && DATABASE_URL=$(DB_URL)
 
-.PHONY: traces damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites thumbs data test lint
+.PHONY: video-setup video-promo video-tour traces damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites thumbs data test lint
 
 up:            ## Build and start the full stack
 	docker compose up --build -d
@@ -94,3 +94,17 @@ eval:          ## Run the RAG evaluation report
 lint:          ## Lint backend + frontend
 	cd backend && uv run ruff check .
 	cd frontend && npm run lint
+
+# README videos (tools/video, docs/guides/media.md). Need the stack up (make up),
+# ffmpeg and uv. They read the app's ports from Compose, and may spend a few LLM calls.
+VIDEO = cd tools/video && APP_URL=http://localhost:$$(docker compose port frontend 3000 | cut -d: -f2) \
+	API_URL=http://localhost:$$(docker compose port backend 8000 | cut -d: -f2)
+
+video-setup:   ## Install the video tools' deps and Playwright's Chromium (once)
+	cd tools/video && npm ci && npx playwright install chromium
+
+video-promo:   ## Re-capture the UI and render the promo MP4 + README preview → docs/media/
+	$(VIDEO) node capture.mjs && node render.mjs
+
+video-tour:    ## Re-record the two-minute screen tour → docs/media/pokerag-tour.mp4
+	$(VIDEO) node tour.mjs

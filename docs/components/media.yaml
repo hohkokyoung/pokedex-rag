@@ -1,0 +1,15 @@
+name: media
+description: The README's promo video, its inline preview and the screen tour, rendered from the running app.
+
+code:
+  - tools/video/
+  - docs/media/
+
+documentation:
+  - docs/guides/media.md
+
+depends_on:
+  - pokedex
+  - ask-agent
+  - team-coach
+  - damage-calc
