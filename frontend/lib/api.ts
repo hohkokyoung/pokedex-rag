@@ -525,6 +525,8 @@ export type SlotSuggestion = {
   ability_reason: string | null;
   recommended_nature: string | null;
   recommended_evs: Record<string, number>;
+  /** A held item for the member's role, chosen by the backend engine. */
+  recommended_item?: string | null;
   rationale: string;
   recommended_moves: SuggestedMove[];
 };

@@ -71,6 +71,7 @@ class SlotSuggestion(BaseModel):
     ability_reason: str | None = None
     recommended_nature: str | None = None
     recommended_evs: dict[str, int]
+    recommended_item: str | None = None  # a held item for the member's role
     rationale: str
     recommended_moves: list[SuggestedMove] = []
 

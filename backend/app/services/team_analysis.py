@@ -78,7 +78,7 @@ async def analyze(
     offensive = await _offensive(session, fighters)
     roles = _roles(members)
     set_profile = _sets(members)
-    suggestions = await _suggestions(session, members, fighters)
+    suggestions = await _suggestions(session, members, fighters, roles)
     vs = _vs_opponent(members, fighters, opponent, foes) if opponent else None
     summary = _summary(len(members), defensive, offensive, roles, vs)
 
@@ -278,9 +278,28 @@ def _sets(members: list[TeamMemberOut]) -> SetProfile:
     return SetProfile(members=out)
 
 
+def _suggest_item(m: TeamMemberOut, role: str | None) -> str:
+    """A held item for the member's role (base stats; moved from the website's report)."""
+    bs = m.base_stats
+    physical = bs.get("attack", 0) >= bs.get("sp_attack", 0)
+    if role in ("Wall", "Tank"):
+        return "Leftovers"
+    if role == "Wallbreaker":
+        return "Choice Band" if physical else "Choice Specs"
+    if role == "Fast attacker":
+        return "Life Orb"
+    if bs.get("hp", 0) + bs.get("defense", 0) + bs.get("sp_defense", 0) < 200:
+        return "Focus Sash"
+    return "Leftovers"
+
+
 async def _suggestions(
-    session: AsyncSession, members: list[TeamMemberOut], fighters: list[battle.Fighter]
+    session: AsyncSession,
+    members: list[TeamMemberOut],
+    fighters: list[battle.Fighter],
+    roles: RoleProfile,
 ) -> list[SlotSuggestion]:
+    role_of = {r.slot: r.role for r in roles.members}
     learned = {f.slot: [mv for mv in f.moves if mv.learned] for f in fighters}
     pokemon_ids = {m.pokemon_id for m in members}
     ability_by_pokemon: dict[int, list[tuple[str, str | None]]] = defaultdict(list)
@@ -308,6 +327,7 @@ async def _suggestions(
                 ability_reason=ability_reason,
                 recommended_nature=nature,
                 recommended_evs=evs,
+                recommended_item=_suggest_item(m, role_of.get(m.slot)),
                 rationale=rationale,
                 recommended_moves=[
                     SuggestedMove(

@@ -268,3 +268,23 @@ def test_duel_log_records_setup_attacks_and_faint() -> None:
     assert "attack" in kinds and "faint" in kinds
     if d.a_setup:
         assert d.log[0]["kind"] == "setup" and d.log[0]["move"] == "Swords Dance"
+
+
+def test_suggested_item_follows_the_role() -> None:
+    """The engine suggests a held item per member (moved from the website's TeamReport)."""
+    from app.services.team_analysis import _suggest_item
+
+    garchomp = _member(1, "Garchomp", ["dragon", "ground"], {
+        "hp": 108, "attack": 130, "defense": 95, "sp_attack": 80, "sp_defense": 85, "speed": 102})
+    gengar = _member(2, "Gengar", ["ghost", "poison"], {
+        "hp": 60, "attack": 65, "defense": 60, "sp_attack": 130, "sp_defense": 75, "speed": 110})
+    frail = _member(3, "Abra", ["psychic"], {
+        "hp": 25, "attack": 20, "defense": 15, "sp_attack": 105, "sp_defense": 55, "speed": 90})
+    assert _suggest_item(garchomp, "Wall") == "Leftovers"
+    assert _suggest_item(garchomp, "Tank") == "Leftovers"
+    assert _suggest_item(garchomp, "Wallbreaker") == "Choice Band"
+    assert _suggest_item(gengar, "Wallbreaker") == "Choice Specs"
+    assert _suggest_item(garchomp, "Fast attacker") == "Life Orb"
+    assert _suggest_item(frail, "Attacker") == "Focus Sash"  # HP+Def+SpD < 200
+    assert _suggest_item(garchomp, "Balanced") == "Leftovers"
+    assert _suggest_item(garchomp, None) == "Leftovers"

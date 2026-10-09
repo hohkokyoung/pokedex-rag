@@ -265,15 +265,6 @@ function TypeFacts({ p, compact = false }: { p: Profile; compact?: boolean }) {
 type Member = Team["members"][number];
 
 /** A held item to start from when the slot has none, by the member's role. */
-function suggestItem(m: Member, role: string | undefined): string {
-  const physical = (m.base_stats.attack ?? 0) >= (m.base_stats.sp_attack ?? 0);
-  if (role === "Wall" || role === "Tank") return "Leftovers";
-  if (role === "Wallbreaker") return physical ? "Choice Band" : "Choice Specs";
-  if (role === "Fast attacker") return "Life Orb";
-  if ((m.base_stats.hp ?? 0) + (m.base_stats.defense ?? 0) + (m.base_stats.sp_defense ?? 0) < 200) return "Focus Sash";
-  return "Leftovers";
-}
-
 /** Each member's set, with the engine's suggestion shown wherever nothing is set yet,
  *  and a button to use it (Undo puts the old set back). */
 function SetsDetail({ team, a, onChanged }: { team: Team; a: TeamAnalysis; onChanged?: (t: Team) => void }) {
@@ -282,8 +273,7 @@ function SetsDetail({ team, a, onChanged }: { team: Team; a: TeamAnalysis; onCha
   const [err, setErr] = useState<string | null>(null);
   const rows = [...team.members].sort((x, y) => x.slot - y.slot).map((m) => {
     const sug = a.suggestions.find((x) => x.slot === m.slot);
-    const role = a.roles.members.find((x) => x.slot === m.slot)?.role;
-    return { m, sug, item: m.item?.name ?? null, sugItem: suggestItem(m, role) };
+    return { m, sug, item: m.item?.name ?? null, sugItem: sug?.recommended_item ?? null };
   });
   const use = async (r: (typeof rows)[number]) => {
     if (!onChanged || !r.sug) return;

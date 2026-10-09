@@ -15,7 +15,7 @@ against ingested legal data — the species' learnset, abilities, natures, items
 
 | Module | Produces |
 |---|---|
-| `services/team_analysis.py` | type coverage, shared weaknesses (a type hitting 3+ members), role balance, per-slot ability/EV/nature suggestions, vs-opponent diff |
+| `services/team_analysis.py` | type coverage, shared weaknesses (a type hitting 3+ members), role balance, per-slot ability/EV/nature/held-item suggestions, vs-opponent diff |
 | `services/team_strategy.py` | six axes — offense, bulk, speed, setup, stall, support — from base stats plus curated move/ability lists. Set moves count fully, learnable ones partly (`now` vs `potential`); TM staples (Protect, Toxic, Rest, Sub) only when set |
 | `services/recommend.py` | ranked candidate additions by role (sweeper / wall / wallbreaker) or by how well they patch the analysis |
 | `services/battle.py` | turn-by-turn duels between two teams — a separate engine from the damage calculator, on purpose |
