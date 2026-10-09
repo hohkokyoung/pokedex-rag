@@ -28,7 +28,7 @@ from app.schemas.team import (
     TeamOut,
     TeamUpdate,
 )
-from app.services import team_analysis, team_strategy
+from app.services import coach_report, team_analysis, team_strategy
 from app.services import teams as teams_service
 
 log = logging.getLogger(__name__)
@@ -135,6 +135,26 @@ async def duel_detail(
     return out
 
 
+async def _coach_report(session: AsyncSession, team: TeamOut, opponent: TeamOut | None,
+                        analysis: TeamAnalysis) -> str:
+    """The team report the coach reads first, built here so every client gets the same.
+
+    Ratings only exist on the opponent-free analysis, so with an opponent each side is
+    rated separately; the matchup comes from the analysis the coach already has.
+    """
+
+    async def rating(t: TeamOut, a: TeamAnalysis | None = None):
+        if not t.members:
+            return None
+        a = a or await team_analysis.analyze(session, t)
+        return a.rating if a.profile is not None else None
+
+    if opponent is None:
+        return coach_report.report_facts(team, await rating(team, analysis))
+    return coach_report.report_facts(team, await rating(team), opponent, await rating(opponent),
+                                     analysis.vs_opponent)
+
+
 @router.post("/{team_id}/ask")
 async def coach_ask(team_id: int, payload: CoachAskRequest) -> StreamingResponse:
     """SSE coaching over a team, planned like Ask (see ``app.agent``).
@@ -156,8 +176,9 @@ async def coach_ask(team_id: int, payload: CoachAskRequest) -> StreamingResponse
                 if payload.opponent_id is not None:
                     opponent = await teams_service.get_team(session, payload.opponent_id)
                 analysis = await team_analysis.analyze(session, team, opponent)
+                report = await _coach_report(session, team, opponent, analysis)
             ctx = AgentContext(scope="team", team=team, opponent=opponent,
-                               report=payload.report, extra={"analysis": analysis})
+                               report=report, extra={"analysis": analysis})
             async for name, data in run_question(payload.question, "team", ctx=ctx):
                 if name == "plan" and planner is None:
                     planner = data["planner"]

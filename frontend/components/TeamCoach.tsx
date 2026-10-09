@@ -34,7 +34,6 @@ function streamCoach(
   teamId: number,
   question: string,
   opponentId: number | null,
-  report: string | undefined,
   patch: (fn: (t: AskRun) => AskRun) => void,
   onTeamUpdated: (team: Team) => void,
 ): AbortController {
@@ -53,7 +52,7 @@ function streamCoach(
       patch((t) =>
         applyError(t, reason === "assistant-not-configured" ? "The coach needs an LLM API key to answer." : "The coach couldn't answer. Try again."),
       ),
-  }, report);
+  });
   return ctrl;
 }
 
@@ -64,9 +63,7 @@ export default function TeamCoach({
   onAddCandidate,
   onTeamUpdated,
   onOpponentUpdated,
-  report,
 }: {
-  report?: string;
   team: Team;
   opponent: Team | null;
   disabled: boolean;
@@ -105,7 +102,7 @@ export default function TeamCoach({
     const idx = turns.length;
     setTurns((ts) => [...ts, startRun(q)]);
     abortRef.current?.abort();
-    abortRef.current = streamCoach(team.id, q, opponent?.id ?? null, report, (fn) => patchTurn(idx, fn), onTeamUpdated);
+    abortRef.current = streamCoach(team.id, q, opponent?.id ?? null, (fn) => patchTurn(idx, fn), onTeamUpdated);
   };
 
   return (

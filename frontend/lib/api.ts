@@ -949,9 +949,9 @@ export function coachAskStream(
   question: string,
   opponentId: number | null,
   handlers: StreamHandlers,
-  report?: string,
 ): Promise<void> {
-  return streamSSE(`/api/teams/${teamId}/ask`, { question, opponent_id: opponentId, report: report || null }, handlers);
+  // The server builds the team report the coach reads (services/coach_report.py).
+  return streamSSE(`/api/teams/${teamId}/ask`, { question, opponent_id: opponentId }, handlers);
 }
 
 /** The calculator as the coach sees it; stats, types and move data are re-read server-side. */

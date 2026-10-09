@@ -24,8 +24,6 @@ import TeamCoach from "@/components/TeamCoach";
 import TeamReport from "@/components/TeamReport";
 import TeamRoster from "@/components/TeamRoster";
 import Dropdown from "@/components/Dropdown";
-import { reportFacts } from "@/components/TeamMatchupText";
-import { profileOf } from "@/lib/teamEval";
 import { discardDraft, keepDraft, promoteDraft, replaceMissingDraft } from "@/lib/draftTeams";
 
 const SLOTS = [1, 2, 3, 4, 5, 6];
@@ -328,14 +326,6 @@ export default function TeamWorkbench({
           onAddCandidate={addPokemon}
           onTeamUpdated={(t) => setTeam(t)}
           onOpponentUpdated={(t) => setOppTeam(t)}
-          report={reportFacts(
-            team,
-            team.members.length ? (profileOf(rated)?.rating ?? null) : null,
-            opponentId && oppTeam?.id === opponentId
-              ? { team: oppTeam, rating: oppRated?.team_id === oppTeam.id && oppTeam.members.length ? (profileOf(oppRated)?.rating ?? null) : null }
-              : null,
-            versus,
-          )}
         />
       </div>
 

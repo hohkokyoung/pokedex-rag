@@ -7,7 +7,6 @@
 
 import { Fragment, type ReactNode } from "react";
 import { type Team, type VsOpponent, thumb } from "@/lib/api";
-import type { Rating } from "@/lib/teamEval";
 
 type Cell = VsOpponent["cells"][number];
 
@@ -52,8 +51,8 @@ const Mini = ({ src, size = 30 }: { src: string; size?: number }) => (
   <img loading="lazy" decoding="async" src={thumb(src, size)} alt="" width={size} height={size} style={{ objectFit: "contain" }} />
 );
 
-/** The one-on-one results behind the Matchup card, per Pokémon: shared by the card
- *  and by the facts sent to the coach, so both say the same thing. */
+/** The one-on-one results behind the Matchup card, per Pokémon. (The coach's copy of
+ *  these facts is built by the server: services/coach_report.py.) */
 export function computeMatchup(team: Team, opponent: Team, vs: VsOpponent) {
   const ours = vs.our_members;
   const theirs = vs.their_members;
@@ -85,41 +84,6 @@ export function computeMatchup(team: Team, opponent: Team, vs: VsOpponent) {
     .sort((a, b) => b.wins - a.wins);
 
   return { ours, theirs, oName, tName, threats, mine };
-}
-
-/** The page's report as plain text for the coach: both ratings with every area's
- *  verdict and fix, the matchup verdict, their top threats with your answers, and
- *  the plan — the same numbers the page shows. */
-export function reportFacts(
-  team: Team,
-  rating: Rating | null,
-  opponent?: { team: Team; rating: Rating | null } | null,
-  vs?: VsOpponent | null,
-): string {
-  const lines: string[] = [];
-  const rated = (name: string, r: Rating) => {
-    lines.push(`${name}: overall ${r.overall}/100 (${r.grade})${r.capped ? `, scaled for a ${Math.round((r.ceiling * 6) / 100)}/6 roster` : ""}.`);
-    for (const x of r.areas) lines.push(`- ${name} ${x.label} ${x.grade} (${x.score}): ${x.headline}.${x.fix ? ` Fix: ${x.fix}` : ""}`);
-  };
-  if (rating) rated(`Your team "${team.name}"`, rating);
-  if (opponent?.rating) rated(`Opponent "${opponent.team.name}"`, opponent.rating);
-  if (opponent && vs) {
-    const t = tally(vs);
-    lines.push(`Matchup verdict: ${matchupHeadline(vs, opponent.team.name)} — you win ${t.you} of ${t.n} one-on-ones, they win ${t.them}${t.close ? `, ${t.close} close` : ""}.`);
-    const m = computeMatchup(team, opponent.team, vs);
-    for (const th of m.threats.slice(0, 4)) {
-      const a = th.answers[0];
-      lines.push(
-        `Threat: ${th.x.name} beats ${th.beats.length} of your ${m.ours.length}${th.move ? ` with ${th.move}` : ""}${th.setup ? ` after ${th.setup}` : ""}; ` +
-          (a ? `your best answer is ${m.oName(a.our_slot)} (takes ${Math.round(a.their_pct)}%, KOs in ${a.our_hko} with ${a.our_move}).` : "nothing on your team beats it one-on-one."),
-      );
-    }
-    const lead = m.mine[0];
-    if (lead) lines.push(`Best lead: ${lead.o.name}, wins ${lead.wins} of ${lead.n} pairings.`);
-    const idle = m.mine.filter((x) => x.wins === 0).map((x) => x.o.name);
-    if (idle.length) lines.push(`Wins no pairing here: ${idle.join(", ")}.`);
-  }
-  return lines.join("\n");
 }
 
 export default function TeamMatchupText({ team, opponent, vs }: { team: Team; opponent: Team; vs: VsOpponent }) {

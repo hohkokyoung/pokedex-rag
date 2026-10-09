@@ -172,9 +172,8 @@ class TeamListResponse(BaseModel):
 class CoachAskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     opponent_id: int | None = None
-    # What the team page shows (ratings, area verdicts, matchup threats, plan) as plain
-    # text, so the coach's answer agrees with the report the user is looking at.
-    report: str | None = Field(default=None, max_length=8000)
+    # The team report is built by the server (services/coach_report.py); a ``report``
+    # sent by an old page is ignored.
 
 
 MAX_SLOT = MAX_SLOTS

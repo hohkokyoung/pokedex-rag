@@ -56,11 +56,37 @@ async def test_add_streams_team_updated(team_id) -> None:
     assert [m["name"] for m in updated["members"]] == ["Garchomp", "Charizard", "Dragonite"]
 
 
-async def test_plain_question_keyless_uses_report(team_id) -> None:
+async def test_plain_question_keyless_answers_with_the_server_report(team_id) -> None:
+    """The server writes the team report (a client-sent one is ignored), and keyless the
+    plain question is answered with it."""
     events = await _ask(team_id, "What's my team's biggest weakness?", report="Grade C.")
     plan = dict(events)["plan"]
     assert [s["tool"] for s in plan["steps"]] == ["team_context"]
-    assert "".join(d["text"] for n, d in events if n == "delta") == "Grade C."
+    answer = "".join(d["text"] for n, d in events if n == "delta")
+    assert answer.startswith('Your team "__api_coach__": overall ')
+    assert "Grade C." not in answer
+    first = dict(events)["sources"][0]
+    assert first["chunk_type"] == "team_report"
+
+
+async def test_report_covers_the_matchup_with_an_opponent(team_id, session_factory) -> None:
+    async with session_factory() as s:
+        opp = await teams_service.create_team(s, TeamCreate(name="__api_coach_opp__"))
+        empty = await teams_service.create_team(s, TeamCreate(name="__api_coach_empty__"))
+        await teams_service.set_slot(s, opp.id, 1, SlotUpdate(pokemon_id=9))
+    try:
+        events = await _ask(team_id, "What's my team's biggest weakness?", opponent_id=opp.id)
+        assert dict(events)["sources"][0]["chunk_type"] == "team_report"
+        full = "".join(d["text"] for n, d in events if n == "delta")
+        assert "Matchup verdict:" in full and "Best lead:" in full
+
+        events = await _ask(team_id, "What's my team's biggest weakness?", opponent_id=empty.id)
+        full = "".join(d["text"] for n, d in events if n == "delta")
+        assert full.startswith('Your team "__api_coach__"') and "Matchup verdict:" not in full
+    finally:
+        async with session_factory() as s:
+            await teams_service.delete_team(s, opp.id)
+            await teams_service.delete_team(s, empty.id)
 
 
 async def test_unknown_team(team_id) -> None:

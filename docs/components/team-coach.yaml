@@ -7,6 +7,7 @@ code:
   - backend/app/services/team_analysis.py
   - backend/app/services/team_rating.py
   - backend/app/services/team_profile.py
+  - backend/app/services/coach_report.py   # the team report the coach reads first
   - backend/app/services/team_strategy.py
   - backend/app/services/recommend.py
   - backend/app/services/battle.py

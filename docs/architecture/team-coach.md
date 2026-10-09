@@ -44,9 +44,15 @@ the page never calls it. Keep it that way.
 ## The coach
 
 `POST /api/teams/{id}/ask` → `run_question(scope="team")`. The team, opponent, the
-page's own report and the analysis travel in `AgentContext`.
+team report and the analysis travel in `AgentContext`.
 
-- A built-in **`team_context`** step is always prepended (never planned): the page
+- The **team report** is built by the server (`services/coach_report.py`), so the
+  website and the app give the coach the same facts. It covers both teams' overall
+  grade with every area's verdict and fix, and with an opponent the matchup verdict
+  and tally, their top four threats with your best answer, the best lead, and who
+  wins no pairing. Clients don't send it. It's pinned to the website's old
+  `reportFacts` text by golden cases.
+- A built-in **`team_context`** step is always prepended (never planned): the team
   report first (authoritative), then members, analysis, suggestions and — with an
   opponent — their members and the matchup.
 - The planner only adds *extra* steps. An empty plan is valid, and plain team
