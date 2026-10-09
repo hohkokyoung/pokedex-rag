@@ -19,7 +19,14 @@ against ingested legal data — the species' learnset, abilities, natures, items
 | `services/team_strategy.py` | six axes — offense, bulk, speed, setup, stall, support — from base stats plus curated move/ability lists. Set moves count fully, learnable ones partly (`now` vs `potential`); TM staples (Protect, Toxic, Rest, Sub) only when set |
 | `services/recommend.py` | ranked candidate additions by role (sweeper / wall / wallbreaker) or by how well they patch the analysis |
 | `services/battle.py` | turn-by-turn duels between two teams — a separate engine from the damage calculator, on purpose |
-| `frontend/lib/teamEval.ts` | the letter grades: Coverage, Defence, Speed, Roles, Sets, Roster, and the overall /100 |
+| `services/team_rating.py` | the letter grades: Coverage, Defence, Speed, Roles, Sets, Roster, and the overall /100 (scaled until six distinct species), each with a verdict and a fix |
+| `services/team_profile.py` | the at-a-glance profile: play style, physical/special lean, speeds, core types, weak/strong/resist lists, a one-line gist |
+
+Rating and profile ride on the **opponent-free** `GET /analysis` only (`rating` / `profile`
+are null with `opponent_id` or for an empty team): with an opponent, empty move slots are
+filled against them, which would move the grade. They were ported from the website's
+TypeScript and are pinned to its old output by golden cases, half-up rounding included
+([ADR-009](../decisions/ADR-009.md)).
 
 ## The AI summary
 

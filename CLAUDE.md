@@ -75,7 +75,8 @@ in this environment — overridable in `.env`).
   (`app/rag/answer.py`); this environment runs Groq, so keep calls Groq-friendly.
 - **Team summary never blocks a page.** `GET /summary` must not call the LLM; it's
   rewritten in the background only when slots change. Team grades stay deterministic
-  (`frontend/lib/teamEval.ts`).
+  and are computed by the backend (`services/team_rating.py`); clients only display them
+  (ADR-009).
 - **One damage formula, two languages.** Change `frontend/lib/damageCalc.ts` → port to
   `backend/app/services/damage_calc.py` → `make damage-fixtures` → `make test`. Team
   duels (`services/battle.py`) are a separate engine.

@@ -26,7 +26,7 @@ answers, set/build suggestions and team summaries.
 |---|---|
 | `api/` | routes: `health`, `pokemon` (read), `ask` (+ SSE), `profile`, `builder` (moves, abilities, items, natures, learners), `teams` (CRUD, analysis, strategy, summary, duel, coach SSE), `calc` (coach SSE) |
 | `models/` | the ORM — tables and invariants in [data.md](data.md) |
-| `services/` | deterministic logic: queries, builder lookups, team CRUD/validation, stats, analysis, strategy, recommender, damage calc, duels, encounters |
+| `services/` | deterministic logic: queries, builder lookups, team CRUD/validation, stats, analysis, team rating and profile, type chart, strategy, recommender, damage calc, duels, encounters |
 | `agent/` | the planner + tools + runner behind Ask and both coaches — [ask-agent.md](ask-agent.md) |
 | `rag/` | retrievers, the answer/LLM client, team summary, build suggestions — [retrieval.md](retrieval.md) |
 | `ingest/` | CSV → DB, and chunk embedding |
@@ -41,7 +41,7 @@ The OpenAPI docs are at `http://localhost:<backend port>/docs`.
 | `components/` | page components; `components/agent/` draws plan steps, typed views and evidence for every agent surface |
 | `lib/api.ts` | the typed backend client |
 | `lib/damageCalc.ts` | the damage formula (mirrored in Python) — [damage-calc.md](damage-calc.md) |
-| `lib/teamEval.ts` | team letter grades |
+| `lib/teamEval.ts` | display helpers for the team rating, which the backend computes — [team-coach.md](team-coach.md) |
 
 Motion: entrance and scroll reveals use IntersectionObserver + CSS; GSAP is reserved
 for high-impact moments (stat bars, artwork); Lenis for smooth scroll. All of it

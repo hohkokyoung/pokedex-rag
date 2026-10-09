@@ -25,7 +25,7 @@ import TeamReport from "@/components/TeamReport";
 import TeamRoster from "@/components/TeamRoster";
 import Dropdown from "@/components/Dropdown";
 import { reportFacts } from "@/components/TeamMatchupText";
-import { rateTeam } from "@/lib/teamEval";
+import { profileOf } from "@/lib/teamEval";
 import { discardDraft, keepDraft, promoteDraft, replaceMissingDraft } from "@/lib/draftTeams";
 
 const SLOTS = [1, 2, 3, 4, 5, 6];
@@ -330,9 +330,9 @@ export default function TeamWorkbench({
           onOpponentUpdated={(t) => setOppTeam(t)}
           report={reportFacts(
             team,
-            rated && team.members.length ? rateTeam(team.members.length, rated) : null,
+            team.members.length ? (profileOf(rated)?.rating ?? null) : null,
             opponentId && oppTeam?.id === opponentId
-              ? { team: oppTeam, rating: oppRated?.team_id === oppTeam.id && oppTeam.members.length ? rateTeam(oppTeam.members.length, oppRated) : null }
+              ? { team: oppTeam, rating: oppRated?.team_id === oppTeam.id && oppTeam.members.length ? (profileOf(oppRated)?.rating ?? null) : null }
               : null,
             versus,
           )}

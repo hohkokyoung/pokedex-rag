@@ -4,9 +4,8 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { applySlotBuild, getTeamStrategy, setSlot, getTeamSummary, refreshTeamSummary, type VsOpponent, type Team, type TeamAnalysis, type TeamStrategy, type TeamSummaryText, thumb } from "@/lib/api";
 import { Chip, StrategyBars } from "@/components/TeamCardParts";
 import TeamMatchupText, { matchupHeadline, tally } from "@/components/TeamMatchupText";
-import { profileTeam, type Profile } from "@/lib/teamProfile";
 import { titleCase, typeVars } from "@/lib/pokeTypes";
-import { FAST_SPEED, gradeTone, type Area, type Rating } from "@/lib/teamEval";
+import { gradeTone, profileOf, type Area, type Profile, type Rating } from "@/lib/teamEval";
 
 /** Overall grade as a drawn ring around the letter. */
 export function GradeRing({ score, grade, size = 76 }: { score: number; grade: string; size?: number }) {
@@ -81,8 +80,8 @@ function Detail({ area, rating, a }: { area: Area; rating: Rating; a: TeamAnalys
             <li key={r.slot} title={r.speed_note ?? undefined}>
               <span>{r.name}</span>
               <i>
-                <b style={{ width: `${(spe(r) / max) * 100}%` }} className={spe(r) >= FAST_SPEED ? "ok" : ""} />
-                <em style={{ left: `${(FAST_SPEED / max) * 100}%` }} />
+                <b style={{ width: `${(spe(r) / max) * 100}%` }} className={spe(r) >= rating.fast_speed ? "ok" : ""} />
+                <em style={{ left: `${(rating.fast_speed / max) * 100}%` }} />
               </i>
               <span className="n">{spe(r) !== r.speed ? <>{r.speed}→<b>{spe(r)}</b></> : r.speed}</span>
             </li>
@@ -101,7 +100,7 @@ function Detail({ area, rating, a }: { area: Area; rating: Rating; a: TeamAnalys
       );
       return (
         <ul className="ev-roles">
-          {role("Fast attacker", `base Speed ${FAST_SPEED}+`, m.filter((r) => r.speed >= FAST_SPEED).map((r) => r.name))}
+          {role("Fast attacker", `base Speed ${rating.fast_speed}+`, m.filter((r) => r.speed >= rating.fast_speed).map((r) => r.name))}
           {role("Wall", "HP + Def + SpD 280+", m.filter((r) => r.bulk >= 280).map((r) => r.name))}
           {role("Wallbreaker", "best attack 110+", m.filter((r) => r.offense >= 110).map((r) => r.name))}
         </ul>
@@ -252,13 +251,13 @@ const Note = ({ fix, children }: { fix?: boolean; children: ReactNode }) => (
 );
 
 function TypeFacts({ p, compact = false }: { p: Profile; compact?: boolean }) {
-  const net = (xs: Profile["weakTo"]) => xs.map((w) => <Chip key={w.type} t={w.type} n={w.net > 1 ? `×${w.net}` : undefined} />);
+  const net = (xs: Profile["weak_to"]) => xs.map((w) => <Chip key={w.type} t={w.type} n={w.net > 1 ? `×${w.net}` : undefined} />);
   return (
     <dl className="tl-dl tr-dl">
-      <div><dt>Weak to</dt><dd>{p.weakTo.length ? net(p.weakTo) : <span className="ok">No weaknesses</span>}</dd></div>
+      <div><dt>Weak to</dt><dd>{p.weak_to.length ? net(p.weak_to) : <span className="ok">No weaknesses</span>}</dd></div>
       <div><dt>Resists</dt><dd>{p.resists.length ? net(p.resists) : <span className="dim">Nothing</span>}</dd></div>
-      <div><dt>Hits hard</dt><dd><b>{p.strongVs.length}</b>/18{!compact && <> · {p.strongVs.map((t) => <Chip key={t} t={t} />)}</>}</dd></div>
-      <div><dt>Core</dt><dd>{p.coreTypes.slice(0, 3).map((t) => <Chip key={t} t={t} />)}</dd></div>
+      <div><dt>Hits hard</dt><dd><b>{p.strong_vs.length}</b>/18{!compact && <> · {p.strong_vs.map((t) => <Chip key={t} t={t} />)}</>}</dd></div>
+      <div><dt>Core</dt><dd>{p.core_types.slice(0, 3).map((t) => <Chip key={t} t={t} />)}</dd></div>
     </dl>
   );
 }
@@ -419,7 +418,7 @@ function PairedBars({ ours, theirs }: { ours: TeamStrategy; theirs: TeamStrategy
 }
 
 /** The team page's report: rating + summary, how it plays, type profile and the
- *  areas that need work. Same numbers as the /teams card (rateTeam). With an
+ *  areas that need work. Same numbers as the /teams card (the backend rating). With an
  *  opponent picked, every part shows both teams and a written matchup is added. */
 export default function TeamReport({
   analysis,
@@ -463,11 +462,12 @@ export default function TeamReport({
       </section>
     );
   if (!analysis) return <section className="panel tr"><span className="lab-skel" style={{ height: 120 }} /></section>;
-  const p = profileTeam(team, analysis);
-  if (!p) return null;
+  // The backend's rating; a stale analysis from before the first add has none yet.
+  const p = profileOf(analysis);
+  if (!p) return <section className="panel tr"><span className="lab-skel" style={{ height: 120 }} /></section>;
   const r = p.rating;
   const gaps = r.areas.filter((x) => x.fix).sort((x, y) => x.score - y.score);
-  const op = opponent?.analysis && opponent.team.members.length ? profileTeam(opponent.team, opponent.analysis) : null;
+  const op = opponent?.team.members.length ? profileOf(opponent.analysis) : null;
   const or = op?.rating ?? null;
   const t = vs ? tally(vs) : null;
   // One style label everywhere: the strategy engine's (it counts setup, support and
@@ -559,9 +559,9 @@ export default function TeamReport({
         <Card icon={<span className="tr-gicon ink">◆</span>} title="How it plays" sub={op ? `${style} vs ${opStyle}` : `${style} · ${p.lean.toLowerCase()} lean`}>
           {st && op ? (opSt ? <PairedBars ours={st} theirs={opSt} /> : <span className="lab-skel" style={{ height: 110 }} />)
             : st ? <StrategyBars st={st} /> : <span className="lab-skel" style={{ height: 110 }} />}
-          <Note>{st?.style_reason ? `Reads as ${st.style.toLowerCase()}: ${st.style_reason}.` : p.styleWhy}</Note>
+          <Note>{st?.style_reason ? `Reads as ${st.style.toLowerCase()}: ${st.style_reason}.` : p.style_why}</Note>
         </Card>
-        <Card icon={<span className="tr-gicon ink">◇</span>} title="Type profile" sub={op ? `You hit ${p.strongVs.length}/18 hard, they hit ${op.strongVs.length}/18` : `Hits ${p.strongVs.length} of 18 hard · ${p.weakTo.length} weak spot${p.weakTo.length === 1 ? "" : "s"}`}>
+        <Card icon={<span className="tr-gicon ink">◇</span>} title="Type profile" sub={op ? `You hit ${p.strong_vs.length}/18 hard, they hit ${op.strong_vs.length}/18` : `Hits ${p.strong_vs.length} of 18 hard · ${p.weak_to.length} weak spot${p.weak_to.length === 1 ? "" : "s"}`}>
           {op ? (
             <div className="tr-types2">
               <div><h6>You</h6><TypeFacts p={p} compact /></div>

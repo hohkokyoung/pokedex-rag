@@ -21,7 +21,7 @@ import FavoriteButton from "@/components/FavoriteButton";
 import PointerFX from "@/components/PointerFX";
 import { useStaggerReveal } from "@/hooks/useStaggerReveal";
 import { useKeyNav } from "@/hooks/useKeyNav";
-import { superEffectiveHits } from "@/lib/typeChart";
+import { superEffectiveHits, useTypeChart } from "@/lib/typeChart";
 import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 /** Search box to jump straight to any Pokémon (not just prev/next). */
@@ -373,6 +373,8 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
   /** "not-found" → the 404 page; "offline"/"server" → a retryable notice. */
   const [error, setError] = useState<FailureKind | null>(null);
   const [attempt, setAttempt] = useState(0);
+  // For the "Hits ×2" row; the defensive rows come with the detail payload.
+  const typeChart = useTypeChart();
   const router = useRouter();
   const searchParams = useSearchParams();
   // Selected alternate form (null = the base species), persisted in the URL
@@ -484,8 +486,8 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
   // have no chain of their own, so fall back to the base species' family tree
   // (highlighting the base species, since the form isn't a chain member).
   const evo = form && view.evolution_members.length > 1
-    ? { members: view.evolution_members, stages: view.evolution_stages, currentId: view.currentId }
-    : { members: data.evolution_members, stages: data.evolution_stages, currentId: data.id };
+    ? { members: view.evolution_members, stages: view.evolution_stages, currentId: view.currentId, spinGuide: form.spin_guide }
+    : { members: data.evolution_members, stages: data.evolution_stages, currentId: data.id, spinGuide: data.spin_guide };
 
   return (
     <main ref={scope} style={{ paddingTop: 84, paddingBottom: 100 }}>
@@ -593,7 +595,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
         </div>
         <div className="panel d-panel d-panel--fill">
           <h2 className="d-panel__title">Type matchups</h2>
-          <TypeMatchups m={view.matchups} hits={superEffectiveHits(view.types)} />
+          <TypeMatchups m={view.matchups} hits={typeChart ? superEffectiveHits(typeChart, view.types) : undefined} />
         </div>
       </section>
 
@@ -622,6 +624,7 @@ export default function PokemonDetailView({ dex }: { dex: string }) {
               members={evo.members}
               stages={evo.stages}
               currentId={evo.currentId}
+              spinGuide={evo.spinGuide}
             />
           </div>
         </section>

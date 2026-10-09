@@ -30,6 +30,7 @@ from app.schemas.pokemon import (
     PokemonSummary,
     StatsOut,
 )
+from app.services import alcremie
 from app.services import matchups as matchups_service
 from app.services.versions import gen_label, generation_for_version
 
@@ -395,6 +396,7 @@ async def get_pokemon(session: AsyncSession, id_or_name: str) -> PokemonDetail |
         evolution_chain_id=pokemon.evolution_chain_id,
         evolution_stages=stages,
         evolution_members=members,
+        spin_guide=alcremie.spin_guide_for(stages),
         forms=forms,
         matchups=matchups,
     )
@@ -654,6 +656,7 @@ async def _forms(session: AsyncSession, base_pokemon_id: int) -> list[FormOut]:
                 flavor_entries=[_flavor_entry(t, None) for t in (f.flavor_texts or [])],
                 evolution_members=evo_members,
                 evolution_stages=evo_stages,
+                spin_guide=alcremie.spin_guide_for(evo_stages),
             )
         )
     return out

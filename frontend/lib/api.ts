@@ -8,6 +8,7 @@ import type {
   Generation,
   PokemonDetail,
   PokemonListResponse,
+  TypeChart,
   TypeInfo,
 } from "@/lib/types";
 
@@ -105,6 +106,10 @@ export function listPokemon(
 
 export function getPokemon(idOrName: string | number): Promise<PokemonDetail> {
   return getJSON<PokemonDetail>(`/api/pokemon/${idOrName}`);
+}
+
+export function getTypeChart(): Promise<TypeChart> {
+  return getJSON<TypeChart>("/api/types/chart");
 }
 
 export function listTypes(): Promise<TypeInfo[]> {
@@ -617,6 +622,59 @@ export type TeamAnalysis = {
   vs_opponent: VsOpponent | null;
   sets?: SetProfile | null;
   summary: string[];
+  /** Opponent-free analyses of non-empty teams only (null with an opponent). */
+  rating?: TeamRating | null;
+  profile?: TeamProfile | null;
+};
+
+export type Grade = "A" | "B" | "C" | "D" | "F";
+export type AreaKey = "coverage" | "defence" | "speed" | "roles" | "sets" | "roster";
+export type RatingArea = {
+  key: AreaKey;
+  label: string;
+  score: number; // 0–100
+  grade: Grade;
+  headline: string; // the one-line verdict, e.g. "Hits 12 of 18 types super-effectively"
+  fix: string | null; // what to do about it; null when there's nothing to fix
+};
+export type TypeCover = { type: string; now: boolean; learnable: boolean };
+/** Per attacking type: `weak` is weighted (a 4× weakness counts 2); `members`/`quad` are plain counts. */
+export type TypeThreat = { type: string; weak: number; resist: number; members: number; quad: number; problem: boolean };
+/** The team rating, computed by the backend (services/team_rating.py). */
+export type TeamRating = {
+  overall: number;
+  grade: Grade;
+  /** True while the overall is held down because the roster isn't full. */
+  capped: boolean;
+  /** The highest overall this roster can reach: 100 × distinct species / 6. */
+  ceiling: number;
+  areas: RatingArea[];
+  /** Per-type detail behind the coverage and defence areas. */
+  cover: TypeCover[];
+  threats: TypeThreat[];
+  /** The "fast" Speed threshold the Speed area and roles use. */
+  fast_speed: number;
+};
+/** "What kind of team is this?", computed by the backend (services/team_profile.py). */
+export type TeamProfile = {
+  style: string;
+  style_why: string;
+  lean: "Physical" | "Special" | "Mixed";
+  physical: number;
+  special: number;
+  avg: Record<"hp" | "attack" | "defense" | "sp_attack" | "sp_defense" | "speed", number>;
+  avg_bst: number;
+  avg_speed: number;
+  fast_count: number;
+  speeds: { name: string; speed: number; sprite: string }[];
+  core_types: string[];
+  weak_to: { type: string; net: number }[];
+  strong_vs: string[];
+  resists: { type: string; net: number }[];
+  moves_set: number;
+  items: number;
+  priority: number;
+  gist: string;
 };
 /** What each member's set adds beyond species + typing (item, ability, set moves). */
 export type SetMember = {

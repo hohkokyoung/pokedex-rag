@@ -13,9 +13,10 @@ from app.schemas.pokemon import (
     GenerationOut,
     PokemonDetail,
     PokemonListResponse,
+    TypeChartOut,
     TypeOut,
 )
-from app.services import encounters, pokemon_query
+from app.services import encounters, matchups, pokemon_query
 
 router = APIRouter(prefix="/api", tags=["pokedex"])
 
@@ -85,6 +86,12 @@ async def pokemon_encounters(
 async def list_types(session: AsyncSession = Depends(get_session)) -> list[TypeOut]:
     rows = (await session.execute(select(Type).order_by(Type.id))).scalars().all()
     return [TypeOut.model_validate(t) for t in rows]
+
+
+@router.get("/types/chart", response_model=TypeChartOut)
+async def type_chart(session: AsyncSession = Depends(get_session)) -> TypeChartOut:
+    """The type-effectiveness chart, from the ingested data. Static: clients fetch it once."""
+    return TypeChartOut(order=matchups.ATTACK_ORDER, chart=await matchups.type_chart(session))
 
 
 @router.get("/generations", response_model=list[GenerationOut])

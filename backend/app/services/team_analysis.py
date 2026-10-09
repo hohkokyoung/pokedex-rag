@@ -41,6 +41,8 @@ from app.schemas.analysis import (
 from app.schemas.team import TeamMemberOut, TeamOut
 from app.services import battle, matchups, sets
 from app.services.stats import as_built
+from app.services.team_profile import profile_team
+from app.services.team_rating import rate_team
 
 SHARED_WEAKNESS_MIN = 3  # ≥ this many members weak to one type = a team-wide hole
 
@@ -80,7 +82,7 @@ async def analyze(
     vs = _vs_opponent(members, fighters, opponent, foes) if opponent else None
     summary = _summary(len(members), defensive, offensive, roles, vs)
 
-    return TeamAnalysis(
+    analysis = TeamAnalysis(
         team_id=team.id,
         name=team.name,
         size=len(members),
@@ -92,6 +94,13 @@ async def analyze(
         sets=set_profile,
         summary=summary,
     )
+    # The grade describes the team on its own: with an opponent, empty move slots are
+    # filled against them, which would move it. Clients read it from the opponent-free
+    # analysis.
+    if opponent is None and members:
+        analysis.rating = rate_team(len(members), analysis, await matchups.type_chart(session))
+        analysis.profile = profile_team(team, analysis, analysis.rating)
+    return analysis
 
 
 def _defensive(

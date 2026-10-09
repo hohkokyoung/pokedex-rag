@@ -105,6 +105,7 @@ export type PokemonForm = {
   flavor_entries: FlavorEntry[];
   evolution_members: EvolutionMember[];
   evolution_stages: EvolutionStage[];
+  spin_guide?: SpinGuide | null;
 };
 
 export type FlavorEntry = {
@@ -118,6 +119,16 @@ export type FlavorEntry = {
   version_generations?: (number | null)[];
   generations?: number[];
 };
+
+/** How a spin evolution (Milcery → Alcremie) picks its look; creams in display order. */
+export type SpinGuide = {
+  steps: string[];
+  toppings: { sweet: string; topping: string }[];
+  creams: { cream: string; direction: "Clockwise" | "Counter-clockwise"; duration: string; time: string }[];
+};
+
+/** The 18 battle types in display order and every attacking → defending multiplier. */
+export type TypeChart = { order: string[]; chart: Record<string, Record<string, number>> };
 
 export type Matchups = {
   weak_4x: string[];
@@ -161,6 +172,7 @@ export type PokemonDetail = {
   evolution_chain_id: number | null;
   evolution_stages: EvolutionStage[];
   evolution_members: EvolutionMember[];
+  spin_guide?: SpinGuide | null;
   forms: PokemonForm[];
   matchups: Matchups;
 };

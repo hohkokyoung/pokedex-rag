@@ -13,6 +13,7 @@ says what was decided and why; how it works lives in the linked architecture pag
 | [006](ADR-006.md) | One damage formula in TypeScript, ported to Python and fixture-checked |
 | [007](ADR-007.md) | The team summary is written in the background; grades stay deterministic |
 | [008](ADR-008.md) | Team and calc scopes get a smaller tool set to fit the planning prompt |
+| [009](ADR-009.md) | Rules every client must agree on (grades, type chart) live on the backend |
 
 **Adding one:** next number, the same four headings (Status · Context · Decision ·
 Consequences), a row above, and a link from the component manifest it affects

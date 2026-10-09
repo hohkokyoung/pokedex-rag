@@ -1,0 +1,4979 @@
+{
+ "generator": "frontend/scripts/team-rating-fixtures.ts",
+ "cases": [
+  {
+   "label": "saved:test",
+   "rating": {
+    "overall": 11,
+    "grade": "F",
+    "capped": true,
+    "ceiling": 17,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 47,
+      "grade": "D",
+      "headline": "Hits 7 of 18 types super-effectively",
+      "fix": "Nothing hits Fire, Water or Electric hard. Add a move or member that does."
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 100,
+      "grade": "A",
+      "headline": "No type hits several members unchecked",
+      "fix": null
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "1 fast member (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 67,
+      "grade": "C",
+      "headline": "Missing defensive wall",
+      "fix": "Add a defensive wall."
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 47,
+      "grade": "D",
+      "headline": "0/1 hold an item · 3/4 moves set",
+      "fix": "1 members have empty move slots. Set their moves so the matchups use what they'll really click."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 17,
+      "grade": "F",
+      "headline": "1 of 6 slots filled",
+      "fix": "Fill 5 more slots — every other grade firms up with a full team."
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "water",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "electric",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "poison",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "ground",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "flying",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "psychic",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "dragon",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": false,
+      "learnable": false
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "flying",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Hyper offense",
+    "styleWhy": "avg Speed 100 · attack 178 · bulk 240",
+    "lean": "Physical",
+    "physical": 1,
+    "special": 0,
+    "avg": {
+     "hp": 80,
+     "attack": 178,
+     "defense": 80,
+     "sp_attack": 115,
+     "sp_defense": 80,
+     "speed": 100
+    },
+    "avgBst": 630,
+    "avgSpeed": 100,
+    "fastCount": 1,
+    "speeds": [
+     {
+      "name": "Mega Blaziken",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/10050.png"
+     }
+    ],
+    "coreTypes": [
+     "fire",
+     "fighting"
+    ],
+    "weakTo": [
+     {
+      "type": "water",
+      "net": 1
+     },
+     {
+      "type": "ground",
+      "net": 1
+     },
+     {
+      "type": "flying",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "grass",
+     "ice",
+     "bug",
+     "rock",
+     "dark",
+     "steel"
+    ],
+    "resists": [
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "grass",
+      "net": 1
+     },
+     {
+      "type": "ice",
+      "net": 1
+     },
+     {
+      "type": "bug",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     },
+     {
+      "type": "steel",
+      "net": 1
+     }
+    ],
+    "movesSet": 3,
+    "items": 0,
+    "priority": 0,
+    "gist": "Physical hyper offense on a Fire/Fighting core — 1 fast member (avg Speed 100); Water, Ground and Flying hurt it."
+   }
+  },
+  {
+   "label": "saved:Garchomp team",
+   "rating": {
+    "overall": 88,
+    "grade": "A",
+    "capped": false,
+    "ceiling": 100,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ground",
+      "fix": "Ground hits 2 members super-effectively and nothing resists it — add a Flying or Grass type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "3 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "5/6 hold an item · 1 can set up · 18/24 moves set",
+      "fix": "Slaking holds no item; Life Orb, a Choice item or Leftovers change damage and bulk."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 100,
+      "grade": "A",
+      "headline": "6 of 6 slots filled",
+      "fix": null
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 2,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 86 · attack 114 · bulk 311",
+    "lean": "Physical",
+    "physical": 3,
+    "special": 1,
+    "avg": {
+     "hp": 79,
+     "attack": 109,
+     "defense": 123,
+     "sp_attack": 78,
+     "sp_defense": 109,
+     "speed": 86
+    },
+    "avgBst": 571,
+    "avgSpeed": 86,
+    "fastCount": 3,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Slaking",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/289.png"
+     },
+     {
+      "name": "Pikachu",
+      "speed": 90,
+      "sprite": "/sprites/official-artwork/25.png"
+     },
+     {
+      "name": "Mega Blastoise",
+      "speed": 78,
+      "sprite": "/sprites/official-artwork/10036.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic",
+     "normal",
+     "electric",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "ground",
+      "net": 2
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "normal",
+      "net": 2
+     },
+     {
+      "type": "flying",
+      "net": 2
+     },
+     {
+      "type": "steel",
+      "net": 2
+     },
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 18,
+    "items": 5,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 3 fast members (avg Speed 86); Ground, Fighting and Dark hurt it."
+   }
+  },
+  {
+   "label": "saved:Rival (mockup)",
+   "rating": {
+    "overall": 81,
+    "grade": "B",
+    "capped": false,
+    "ceiling": 100,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 18 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 20,
+      "grade": "F",
+      "headline": "4 weak spots: Rock, Ground, Ghost",
+      "fix": "Rock hits 2 members super-effectively and nothing resists it — add a Fighting or Ground type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "4 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 92,
+      "grade": "A",
+      "headline": "6/6 hold an item · 4 can set up · 24/24 moves set",
+      "fix": null
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 100,
+      "grade": "A",
+      "headline": "6 of 6 slots filled",
+      "fix": null
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 2,
+      "resist": 4,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 2,
+      "resist": 2,
+      "members": 2,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 2,
+      "resist": 3,
+      "members": 2,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 3,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 2,
+      "resist": 3,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 1,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 2,
+      "resist": 3,
+      "members": 2,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "ghost",
+      "weak": 2,
+      "resist": 1,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 2,
+      "resist": 1,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 2,
+      "resist": 2,
+      "members": 2,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Hyper offense",
+    "styleWhy": "avg Speed 97 · attack 160 · bulk 287",
+    "lean": "Physical",
+    "physical": 4,
+    "special": 2,
+    "avg": {
+     "hp": 102,
+     "attack": 134,
+     "defense": 97,
+     "sp_attack": 106,
+     "sp_defense": 89,
+     "speed": 97
+    },
+    "avgBst": 558,
+    "avgSpeed": 97,
+    "fastCount": 4,
+    "speeds": [
+     {
+      "name": "Salamence",
+      "speed": 132,
+      "sprite": "/sprites/official-artwork/373.png"
+     },
+     {
+      "name": "Chandelure",
+      "speed": 112,
+      "sprite": "/sprites/official-artwork/609.png"
+     },
+     {
+      "name": "Feraligatr",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/160.png"
+     },
+     {
+      "name": "Mew",
+      "speed": 101,
+      "sprite": "/sprites/official-artwork/151.png"
+     },
+     {
+      "name": "Scizor",
+      "speed": 65,
+      "sprite": "/sprites/official-artwork/212.png"
+     },
+     {
+      "name": "Tyranitar",
+      "speed": 62,
+      "sprite": "/sprites/official-artwork/248.png"
+     }
+    ],
+    "coreTypes": [
+     "rock",
+     "dark",
+     "dragon",
+     "flying",
+     "bug",
+     "steel",
+     "psychic",
+     "ghost",
+     "fire",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "rock",
+      "net": 2
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "ground",
+      "net": 1
+     },
+     {
+      "type": "ghost",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "ghost",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "normal",
+      "net": 3
+     },
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "psychic",
+      "net": 3
+     },
+     {
+      "type": "fire",
+      "net": 2
+     },
+     {
+      "type": "steel",
+      "net": 2
+     },
+     {
+      "type": "grass",
+      "net": 1
+     },
+     {
+      "type": "ice",
+      "net": 1
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "flying",
+      "net": 1
+     },
+     {
+      "type": "bug",
+      "net": 1
+     }
+    ],
+    "movesSet": 24,
+    "items": 6,
+    "priority": 2,
+    "gist": "Physical hyper offense on a Rock/Dark core — 4 fast members (avg Speed 97); Rock, Electric and Ground hurt it."
+   }
+  },
+  {
+   "label": "saved:opponent test",
+   "rating": {
+    "overall": 5,
+    "grade": "F",
+    "capped": true,
+    "ceiling": 17,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 20,
+      "grade": "F",
+      "headline": "Hits 3 of 18 types super-effectively",
+      "fix": "Learnable moves would reach 6 of 18; add them to the empty move slots."
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 100,
+      "grade": "A",
+      "headline": "No type hits several members unchecked",
+      "fix": null
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 0,
+      "grade": "F",
+      "headline": "Fastest is Squirtle at Speed 42",
+      "fix": "Nothing reaches Speed 100 — add a fast attacker, a Choice Scarf or a speed-boosting move."
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 0,
+      "grade": "F",
+      "headline": "Missing fast attacker, defensive wall or high-power wallbreaker",
+      "fix": "Add a fast attacker."
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 0,
+      "grade": "F",
+      "headline": "0/1 hold an item · 0/4 moves set",
+      "fix": "1 members have empty move slots. Set their moves so the matchups use what they'll really click."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 17,
+      "grade": "F",
+      "headline": "1 of 6 slots filled",
+      "fix": "Fill 5 more slots — every other grade firms up with a full team."
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "electric",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "grass",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "fighting",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "poison",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "bug",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "dragon",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "steel",
+      "now": false,
+      "learnable": false
+     },
+     {
+      "type": "fairy",
+      "now": false,
+      "learnable": false
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Balance",
+    "styleWhy": "avg Speed 43 · attack 50 · bulk 173",
+    "lean": "Mixed",
+    "physical": 0,
+    "special": 0,
+    "avg": {
+     "hp": 44,
+     "attack": 48,
+     "defense": 65,
+     "sp_attack": 50,
+     "sp_defense": 64,
+     "speed": 43
+    },
+    "avgBst": 314,
+    "avgSpeed": 43,
+    "fastCount": 0,
+    "speeds": [
+     {
+      "name": "Squirtle",
+      "speed": 43,
+      "sprite": "/sprites/official-artwork/7.png"
+     }
+    ],
+    "coreTypes": [
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "grass",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "fire",
+     "ground",
+     "rock"
+    ],
+    "resists": [
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "water",
+      "net": 1
+     },
+     {
+      "type": "ice",
+      "net": 1
+     },
+     {
+      "type": "steel",
+      "net": 1
+     }
+    ],
+    "movesSet": 0,
+    "items": 0,
+    "priority": 0,
+    "gist": "Mixed-attacking balance on a Water core — nothing reaches Speed 100 (avg 43); Electric and Grass hurt it."
+   }
+  },
+  {
+   "label": "edge:one member",
+   "rating": {
+    "overall": 14,
+    "grade": "F",
+    "capped": true,
+    "ceiling": 17,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ice",
+      "fix": "Ice hits 1 member super-effectively (for 4×) and nothing resists it — add a Fire or Water type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "1 fast member (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 90,
+      "grade": "A",
+      "headline": "1/1 hold an item · 1 can set up · 4/4 moves set",
+      "fix": null
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 17,
+      "grade": "F",
+      "headline": "1 of 6 slots filled",
+      "fix": "Fill 5 more slots — every other grade firms up with a full team."
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 0,
+      "members": 1,
+      "quad": 1,
+      "problem": true
+     },
+     {
+      "type": "fighting",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Hyper offense",
+    "styleWhy": "avg Speed 134 · attack 180 · bulk 289",
+    "lean": "Physical",
+    "physical": 1,
+    "special": 0,
+    "avg": {
+     "hp": 109,
+     "attack": 180,
+     "defense": 95,
+     "sp_attack": 70,
+     "sp_defense": 85,
+     "speed": 134
+    },
+    "avgBst": 600,
+    "avgSpeed": 134,
+    "fastCount": 1,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground"
+    ],
+    "weakTo": [
+     {
+      "type": "ice",
+      "net": 2
+     },
+     {
+      "type": "dragon",
+      "net": 1
+     },
+     {
+      "type": "fairy",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "poison",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 4,
+    "items": 1,
+    "priority": 0,
+    "gist": "Physical hyper offense on a Dragon/Ground core — 1 fast member (avg Speed 134); Ice, Dragon and Fairy hurt it."
+   }
+  },
+  {
+   "label": "edge:three members",
+   "rating": {
+    "overall": 44,
+    "grade": "D",
+    "capped": true,
+    "ceiling": 50,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 82,
+      "grade": "B",
+      "headline": "1 weak spot: Ice",
+      "fix": "Ice hits 1 member super-effectively (for 4×) and only 1 resists — add a Fire or Water type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "2 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 80,
+      "grade": "B",
+      "headline": "3/3 hold an item · 1 can set up · 12/12 moves set",
+      "fix": null
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 50,
+      "grade": "D",
+      "headline": "3 of 6 slots filled",
+      "fix": "Fill 3 more slots — every other grade firms up with a full team."
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 1,
+      "members": 1,
+      "quad": 1,
+      "problem": true
+     },
+     {
+      "type": "fighting",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 83 · attack 112 · bulk 370",
+    "lean": "Physical",
+    "physical": 2,
+    "special": 0,
+    "avg": {
+     "hp": 70,
+     "attack": 112,
+     "defense": 158,
+     "sp_attack": 62,
+     "sp_defense": 142,
+     "speed": 83
+    },
+    "avgBst": 602,
+    "avgSpeed": 83,
+    "fastCount": 2,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic"
+    ],
+    "weakTo": [
+     {
+      "type": "water",
+      "net": 1
+     },
+     {
+      "type": "ice",
+      "net": 1
+     },
+     {
+      "type": "ground",
+      "net": 1
+     },
+     {
+      "type": "ghost",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "normal",
+      "net": 2
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "grass",
+      "net": 1
+     },
+     {
+      "type": "flying",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 12,
+    "items": 3,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 2 fast members (avg Speed 83); Water, Ice and Ground hurt it."
+   }
+  },
+  {
+   "label": "edge:duplicate species",
+   "rating": {
+    "overall": 61,
+    "grade": "C",
+    "capped": true,
+    "ceiling": 83,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 12,
+      "grade": "F",
+      "headline": "4 weak spots: Ice, Ground, Dragon",
+      "fix": "Ice hits 2 members super-effectively (for 4×) and only 2 resist — add a Fire or Water type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "3 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "5/6 hold an item · 1 can set up · 18/24 moves set",
+      "fix": "Slaking holds no item; Life Orb, a Choice item or Leftovers change damage and bulk."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 83,
+      "grade": "B",
+      "headline": "6 of 6 slots filled · Garchomp twice",
+      "fix": "Only one of each species is allowed. Swap the second Garchomp for something new."
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 4,
+      "resist": 2,
+      "members": 2,
+      "quad": 2,
+      "problem": true
+     },
+     {
+      "type": "fighting",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 2,
+      "resist": 1,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 2,
+      "resist": 1,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 86 · attack 114 · bulk 311",
+    "lean": "Physical",
+    "physical": 3,
+    "special": 1,
+    "avg": {
+     "hp": 79,
+     "attack": 109,
+     "defense": 123,
+     "sp_attack": 78,
+     "sp_defense": 109,
+     "speed": 86
+    },
+    "avgBst": 571,
+    "avgSpeed": 86,
+    "fastCount": 3,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Slaking",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/289.png"
+     },
+     {
+      "name": "Pikachu",
+      "speed": 90,
+      "sprite": "/sprites/official-artwork/25.png"
+     },
+     {
+      "name": "Mega Blastoise",
+      "speed": 78,
+      "sprite": "/sprites/official-artwork/10036.png"
+     },
+     {
+      "name": "Garchomp",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic",
+     "normal",
+     "electric",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "ice",
+      "net": 2
+     },
+     {
+      "type": "ground",
+      "net": 2
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "dragon",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     },
+     {
+      "type": "fairy",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "rock",
+      "net": 3
+     },
+     {
+      "type": "steel",
+      "net": 3
+     },
+     {
+      "type": "fire",
+      "net": 2
+     },
+     {
+      "type": "electric",
+      "net": 2
+     },
+     {
+      "type": "flying",
+      "net": 2
+     },
+     {
+      "type": "normal",
+      "net": 1
+     },
+     {
+      "type": "water",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     }
+    ],
+    "movesSet": 18,
+    "items": 5,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 3 fast members (avg Speed 86); Ice, Ground and Fighting hurt it."
+   }
+  },
+  {
+   "label": "edge:empty move slots",
+   "rating": {
+    "overall": 88,
+    "grade": "A",
+    "capped": false,
+    "ceiling": 100,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ground",
+      "fix": "Ground hits 2 members super-effectively and nothing resists it — add a Flying or Grass type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "3 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "5/6 hold an item · 0/24 moves set",
+      "fix": "6 members have empty move slots. Set their moves so the matchups use what they'll really click."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 100,
+      "grade": "A",
+      "headline": "6 of 6 slots filled",
+      "fix": null
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 2,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 86 · attack 114 · bulk 311",
+    "lean": "Physical",
+    "physical": 3,
+    "special": 1,
+    "avg": {
+     "hp": 79,
+     "attack": 109,
+     "defense": 123,
+     "sp_attack": 78,
+     "sp_defense": 109,
+     "speed": 86
+    },
+    "avgBst": 571,
+    "avgSpeed": 86,
+    "fastCount": 3,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Slaking",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/289.png"
+     },
+     {
+      "name": "Pikachu",
+      "speed": 90,
+      "sprite": "/sprites/official-artwork/25.png"
+     },
+     {
+      "name": "Mega Blastoise",
+      "speed": 78,
+      "sprite": "/sprites/official-artwork/10036.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic",
+     "normal",
+     "electric",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "ground",
+      "net": 2
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "normal",
+      "net": 2
+     },
+     {
+      "type": "flying",
+      "net": 2
+     },
+     {
+      "type": "steel",
+      "net": 2
+     },
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 0,
+    "items": 5,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 3 fast members (avg Speed 86); Ground, Fighting and Dark hurt it."
+   }
+  },
+  {
+   "label": "edge:no items",
+   "rating": {
+    "overall": 88,
+    "grade": "A",
+    "capped": false,
+    "ceiling": 100,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ground",
+      "fix": "Ground hits 2 members super-effectively and nothing resists it — add a Flying or Grass type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "3 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "0/6 hold an item · 1 can set up · 18/24 moves set",
+      "fix": "Garchomp, Shuckle and Mega Metagross hold no item; Life Orb, a Choice item or Leftovers change damage and bulk."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 100,
+      "grade": "A",
+      "headline": "6 of 6 slots filled",
+      "fix": null
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 2,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 86 · attack 114 · bulk 311",
+    "lean": "Physical",
+    "physical": 3,
+    "special": 1,
+    "avg": {
+     "hp": 79,
+     "attack": 109,
+     "defense": 123,
+     "sp_attack": 78,
+     "sp_defense": 109,
+     "speed": 86
+    },
+    "avgBst": 571,
+    "avgSpeed": 86,
+    "fastCount": 3,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Slaking",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/289.png"
+     },
+     {
+      "name": "Pikachu",
+      "speed": 90,
+      "sprite": "/sprites/official-artwork/25.png"
+     },
+     {
+      "name": "Mega Blastoise",
+      "speed": 78,
+      "sprite": "/sprites/official-artwork/10036.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic",
+     "normal",
+     "electric",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "ground",
+      "net": 2
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "normal",
+      "net": 2
+     },
+     {
+      "type": "flying",
+      "net": 2
+     },
+     {
+      "type": "steel",
+      "net": 2
+     },
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 18,
+    "items": 0,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 3 fast members (avg Speed 86); Ground, Fighting and Dark hurt it."
+   }
+  },
+  {
+   "label": "edge:no abilities",
+   "rating": {
+    "overall": 88,
+    "grade": "A",
+    "capped": false,
+    "ceiling": 100,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ground",
+      "fix": "Ground hits 2 members super-effectively and nothing resists it — add a Flying or Grass type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "3 fast members (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "5/6 hold an item · 1 can set up · 18/24 moves set",
+      "fix": "Slaking holds no item; Life Orb, a Choice item or Leftovers change damage and bulk."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 100,
+      "grade": "A",
+      "headline": "6 of 6 slots filled",
+      "fix": null
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 2,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 86 · attack 114 · bulk 311",
+    "lean": "Physical",
+    "physical": 3,
+    "special": 1,
+    "avg": {
+     "hp": 79,
+     "attack": 109,
+     "defense": 123,
+     "sp_attack": 78,
+     "sp_defense": 109,
+     "speed": 86
+    },
+    "avgBst": 571,
+    "avgSpeed": 86,
+    "fastCount": 3,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Slaking",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/289.png"
+     },
+     {
+      "name": "Pikachu",
+      "speed": 90,
+      "sprite": "/sprites/official-artwork/25.png"
+     },
+     {
+      "name": "Mega Blastoise",
+      "speed": 78,
+      "sprite": "/sprites/official-artwork/10036.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic",
+     "normal",
+     "electric",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "ground",
+      "net": 2
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "normal",
+      "net": 2
+     },
+     {
+      "type": "flying",
+      "net": 2
+     },
+     {
+      "type": "steel",
+      "net": 2
+     },
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 18,
+    "items": 5,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 3 fast members (avg Speed 86); Ground, Fighting and Dark hurt it."
+   }
+  },
+  {
+   "label": "edge:slow team with priority",
+   "rating": {
+    "overall": 80,
+    "grade": "B",
+    "capped": false,
+    "ceiling": 100,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ground",
+      "fix": "Ground hits 2 members super-effectively and nothing resists it — add a Flying or Grass type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 41,
+      "grade": "D",
+      "headline": "Fastest is Garchomp at Speed 60 · priority on Garchomp, Mega Metagross",
+      "fix": "Nothing reaches Speed 100 — add a fast attacker, a Choice Scarf or a speed-boosting move."
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "5/6 hold an item · 1 can set up · 18/24 moves set",
+      "fix": "Slaking holds no item; Life Orb, a Choice item or Leftovers change damage and bulk."
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 100,
+      "grade": "A",
+      "headline": "6 of 6 slots filled",
+      "fix": null
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 2,
+      "members": 1,
+      "quad": 1,
+      "problem": false
+     },
+     {
+      "type": "fighting",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 3,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 2,
+      "resist": 0,
+      "members": 2,
+      "quad": 0,
+      "problem": true
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 2,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 3,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Bulky offense",
+    "styleWhy": "avg Speed 86 · attack 114 · bulk 311",
+    "lean": "Physical",
+    "physical": 3,
+    "special": 1,
+    "avg": {
+     "hp": 79,
+     "attack": 109,
+     "defense": 123,
+     "sp_attack": 78,
+     "sp_defense": 109,
+     "speed": 86
+    },
+    "avgBst": 571,
+    "avgSpeed": 86,
+    "fastCount": 3,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Mega Metagross",
+      "speed": 110,
+      "sprite": "/sprites/official-artwork/10076.png"
+     },
+     {
+      "name": "Slaking",
+      "speed": 100,
+      "sprite": "/sprites/official-artwork/289.png"
+     },
+     {
+      "name": "Pikachu",
+      "speed": 90,
+      "sprite": "/sprites/official-artwork/25.png"
+     },
+     {
+      "name": "Mega Blastoise",
+      "speed": 78,
+      "sprite": "/sprites/official-artwork/10036.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock",
+     "steel",
+     "psychic",
+     "normal",
+     "electric",
+     "water"
+    ],
+    "weakTo": [
+     {
+      "type": "ground",
+      "net": 2
+     },
+     {
+      "type": "fighting",
+      "net": 1
+     },
+     {
+      "type": "dark",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 3
+     },
+     {
+      "type": "normal",
+      "net": 2
+     },
+     {
+      "type": "flying",
+      "net": 2
+     },
+     {
+      "type": "steel",
+      "net": 2
+     },
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     },
+     {
+      "type": "psychic",
+      "net": 1
+     },
+     {
+      "type": "rock",
+      "net": 1
+     }
+    ],
+    "movesSet": 18,
+    "items": 5,
+    "priority": 0,
+    "gist": "Physical bulky offense on a Dragon/Ground core — 3 fast members (avg Speed 86); Ground, Fighting and Dark hurt it."
+   }
+  },
+  {
+   "label": "edge:sets score on .5",
+   "rating": {
+    "overall": 27,
+    "grade": "F",
+    "capped": true,
+    "ceiling": 33,
+    "areas": [
+     {
+      "key": "coverage",
+      "label": "Coverage",
+      "score": 100,
+      "grade": "A",
+      "headline": "Hits 17 of 18 types super-effectively",
+      "fix": null
+     },
+     {
+      "key": "defence",
+      "label": "Defence",
+      "score": 74,
+      "grade": "B",
+      "headline": "1 weak spot: Ice",
+      "fix": "Ice hits 1 member super-effectively (for 4×) and nothing resists it — add a Fire or Water type."
+     },
+     {
+      "key": "speed",
+      "label": "Speed",
+      "score": 100,
+      "grade": "A",
+      "headline": "1 fast member (Speed 100+ with their sets)",
+      "fix": null
+     },
+     {
+      "key": "roles",
+      "label": "Roles",
+      "score": 100,
+      "grade": "A",
+      "headline": "Has a fast attacker, a wall and a wallbreaker",
+      "fix": null
+     },
+     {
+      "key": "sets",
+      "label": "Sets",
+      "score": 61,
+      "grade": "C",
+      "headline": "2/2 hold an item · 1 can set up · 8/8 moves set",
+      "fix": null
+     },
+     {
+      "key": "roster",
+      "label": "Roster",
+      "score": 33,
+      "grade": "F",
+      "headline": "2 of 6 slots filled",
+      "fix": "Fill 4 more slots — every other grade firms up with a full team."
+     }
+    ],
+    "cover": [
+     {
+      "type": "normal",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fire",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "water",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "electric",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "grass",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ice",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fighting",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "poison",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ground",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "flying",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "psychic",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "bug",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "rock",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "ghost",
+      "now": false,
+      "learnable": true
+     },
+     {
+      "type": "dragon",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "dark",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "steel",
+      "now": true,
+      "learnable": true
+     },
+     {
+      "type": "fairy",
+      "now": true,
+      "learnable": true
+     }
+    ],
+    "threats": [
+     {
+      "type": "normal",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fire",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "water",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "electric",
+      "weak": 0,
+      "resist": 1,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "grass",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ice",
+      "weak": 2,
+      "resist": 0,
+      "members": 1,
+      "quad": 1,
+      "problem": true
+     },
+     {
+      "type": "fighting",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "poison",
+      "weak": 0,
+      "resist": 2,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ground",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "flying",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "psychic",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "bug",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "rock",
+      "weak": 1,
+      "resist": 1,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "ghost",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dragon",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "dark",
+      "weak": 0,
+      "resist": 0,
+      "members": 0,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "steel",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     },
+     {
+      "type": "fairy",
+      "weak": 1,
+      "resist": 0,
+      "members": 1,
+      "quad": 0,
+      "problem": false
+     }
+    ]
+   },
+   "profile": {
+    "style": "Defensive",
+    "styleWhy": "avg Speed 70 · attack 95 · bulk 385",
+    "lean": "Physical",
+    "physical": 1,
+    "special": 0,
+    "avg": {
+     "hp": 65,
+     "attack": 95,
+     "defense": 163,
+     "sp_attack": 40,
+     "sp_defense": 158,
+     "speed": 70
+    },
+    "avgBst": 553,
+    "avgSpeed": 70,
+    "fastCount": 1,
+    "speeds": [
+     {
+      "name": "Garchomp",
+      "speed": 134,
+      "sprite": "/sprites/official-artwork/445.png"
+     },
+     {
+      "name": "Shuckle",
+      "speed": 5,
+      "sprite": "/sprites/official-artwork/213.png"
+     }
+    ],
+    "coreTypes": [
+     "dragon",
+     "ground",
+     "bug",
+     "rock"
+    ],
+    "weakTo": [
+     {
+      "type": "ice",
+      "net": 2
+     },
+     {
+      "type": "water",
+      "net": 1
+     },
+     {
+      "type": "dragon",
+      "net": 1
+     },
+     {
+      "type": "steel",
+      "net": 1
+     },
+     {
+      "type": "fairy",
+      "net": 1
+     }
+    ],
+    "strongVs": [
+     "normal",
+     "fire",
+     "water",
+     "electric",
+     "grass",
+     "ice",
+     "fighting",
+     "poison",
+     "ground",
+     "flying",
+     "psychic",
+     "bug",
+     "rock",
+     "dragon",
+     "dark",
+     "steel",
+     "fairy"
+    ],
+    "resists": [
+     {
+      "type": "poison",
+      "net": 2
+     },
+     {
+      "type": "normal",
+      "net": 1
+     },
+     {
+      "type": "fire",
+      "net": 1
+     },
+     {
+      "type": "electric",
+      "net": 1
+     }
+    ],
+    "movesSet": 8,
+    "items": 2,
+    "priority": 0,
+    "gist": "Physical defensive on a Dragon/Ground core — 1 fast member (avg Speed 70); Ice, Water and Dragon hurt it."
+   }
+  }
+ ]
+}

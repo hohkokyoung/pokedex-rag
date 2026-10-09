@@ -5,6 +5,8 @@ code:
   - backend/app/api/teams.py
   - backend/app/services/teams.py
   - backend/app/services/team_analysis.py
+  - backend/app/services/team_rating.py
+  - backend/app/services/team_profile.py
   - backend/app/services/team_strategy.py
   - backend/app/services/recommend.py
   - backend/app/services/battle.py
@@ -22,8 +24,7 @@ code:
   - frontend/components/SlotEditor.tsx
   - frontend/components/TeamReport.tsx
   - frontend/components/TeamCoach.tsx
-  - frontend/lib/teamEval.ts
-  - frontend/lib/teamProfile.ts
+  - frontend/lib/teamEval.ts   # display helpers; the rating is backend (services/team_rating.py)
 
 documentation:
   - docs/architecture/team-coach.md
@@ -36,6 +37,7 @@ decisions:
   - docs/decisions/ADR-004.md
   - docs/decisions/ADR-007.md
   - docs/decisions/ADR-008.md
+  - docs/decisions/ADR-009.md
 
 depends_on:
   - ask-agent
@@ -46,7 +48,7 @@ interfaces:
   - GET|PUT|DELETE /api/teams/{team_id}
   - PUT|DELETE /api/teams/{team_id}/slots/{slot}
   - POST /api/teams/{team_id}/slots/{slot}/build
-  - GET /api/teams/{team_id}/analysis
+  - GET /api/teams/{team_id}/analysis   # + rating/profile when no opponent_id
   - GET /api/teams/{team_id}/strategy
   - GET /api/teams/{team_id}/summary, POST .../summary/refresh
   - GET /api/teams/{team_id}/duel

@@ -224,3 +224,88 @@ class TeamAnalysis(BaseModel):
     vs_opponent: VsOpponent | None = None
     sets: SetProfile | None = None
     summary: list[str]  # top-line "what to improve" bullets
+    # Opponent-free analyses of non-empty teams only: the grade never depends on the
+    # selected opponent (it fills empty move slots against them).
+    rating: TeamRating | None = None
+    profile: TeamProfile | None = None
+
+
+# ---- Team rating and profile (services/team_rating.py, services/team_profile.py) ----
+
+Grade = Literal["A", "B", "C", "D", "F"]
+AreaKey = Literal["coverage", "defence", "speed", "roles", "sets", "roster"]
+
+
+class RatingArea(BaseModel):
+    key: AreaKey
+    label: str
+    score: int  # 0–100
+    grade: Grade
+    headline: str  # the one-line verdict, e.g. "Hits 12 of 18 types super-effectively"
+    fix: str | None  # what to do about it; None when there's nothing to fix
+
+
+class TypeCover(BaseModel):
+    type: str
+    now: bool  # hit super-effectively by STAB or a set move
+    learnable: bool  # … or by a move the team could learn
+
+
+class TypeThreat(BaseModel):
+    """Per attacking type: ``weak`` is weighted (a 4× weakness counts 2);
+    ``members``/``quad`` are plain counts."""
+
+    type: str
+    weak: int
+    resist: int
+    members: int
+    quad: int
+    problem: bool
+
+
+class TeamRating(BaseModel):
+    overall: int
+    grade: Grade
+    capped: bool  # overall held down because the roster isn't six distinct species
+    ceiling: int  # the highest overall this roster can reach: 100 × distinct / 6
+    areas: list[RatingArea]
+    cover: list[TypeCover]  # per defending type, in display order
+    threats: list[TypeThreat]  # per attacking type, in display order
+    fast_speed: int  # the "fast" threshold the Speed area and roles use
+
+
+class SpeedEntry(BaseModel):
+    name: str
+    speed: int
+    sprite: str
+
+
+class TypeNet(BaseModel):
+    type: str
+    net: int
+
+
+class TeamProfile(BaseModel):
+    """"What kind of team is this?" at a glance, from stats as built."""
+
+    style: str  # "Bulky offense", "Hyper offense", …
+    style_why: str  # the numbers behind the style label
+    lean: Literal["Physical", "Special", "Mixed"]
+    physical: int  # members leaning physical
+    special: int  # members leaning special
+    avg: dict[str, int]
+    avg_bst: int
+    avg_speed: int
+    fast_count: int
+    speeds: list[SpeedEntry]
+    core_types: list[str]  # most common member types, most frequent first
+    weak_to: list[TypeNet]  # types more members are weak to than resist (4× counts double)
+    strong_vs: list[str]  # types the team hits super-effectively now
+    resists: list[TypeNet]  # types more members resist than are weak to
+    moves_set: int
+    items: int
+    priority: int  # set moves with priority > 0
+    gist: str
+
+
+TeamAnalysis.model_rebuild()

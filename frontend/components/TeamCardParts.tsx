@@ -5,10 +5,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { getTeam, getTeamAnalysis, getTeamStrategy, getTeamSummary, type TeamStrategy, type TeamSummary, type TeamSummaryText, thumb } from "@/lib/api";
+import { getTeamAnalysis, getTeamStrategy, getTeamSummary, type TeamStrategy, type TeamSummary, type TeamSummaryText, thumb } from "@/lib/api";
 import { typeChip } from "@/lib/pokeTypes";
-import { gradeTone } from "@/lib/teamEval";
-import { profileTeam, type Profile } from "@/lib/teamProfile";
+import { gradeTone, profileOf, type Profile } from "@/lib/teamEval";
 
 export type Info = { p?: Profile | null; st?: TeamStrategy; sum?: TeamSummaryText };
 
@@ -43,8 +42,8 @@ export function useInfo(teams: TeamSummary[]) {
       const k = `${t.id}.${t.size}`;
       if (requested.current.has(k)) continue; // already loaded or in flight
       requested.current.add(k);
-      Promise.all([getTeam(t.id), getTeamAnalysis(t.id)])
-        .then(([team, a]) => patch(t.id, { p: profileTeam(team, a) }))
+      getTeamAnalysis(t.id)
+        .then((a) => patch(t.id, { p: profileOf(a) }))
         .catch(() => {
           requested.current.delete(k); // let a later render retry
           if (!infoCache[t.id]?.p) patch(t.id, { p: null }); // keep stale data over a blank card
@@ -115,7 +114,7 @@ export function StrategyBars({ st }: { st: TeamStrategy }) {
 }
 
 export function Facts({ p }: { p: Profile }) {
-  const list = (xs: Profile["weakTo"]) => (
+  const list = (xs: Profile["weak_to"]) => (
     <>
       {xs.slice(0, 5).map((w) => <Chip key={w.type} t={w.type} n={w.net > 1 ? `×${w.net}` : undefined} />)}
       {xs.length > 5 && <span className="more">+{xs.length - 5}</span>}
@@ -125,7 +124,7 @@ export function Facts({ p }: { p: Profile }) {
     <dl className="tl-dl">
       <div>
         <dt>Weak to</dt>
-        <dd>{p.weakTo.length ? list(p.weakTo) : <span className="ok">No weaknesses</span>}</dd>
+        <dd>{p.weak_to.length ? list(p.weak_to) : <span className="ok">No weaknesses</span>}</dd>
       </div>
       <div>
         <dt>Resists</dt>
@@ -134,7 +133,7 @@ export function Facts({ p }: { p: Profile }) {
       <div>
         <dt>Hits hard</dt>
         <dd>
-          <b>{p.strongVs.length}</b>/18 types · core {p.coreTypes.slice(0, 2).map((t) => <Chip key={t} t={t} />)}
+          <b>{p.strong_vs.length}</b>/18 types · core {p.core_types.slice(0, 2).map((t) => <Chip key={t} t={t} />)}
         </dd>
       </div>
     </dl>

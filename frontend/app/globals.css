@@ -1535,7 +1535,7 @@ html[data-lab] .btn-ghost:hover{border-color:var(--accent);color:var(--accent-te
   .tl-card{padding:14px;}
   .tl-body{grid-template-columns:1fr;}
 }
-/* Team rating (lib/teamEval) — full report on /teams/{id}, summary on /teams. */
+/* Team rating (backend rating, lib/teamEval display helpers) — full report on /teams/{id}, summary on /teams. */
 @keyframes evDraw{to{stroke-dashoffset:var(--off);}}
 .ev-ring{position:relative;display:inline-grid;place-items:center;flex:none;}
 .ev-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}

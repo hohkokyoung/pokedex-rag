@@ -15,6 +15,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Type, TypeEffectiveness
 
+# The 18 battle types in display order: the type chart, the team rating's coverage and
+# threat rows, and the Type Calculator all list types this way.
+ATTACK_ORDER = [
+    "normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",
+    "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy",
+]
+
 _chart: dict[tuple[int, int], float] | None = None
 _id2ident: dict[int, str] = {}
 _ident2id: dict[str, int] = {}
@@ -116,6 +123,18 @@ async def offense_multipliers(
             continue
         out[def_ident] = max(_chart.get((aid, def_id), 1.0) for aid in atk_ids)
     return out
+
+
+async def type_chart(session: AsyncSession) -> dict[str, dict[str, float]]:
+    """attacking type → defending type → multiplier, for the 18 battle types in
+    ``ATTACK_ORDER`` (every pair, 1× included). Non-battle types are left out."""
+    await _ensure_loaded(session)
+    assert _chart is not None
+    ids = [_ident2id[t] for t in ATTACK_ORDER]
+    return {
+        atk: {d: _chart.get((aid, did), 1.0) for d, did in zip(ATTACK_ORDER, ids, strict=True)}
+        for atk, aid in zip(ATTACK_ORDER, ids, strict=True)
+    }
 
 
 async def all_type_idents(session: AsyncSession) -> list[str]:

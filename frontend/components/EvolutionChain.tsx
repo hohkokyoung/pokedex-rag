@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { thumb } from "@/lib/api";
 import { titleCase, typeVars } from "@/lib/pokeTypes";
 import { buildCondition, type EvoCondition } from "@/lib/evolution";
-import { CREAM_RULE, SPIN_STEPS, SWEET_TOPPING } from "@/lib/alcremie";
-import type { CosmeticVariant, EvolutionMember, EvolutionStage } from "@/lib/types";
+import type { CosmeticVariant, EvolutionMember, EvolutionStage, SpinGuide } from "@/lib/types";
 import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 type Edge = { to: number; stage: EvolutionStage };
+
+/** The chain's spin guide (Milcery → Alcremie), served with the evolution data. */
+const SpinGuideContext = createContext<SpinGuide | null>(null);
 
 function ConditionRow({
   cond,
@@ -89,6 +91,7 @@ function VariantsButton({ member }: { member: EvolutionMember }) {
   const dialogRef = useDialogFocus(open);
   const [peek, setPeek] = useState<{ v: CosmeticVariant; rect: DOMRect } | null>(null);
   const variants = member.variants ?? [];
+  const guide = useContext(SpinGuideContext);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
@@ -104,6 +107,8 @@ function VariantsButton({ member }: { member: EvolutionMember }) {
   const sweets = combo ? uniq(parts.map((m) => m![2])) : [];
   const name = titleCase(member.name);
   const byName = new Map(variants.map((v) => [v.name, v]));
+  const toppingOf = new Map(guide?.toppings.map((t) => [t.sweet, t.topping]));
+  const ruleOf = new Map(guide?.creams.map((c) => [c.cream, c]));
   return (
     <>
       <button type="button" className="evo2-variants font-mono" onClick={() => setOpen(true)}>
@@ -169,22 +174,24 @@ function VariantsButton({ member }: { member: EvolutionMember }) {
                       </table>
                     </div>
                   </section>
-                  <section className="evo2-vgroup">
-                    <h4 className="font-mono">How it works</h4>
-                    <ol className="evo2-steps">
-                      {SPIN_STEPS.map((step, i) => (
-                        <li key={i}><span className="font-mono">{i + 1}</span>{step}</li>
-                      ))}
-                    </ol>
-                    <p>The Sweet it holds picks the topping; how you spin picks the cream. Any Sweet works with any cream.</p>
-                  </section>
+                  {guide && (
+                    <section className="evo2-vgroup">
+                      <h4 className="font-mono">How it works</h4>
+                      <ol className="evo2-steps">
+                        {guide.steps.map((step, i) => (
+                          <li key={i}><span className="font-mono">{i + 1}</span>{step}</li>
+                        ))}
+                      </ol>
+                      <p>The Sweet it holds picks the topping; how you spin picks the cream. Any Sweet works with any cream.</p>
+                    </section>
+                  )}
                   <section className="evo2-vgroup">
                     <h4 className="font-mono">Sweet · the topping ({sweets.length})</h4>
                     <div className="evo2-sweets">
                       {sweets.map((sw) => (
                         <div key={sw} className="evo2-sweet">
                           <b>{sw}</b>
-                          <span>{SWEET_TOPPING[sw] ? `${SWEET_TOPPING[sw]} topping` : "—"}</span>
+                          <span>{toppingOf.has(sw) ? `${toppingOf.get(sw)} topping` : "—"}</span>
                         </div>
                       ))}
                     </div>
@@ -197,8 +204,8 @@ function VariantsButton({ member }: { member: EvolutionMember }) {
                           <tr><th>Cream</th><th>Spin</th><th>For</th><th>When</th></tr>
                         </thead>
                         <tbody>
-                          {[...Object.keys(CREAM_RULE).filter((c) => creams.includes(c)), ...creams.filter((c) => !CREAM_RULE[c])].map((c) => {
-                            const rule = CREAM_RULE[c];
+                          {[...[...ruleOf.keys()].filter((c) => creams.includes(c)), ...creams.filter((c) => !ruleOf.has(c))].map((c) => {
+                            const rule = ruleOf.get(c);
                             return (
                               <tr key={c}>
                                 <td><b>{c}</b></td>
@@ -384,10 +391,12 @@ export default function EvolutionChain({
   members,
   stages,
   currentId,
+  spinGuide = null,
 }: {
   members: EvolutionMember[];
   stages: EvolutionStage[];
   currentId: number;
+  spinGuide?: SpinGuide | null;
 }) {
   const [openSet, setOpenSet] = useState<Set<number>>(new Set());
   const toggle = (to: number) =>
@@ -420,6 +429,7 @@ export default function EvolutionChain({
   const rootIds = roots.length > 0 ? roots.map((m) => m.id) : [members[0].id];
 
   return (
+    <SpinGuideContext.Provider value={spinGuide}>
     <div className="evo2-tree">
       {rootIds.map((rid) => (
         <Subtree
@@ -434,5 +444,6 @@ export default function EvolutionChain({
         />
       ))}
     </div>
+    </SpinGuideContext.Provider>
   );
 }

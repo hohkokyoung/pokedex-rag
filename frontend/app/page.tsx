@@ -6,7 +6,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, typ
 import { createPortal } from "react-dom";
 import { useKeyNav } from "@/hooks/useKeyNav";
 import { Facts, GradeBadge, StrategyBars, SummaryText, useInfo } from "@/components/TeamCardParts";
-import { defensiveMatchups, superEffectiveHits } from "@/lib/typeChart";
+import { defensiveMatchups, superEffectiveHits, useTypeChart } from "@/lib/typeChart";
 import TypeMatchups from "@/components/TypeMatchups";
 import { MoveLearnersModal } from "@/components/MoveLearners";
 import Finder from "@/components/Finder";
@@ -211,15 +211,19 @@ function TypeCalcTile() {
   const toggle = (o: string) =>
     setSel((s) => (s.includes(o) ? s.filter((x) => x !== o) : s.length < 2 ? [...s, o] : [s[1], o]));
   // Same rows as the detail page's Type Matchups card, plus what the picked types hit ×2.
-  const matchups = defensiveMatchups(sel);
-  const hits = superEffectiveHits(sel);
+  const chart = useTypeChart();
   return (
     <section className="card">
       <div className="lbl"><h2 className="lbl-t">Type calculator</h2><span className="mono">defends as 1–2 types</span></div>
       <div className="lc-tg">
         {ORDER.map((o) => <button key={o} onClick={() => toggle(o)} className={sel.includes(o) ? "on" : ""} style={typeVars(o, "--c") as CSSProperties}>{o}</button>)}
       </div>
-      {sel.length > 0 && <TypeMatchups m={matchups} hits={hits} renderType={(t) => <Tag key={t} t={t} />} />}
+      {sel.length > 0 &&
+        (chart ? (
+          <TypeMatchups m={defensiveMatchups(chart, sel)} hits={superEffectiveHits(chart, sel)} renderType={(t) => <Tag key={t} t={t} />} />
+        ) : (
+          <span className="lab-skel" style={{ height: 120 }} />
+        ))}
     </section>
   );
 }

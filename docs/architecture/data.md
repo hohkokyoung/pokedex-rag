@@ -36,7 +36,7 @@ items · natures · version_groups   (lookups)
 | Forms | `pokemon_forms` | regional, Mega, Primal, Gigantamax, battle forms; PokéAPI ids > 10000. Types, abilities, learnset and dex entries are denormalised JSONB |
 | Lore | `pokemon_flavor_texts`, `pokemon_evolutions` | |
 | Moves | `moves`, `pokemon_moves`, `pokemon_move_learns`, `move_machines`, `version_groups` | `pokemon_moves` is "can it ever learn it" (one row per pair); `pokemon_move_learns` is the game-aware answer |
-| Matchups | `type_effectiveness` | the type chart, read through `services/matchups.py` |
+| Matchups | `type_effectiveness` | the type chart, read through `services/matchups.py`; clients get it from `GET /api/types/chart` |
 | Battle items | `items`, `natures` | |
 | Where to find | `pokemon_encounters` | encounter slots folded into one row per place × method × conditions; names denormalised. Data ends at Sword/Shield |
 | Search | `knowledge_chunks` | profile and dex-entry chunks with a 384-d embedding and a DB-managed `content_tsv` — see [retrieval.md](retrieval.md#text-retrieval-lore-and-look-alikes) |

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -10,6 +12,13 @@ class TypeOut(BaseModel):
     id: int
     identifier: str
     name: str
+
+
+class TypeChartOut(BaseModel):
+    """The 18 battle types in display order and every attacking → defending multiplier."""
+
+    order: list[str]
+    chart: dict[str, dict[str, float]]
 
 
 class GenerationOut(BaseModel):
@@ -82,6 +91,26 @@ class EvolutionStage(BaseModel):
     condition: str | None = None
 
 
+class SweetTopping(BaseModel):
+    sweet: str  # the held Sweet, as it appears in the form names
+    topping: str  # the decoration it puts on Alcremie
+
+
+class CreamRule(BaseModel):
+    cream: str
+    direction: Literal["Clockwise", "Counter-clockwise"]
+    duration: str  # "Under 5 s", "Over 5 s", "Over 10 s"
+    time: str  # "Day", "Night" or a clock window
+
+
+class SpinGuide(BaseModel):
+    """How a spin evolution (Milcery → Alcremie) picks its look; creams in display order."""
+
+    steps: list[str]
+    toppings: list[SweetTopping]
+    creams: list[CreamRule]
+
+
 class CosmeticVariantOut(BaseModel):
     name: str
     sprite_url: str = ""
@@ -141,6 +170,7 @@ class FormOut(BaseModel):
     flavor_entries: list[FlavorEntry] = []
     evolution_members: list[EvolutionMember] = []
     evolution_stages: list[EvolutionStage] = []
+    spin_guide: SpinGuide | None = None
 
 
 class PokemonDetail(BaseModel):
@@ -184,6 +214,7 @@ class PokemonDetail(BaseModel):
     evolution_chain_id: int | None = None
     evolution_stages: list[EvolutionStage] = []
     evolution_members: list[EvolutionMember] = []
+    spin_guide: SpinGuide | None = None
 
     forms: list[FormOut] = []
 
