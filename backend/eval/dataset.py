@@ -110,7 +110,7 @@ CASES: list[EvalCase] = [
     EvalCase("x2", "Moves that beat Garchomp", "matchup",
              [T("coverage_vs_types", want="moves")]),
     EvalCase("x3", "A special attacker with coverage against Water and Dark", "matchup",
-             [T("coverage_vs_types", attacker_class="special")]),
+             [T("coverage_vs_types", attacker_class="special", want="pokemon")]),
     EvalCase("l1", "Pokémon similar to Blaziken", "lookup", [T("similar_to", name="Blaziken")],
              fast_path=True),
     EvalCase("l2", "Where can I catch Pikachu?", "lookup", [T("encounters", pokemon="Pikachu")],

@@ -11,6 +11,7 @@ When a question finishes on any surface (Ask, team coach, calc coach), the syste
 - which planner produced the plan: `cached`, `keyword` (fast path, or no LLM available) or `llm`;
 - whether the keyword plan was confident, and the keyword plan itself (each step's tool, arguments and reason);
 - the LLM plan when one was made (each step's tool, arguments and reason), and the constraints it reported as unhandled;
+- any LLM plan arguments code overrode before running the plan, with the LLM's original and the value used;
 - any re-plan steps;
 - each executed step's final state (done, empty or error), summary and duration;
 - how the answer was produced: code-rendered, LLM-written, without an LLM, or a code abstain for an inexpressible question;
@@ -37,6 +38,10 @@ Recording SHALL make no LLM calls and SHALL NOT change the answer, its events or
 #### Scenario: Cached answer
 - **WHEN** a repeated Ask question is served from the answer cache
 - **THEN** its trace shows planner `cached` and 0 LLM calls
+
+#### Scenario: Overridden argument
+- **WHEN** the LLM plans coverage with moves for "Which special attacker has coverage against Dark?"
+- **THEN** the trace shows the LLM plan with moves, the override to Pokémon, and the executed step
 
 ### Requirement: Fallbacks are recorded with their reason
 When the LLM planner was attempted but a cheaper path stood in, the trace SHALL record that a fallback happened and why: the provider rate-limited the call, the call timed out, the provider failed, or the LLM's plan had no valid steps. When the answer call failed and the answer was produced from the data instead, the trace SHALL record that too. When no LLM is configured, the trace SHALL say the keyword plan was used because no LLM was available, not that a fallback happened.
