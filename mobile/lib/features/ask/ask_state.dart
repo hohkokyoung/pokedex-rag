@@ -105,79 +105,101 @@ class AskRun extends Notifier<AskState> {
     if (q.isEmpty) return;
     _cancel?.cancel();
     final cancel = _cancel = CancelToken();
-    state = AskState(question: q, status: AskStatus.streaming);
-    final started = DateTime.now();
-    final dio = ref.read(dioProvider);
-    try {
-      final res = await dio.post<ResponseBody>(
-        '/api/ask/stream',
-        data: {'question': q},
-        cancelToken: cancel,
-        options: Options(responseType: ResponseType.stream, receiveTimeout: const Duration(minutes: 2)),
-      );
-      await for (final e in parseSse(res.data!.stream)) {
-        if (cancel.isCancelled) return;
-        _apply(e);
-      }
-      if (cancel.isCancelled) return;
-      if (state.status == AskStatus.streaming) state = state.copyWith(status: AskStatus.done);
-    } on DioException catch (e) {
-      if (CancelToken.isCancel(e)) return;
-      state = state.copyWith(status: AskStatus.error, error: failureOf(e, dio.options.baseUrl));
-    } catch (e) {
-      state = state.copyWith(status: AskStatus.error, error: e);
-    } finally {
-      if (identical(_cancel, cancel)) state = state.copyWith(elapsed: DateTime.now().difference(started));
-    }
+    await streamAsk(ref.read(dioProvider), '/api/ask/stream', {'question': q}, cancel,
+        read: () => state, emit: (s) => state = s);
   }
+}
 
-  void _apply(SseEvent e) {
-    final d = e.data;
-    switch (e.name) {
-      case 'plan':
-        final m = d! as Map;
-        final replan = m['replan'] == true;
-        final steps = [
-          for (final s in (m['steps'] as List).cast<Map>())
-            AskStep(
-              id: '${s['id']}',
-              tool: '${s['tool']}',
-              why: '${s['why'] ?? ''}',
-              state: s['error'] != null ? 'error' : 'pending',
-              summary: '${s['error'] ?? ''}',
-              replan: replan,
-            ),
-        ];
-        state = state.copyWith(
-          planner: replan ? null : '${m['planner']}',
-          cached: replan ? null : m['cached'] == true,
-          steps: [...state.steps, ...steps],
-          unhandled: replan ? null : [for (final u in (m['unhandled'] as List? ?? const [])) '$u'],
-        );
-      case 'step':
-        final m = d! as Map;
-        state = state.copyWith(steps: [
-          for (final s in state.steps) s.id == m['id'] ? s.copyWith(state: '${m['state']}', summary: '${m['summary'] ?? ''}') : s,
-        ]);
-      case 'view':
-        // A view kind this app doesn't draw decodes to null: skip it, keep the answer.
-        final v = decodeView(Map<String, dynamic>.from(d! as Map));
-        if (v != null) state = state.copyWith(views: [...state.views, v]);
-      case 'sources':
-        state = state.copyWith(sources: [for (final s in (d! as List)) Source.fromJson(Map<String, dynamic>.from(s as Map))]);
-      case 'delta':
-        state = state.copyWith(answer: '${state.answer}${(d! as Map)['text']}');
-      case 'done':
-        final usage = ((d as Map?)?['usage'] as Map?) ?? const {};
-        state = state.copyWith(status: AskStatus.done, usage: {for (final e in usage.entries) '${e.key}': (e.value as num).toInt()});
-      case 'error':
-        state = state.copyWith(
-          status: AskStatus.error,
-          error: const ServerError(null),
-          errorMessage: '${(d as Map?)?['message'] ?? 'The server failed to answer.'}',
-        );
+/// Streams an Ask-shaped SSE answer (Ask or the team coach) into [emit], starting from
+/// a fresh streaming state for the question in [body]. Events other than Ask's go to
+/// [onOther] (e.g. the coach's `team_updated`). Stops quietly once [cancel] fires.
+Future<void> streamAsk(
+  Dio dio,
+  String path,
+  Map<String, Object?> body,
+  CancelToken cancel, {
+  required AskState Function() read,
+  required void Function(AskState) emit,
+  void Function(SseEvent e)? onOther,
+}) async {
+  emit(AskState(question: '${body['question']}', status: AskStatus.streaming));
+  final started = DateTime.now();
+  try {
+    final res = await dio.post<ResponseBody>(
+      path,
+      data: body,
+      cancelToken: cancel,
+      options: Options(responseType: ResponseType.stream, receiveTimeout: const Duration(minutes: 2)),
+    );
+    await for (final e in parseSse(res.data!.stream)) {
+      if (cancel.isCancelled) return;
+      final next = applyAskEvent(read(), e);
+      if (next == null) {
+        onOther?.call(e);
+      } else {
+        emit(next);
+      }
     }
+    if (cancel.isCancelled) return;
+    if (read().status == AskStatus.streaming) emit(read().copyWith(status: AskStatus.done));
+  } on DioException catch (e) {
+    if (CancelToken.isCancel(e)) return;
+    emit(read().copyWith(status: AskStatus.error, error: failureOf(e, dio.options.baseUrl)));
+  } catch (e) {
+    emit(read().copyWith(status: AskStatus.error, error: e));
+  } finally {
+    if (!cancel.isCancelled) emit(read().copyWith(elapsed: DateTime.now().difference(started)));
   }
+}
+
+/// One Ask stream event applied to [s]; null for an event that isn't Ask's.
+AskState? applyAskEvent(AskState s, SseEvent e) {
+  final d = e.data;
+  switch (e.name) {
+    case 'plan':
+      final m = d! as Map;
+      final replan = m['replan'] == true;
+      final steps = [
+        for (final st in (m['steps'] as List).cast<Map>())
+          AskStep(
+            id: '${st['id']}',
+            tool: '${st['tool']}',
+            why: '${st['why'] ?? ''}',
+            state: st['error'] != null ? 'error' : 'pending',
+            summary: '${st['error'] ?? ''}',
+            replan: replan,
+          ),
+      ];
+      return s.copyWith(
+        planner: replan ? null : '${m['planner']}',
+        cached: replan ? null : m['cached'] == true,
+        steps: [...s.steps, ...steps],
+        unhandled: replan ? null : [for (final u in (m['unhandled'] as List? ?? const [])) '$u'],
+      );
+    case 'step':
+      final m = d! as Map;
+      return s.copyWith(steps: [
+        for (final st in s.steps) st.id == m['id'] ? st.copyWith(state: '${m['state']}', summary: '${m['summary'] ?? ''}') : st,
+      ]);
+    case 'view':
+      // A view kind this app doesn't draw decodes to null: skip it, keep the answer.
+      final v = decodeView(Map<String, dynamic>.from(d! as Map));
+      return v == null ? s : s.copyWith(views: [...s.views, v]);
+    case 'sources':
+      return s.copyWith(sources: [for (final x in (d! as List)) Source.fromJson(Map<String, dynamic>.from(x as Map))]);
+    case 'delta':
+      return s.copyWith(answer: '${s.answer}${(d! as Map)['text']}');
+    case 'done':
+      final usage = ((d as Map?)?['usage'] as Map?) ?? const {};
+      return s.copyWith(status: AskStatus.done, usage: {for (final u in usage.entries) '${u.key}': (u.value as num).toInt()});
+    case 'error':
+      return s.copyWith(
+        status: AskStatus.error,
+        error: const ServerError(null),
+        errorMessage: '${(d as Map?)?['message'] ?? 'The server failed to answer.'}',
+      );
+  }
+  return null;
 }
 
 /// LLM status for the tab ("LLM" or keyless).

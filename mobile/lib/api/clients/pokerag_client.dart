@@ -8,6 +8,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/ability_out.dart';
 import '../models/ask_request.dart';
 import '../models/ask_response.dart';
+import '../models/coach_ask_request.dart';
 import '../models/generation_out.dart';
 import '../models/health_response.dart';
 import '../models/item_out.dart';
@@ -211,6 +212,19 @@ abstract class PokeragClient {
   Future<TeamAnalysis> analyzeTeamApiTeamsTeamIdAnalysisGet({
     @Path('team_id') required int teamId,
     @Query('opponent_id') int? opponentId,
+  });
+
+  /// Coach Ask.
+  ///
+  /// SSE coaching over a team, planned like Ask (see ``app.agent``).
+  ///
+  /// Events: ``plan`` (the team context step first), ``step``*, ``view``* (candidates,.
+  /// set-edit proposals, adds, duels and dex views), ``team_updated`` after an explicit.
+  /// add, ``sources``, ``delta``*, ``done``.
+  @POST('/api/teams/{team_id}/ask')
+  Future<void> coachAskApiTeamsTeamIdAskPost({
+    @Path('team_id') required int teamId,
+    @Body() required CoachAskRequest body,
   });
 
   /// Clear Slot

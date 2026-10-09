@@ -1,8 +1,9 @@
 # Mobile app (`mobile/`)
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
-home network. It covers the Pokédex (and your favourites), Teams and Ask; the coaches
-and the calculators stay on the website for now. Tabs at the bottom switch between
+home network. It covers the Pokédex (and your favourites), Teams with their coach, and
+Ask; the damage calculator, its coach and the other calculators stay on the website for
+now. Tabs at the bottom switch between
 Pokédex, Teams and Ask; each keeps its place.
 
 ## List
@@ -59,6 +60,17 @@ The same saved teams as the website's `/teams`, rated by the server:
   - the report: rating and AI summary (↻ Regenerate), the six grades with fixes, How it
     plays (strategy axes, now and with learnable moves), type profile, Sets with **Use
     suggested** (fills only the empty parts), and Defence per attacking type.
+- **Coach** (on the team page, as on the website):
+  - quick questions, a question box, and the thread for this visit; with an opponent
+    picked, questions include it;
+  - answers stream with citations and the How line;
+  - set changes come as a was → now card that saves only on **Apply**, then
+    **Revert**s exactly;
+  - drafted candidates offer **Add** (first empty slot) or **Replace…** a member, each
+    with **Revert**;
+  - "add Garchomp" adds it straight away with **Undo**;
+  - duels show the outcome and the turn log.
+  - Any change refreshes the slots and report. Nothing else is saved.
 
 ## Ask
 

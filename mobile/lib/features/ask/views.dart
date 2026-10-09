@@ -14,5 +14,10 @@ Object? decodeView(Map<String, dynamic> json) => switch (json['kind']) {
       'learnset' => LearnsetView.fromJson(json),
       'learners' => LearnersView.fromJson(json),
       'learn_check' => LearnCheckView.fromJson(json),
+      // The team coach's own cards.
+      'set_edit' => SetEditView.fromJson(json),
+      'candidates' => CandidatesView.fromJson(json),
+      'member_added' => MemberAddedView.fromJson(json),
+      'duel' => DuelView.fromJson(json),
       _ => null,
     };

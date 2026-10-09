@@ -15,6 +15,7 @@ export 'models/calc_apply.dart';
 export 'models/calc_ref.dart';
 export 'models/candidate.dart';
 export 'models/candidates_view.dart';
+export 'models/coach_ask_request.dart';
 export 'models/cosmetic_variant_out.dart';
 export 'models/cream_rule.dart';
 export 'models/damage_view.dart';

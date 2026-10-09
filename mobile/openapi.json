@@ -512,6 +512,32 @@
     "title": "CandidatesView",
     "type": "object"
    },
+   "CoachAskRequest": {
+    "properties": {
+     "opponent_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Opponent Id"
+     },
+     "question": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Question",
+      "type": "string"
+     }
+    },
+    "required": [
+     "question"
+    ],
+    "title": "CoachAskRequest",
+    "type": "object"
+   },
    "CosmeticVariantOut": {
     "properties": {
      "name": {
@@ -7708,6 +7734,57 @@
      }
     },
     "summary": "Analyze Team",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/ask": {
+   "post": {
+    "description": "SSE coaching over a team, planned like Ask (see ``app.agent``).\n\nEvents: ``plan`` (the team context step first), ``step``*, ``view``* (candidates,\nset-edit proposals, adds, duels and dex views), ``team_updated`` after an explicit\nadd, ``sources``, ``delta``*, ``done``.",
+    "operationId": "coach_ask_api_teams__team_id__ask_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CoachAskRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Coach Ask",
     "tags": [
      "teams"
     ]

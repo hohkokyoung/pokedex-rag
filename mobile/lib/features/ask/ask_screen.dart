@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../api/export.dart';
 import '../../data/errors.dart';
@@ -10,6 +9,7 @@ import '../../widgets/cant_reach.dart';
 import '../pokedex/detail_sections.dart' show Section;
 import 'answer_text.dart';
 import 'ask_cards.dart';
+import 'ask_parts.dart';
 import 'ask_state.dart';
 import 'profile_sheet.dart';
 
@@ -67,35 +67,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
 
   void _cite(int n) {
     final s = sourceOf(ref.read(askProvider), n);
-    if (s == null) return;
-    showModalBottomSheet<void>(
-      context: context,
-      useRootNavigator: true,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 2),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('[${s.n}] ${s.pokemonName ?? s.chunkType.replaceAll('_', ' ')}', key: const Key('source-title'), style: AppText.headline),
-            Text(s.chunkType.replaceAll('_', ' '), style: AppText.readout.copyWith(color: Palette.mutedSlate)),
-            const SizedBox(height: Space.sm),
-            Flexible(child: SingleChildScrollView(child: Text(s.snippet, key: const Key('source-snippet'), style: AppText.body))),
-            if (s.dexNumber != null) ...[
-              const SizedBox(height: Space.md),
-              FilledButton(
-                key: const Key('source-open'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  this.context.push('/pokemon/${s.dexNumber}');
-                },
-                child: Text('Open ${s.pokemonName ?? 'Pokémon'}'),
-              ),
-            ],
-          ]),
-        ),
-      ),
-    );
+    if (s != null) showSourceSheet(context, s);
   }
 
   @override
@@ -187,9 +159,6 @@ class _AskScreenState extends ConsumerState<AskScreen> {
         CantReach(address: (run.error! as Unreachable).address, onRetry: () => _ask(run.question)),
       ];
     }
-    final lookups = run.steps.length;
-    final llm = run.usage['llm_calls'] ?? 0;
-    final planner = run.planner == 'llm' ? 'the LLM' : 'keywords';
     return [
       if (run.unhandled.isNotEmpty)
         Padding(
@@ -201,26 +170,13 @@ class _AskScreenState extends ConsumerState<AskScreen> {
         title: 'Answer',
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (run.answer.isEmpty && run.status == AskStatus.streaming)
-            Text(_runningLine(run), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
+            Text(runningLine(run), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
           else if (run.answer.isNotEmpty)
             AnswerText(run.answer, onCite: _cite),
           if (run.status == AskStatus.error && run.answer.isEmpty)
             Text(run.errorMessage ?? 'The server had a problem answering.', key: const Key('ask-error'), style: AppText.body.copyWith(color: Palette.pokeballRedText)),
           const SizedBox(height: Space.sm),
-          // How it was answered: planner · time · LLM calls · lookups (tap for the steps).
-          InkWell(
-            key: const Key('how-answered'),
-            onTap: lookups == 0 ? null : () => _showSteps(run),
-            child: Text(
-              [
-                run.cached ? 'Cached answer' : 'Planned by $planner',
-                if (run.elapsed != null) '${(run.elapsed!.inMilliseconds / 1000).toStringAsFixed(1)} s',
-                if (run.status == AskStatus.done) '$llm LLM call${llm == 1 ? '' : 's'}',
-                '$lookups lookup${lookups == 1 ? '' : 's'}',
-              ].join(' · '),
-              style: AppText.readout.copyWith(fontSize: 11, color: Palette.mutedSlate),
-            ),
-          ),
+          HowAnswered(run: run),
         ]),
       ),
       for (final v in run.views)
@@ -230,41 +186,4 @@ class _AskScreenState extends ConsumerState<AskScreen> {
         ),
     ];
   }
-
-  String _runningLine(AskState run) {
-    final running = run.steps.where((s) => s.state == 'running').firstOrNull;
-    if (running != null) return 'Looking up: ${running.why}…';
-    if (run.steps.isEmpty) return 'Planning…';
-    return 'Writing the answer…';
-  }
-
-  void _showSteps(AskState run) => showModalBottomSheet<void>(
-        context: context,
-        useRootNavigator: true,
-        showDragHandle: true,
-        builder: (_) => SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 2),
-            children: [
-              Text('How it was answered', style: AppText.headline),
-              for (final s in run.steps)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    switch (s.state) {
-                      'done' => Icons.check_circle_outline,
-                      'error' => Icons.error_outline,
-                      'empty' => Icons.remove_circle_outline,
-                      _ => Icons.more_horiz,
-                    },
-                    color: s.state == 'error' ? Palette.pokeballRed : Palette.inkDim,
-                  ),
-                  title: Text('${s.tool}${s.replan ? ' · follow-up' : ''}', style: AppText.readout),
-                  subtitle: Text([s.why, if (s.summary.isNotEmpty) s.summary].join('\n'), style: AppText.bodySmall),
-                ),
-            ],
-          ),
-        ),
-      );
 }

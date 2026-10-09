@@ -11,6 +11,8 @@ import '../../theme/tokens.g.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
+import 'coach_section.dart';
+import 'coach_state.dart';
 import 'pokemon_picker.dart';
 import 'team_report.dart';
 import 'team_state.dart';
@@ -26,6 +28,8 @@ class TeamScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final team = ref.watch(teamProvider(id));
+    // Keep this visit's coach thread while the page is open, even scrolled away.
+    ref.listen(coachProvider(id), (_, _) {});
     return Scaffold(
       appBar: AppBar(
         title: Text(team.value?.name ?? '', style: AppText.headline),
@@ -67,9 +71,12 @@ class _Body extends ConsumerWidget {
     final rated = team.members.isEmpty ? null : ref.watch(teamAnalysisProvider((team.id, null))).value;
     return RefreshIndicator(
       onRefresh: () async => invalidateTeamW(ref, team.id),
-      child: ListView(
+      // Not lazy: the page is short, and the coach's thread and cards must stay built
+      // (and laid out) while scrolled away.
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 3),
-        children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (var slot = 1; slot <= 6; slot++)
             Padding(
               padding: const EdgeInsets.only(bottom: Space.xs),
@@ -81,18 +88,22 @@ class _Body extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: Space.md),
-          if (team.members.isEmpty)
-            Text('Add your first Pokémon to rate the team.', style: AppText.body.copyWith(color: Palette.inkDim))
-          else ...[
+          if (team.members.isEmpty) ...[
+            Text('Add your first Pokémon to rate the team.', style: AppText.body.copyWith(color: Palette.inkDim)),
+            const SizedBox(height: Space.md),
+            CoachSection(team: team),
+          ] else ...[
             _OpponentPicker(team: team, opponentId: opponentId),
             if (opponentId != null) ...[
               const SizedBox(height: Space.md),
               MatchupCard(teamId: team.id, opponentId: opponentId!),
             ],
             const SizedBox(height: Space.md),
+            CoachSection(team: team, opponentId: opponentId),
+            const SizedBox(height: Space.md),
             TeamReport(team: team),
           ],
-        ],
+        ]),
       ),
     );
   }

@@ -44,6 +44,6 @@ void main() {
   });
 
   test('an unknown kind decodes to null', () {
-    expect(decodeView({'kind': 'duel'}), isNull);
+    expect(decodeView({'kind': 'damage'}), isNull);
   });
 }

@@ -1,5 +1,5 @@
 name: mobile
-description: The Flutter app (iOS/Android) — Pokédex, Teams and Ask, read from the backend on the home network.
+description: The Flutter app (iOS/Android) — Pokédex, Teams with their coach, and Ask, read from the backend on the home network.
 
 code:
   - mobile/lib/
@@ -34,3 +34,4 @@ interfaces:
   - uses GET /api/profile, POST|DELETE /api/profile/favorites/{pokemon_id}
   - uses the teams API (CRUD, slots, build, analysis, strategy, summary/refresh) and the builder lookups (moves, abilities, items, natures)
   - uses POST /api/ask/stream (SSE; typed views from the /api/ask schema), GET /api/ask/status, PUT /api/profile
+  - uses POST /api/teams/{team_id}/ask (SSE, the team coach; same reader as Ask, plus team_updated)

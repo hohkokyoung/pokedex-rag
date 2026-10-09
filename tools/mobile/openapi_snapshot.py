@@ -36,6 +36,7 @@ PATHS = [
     "/api/teams/{team_id}/strategy",
     "/api/teams/{team_id}/summary",
     "/api/teams/{team_id}/summary/refresh",
+    "/api/teams/{team_id}/ask",
     "/api/pokemon/{pokemon_id}/moves",
     "/api/pokemon/forms/{form_id}/moves",
     "/api/pokemon/{pokemon_id}/abilities",
