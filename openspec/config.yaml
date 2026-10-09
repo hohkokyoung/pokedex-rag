@@ -27,7 +27,7 @@ rules:
     - Write scenarios as testable WHEN/THEN, including the no-key and rate-limited paths
   tasks:
     - Include backend tests (pytest) and, for retrieval/coach changes, eval dataset updates (backend/eval)
-    - End with a docs task: update the docs/architecture pages the change touches, the docs/product page and README feature list if it's user-visible, and CLAUDE.md only for new conventions or gotchas
+    - "End with a docs task: update the docs/architecture pages the change touches, the docs/product page and README feature list if it's user-visible, and CLAUDE.md only for new conventions or gotchas"
 
 operations:
   apply:

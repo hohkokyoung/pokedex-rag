@@ -21,5 +21,5 @@
 
 - [x] 3.1 Run `make test` and `make lint` and verify both pass
 - [x] 3.2 Replay trace #868's plan (`game: "diamond"`, `max_level: 49`) through the learnset tool and verify the answer names Diamond / Pearl
-- [ ] 3.3 Add a level-cap example question to `docs/product/ask.md` and verify it renders in the Ask page's examples table
-- [ ] 3.4 Run `make eval` (spends Groq tokens — ask first) and verify `v5b` plans a learnset step with a cap of 29
+- [x] 3.3 Add a level-cap example question to `docs/product/ask.md` and verify it renders in the Ask page's examples table
+- [x] 3.4 Run `make eval` (spends Groq tokens — ask first) and verify `v5b` plans a learnset step with a cap of 29

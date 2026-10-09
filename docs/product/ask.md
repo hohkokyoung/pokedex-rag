@@ -10,7 +10,7 @@ instead of guessing.
 |---|---|
 | Rankings and filters | "Fastest non-legendary Fire types", "Highest Attack in Gen 4" |
 | One Pokémon | "Tell me about Snorlax" |
-| Moves and learnsets | "Can Pikachu learn Surf in Scarlet?", "Which Fire types learn Will-O-Wisp?" |
+| Moves and learnsets | "Can Pikachu learn Surf in Scarlet?", "Does Garchomp learn Crunch below lvl 30?", "Which Fire types learn Will-O-Wisp?" |
 | Moves, abilities, items | "What does Earthquake do?", "What does Leftovers do?" |
 | Types and matchups | "What is Fire weak to?", "A special attacker that covers Dark" |
 | Look-alikes | "Pokémon like Jigglypuff" |
