@@ -48,3 +48,27 @@ def test_as_built_matches_base_when_uninvested_and_rises_with_evs() -> None:
     jolly = as_built(final_stats(base, evs=evs, increased_stat="speed", decreased_stat="sp_attack"))
     assert jolly["speed"] > 140 and jolly["attack"] > 150
     assert jolly["sp_attack"] < base["sp_attack"]
+
+
+def test_as_built_rounds_half_up_like_the_team_pages() -> None:
+    """At level 50 the halving always lands on .5. The engine must round it up, as the
+    team cards do, or a member can be a Wall on the page and a Tank in the engine."""
+    from app.schemas.team import TeamMemberOut
+    from app.services.stats import as_built
+    from app.services.team_analysis import _roles
+
+    # HP 168 → 92.5, Def 113 → 92.5, SpD 115 → 94.5 (bulk 281 half up, 278 to even).
+    final = {
+        "hp": 168, "attack": 80, "defense": 113, "sp_attack": 80, "sp_defense": 115, "speed": 70,
+    }
+    assert as_built(final) == {
+        "hp": 93, "attack": 60, "defense": 93, "sp_attack": 60, "sp_defense": 95, "speed": 50,
+    }
+    member = TeamMemberOut(
+        slot=1, pokemon_id=1, dex_number=1, name="Probe", types=["normal"], sprite_url="",
+        base_stats={k: 80 for k in final}, final_stats=final, ability=None, nature=None,
+        ev_spread={k: 0 for k in final}, iv_spread={k: 31 for k in final}, moves=[],
+    )
+    row = _roles([member]).members[0]
+    assert row.bulk == 281
+    assert row.role == "Wall"

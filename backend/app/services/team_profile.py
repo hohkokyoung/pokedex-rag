@@ -51,7 +51,7 @@ def profile_team(team: TeamOut, a: TeamAnalysis, rating: TeamRating) -> TeamProf
         return None
     # Stats as built, so EVs, IVs and natures move the style, lean and speed reads.
     built = [
-        as_built(m.final_stats, rnd=js_round) if m.final_stats else m.base_stats for m in species
+        as_built(m.final_stats) if m.final_stats else m.base_stats for m in species
     ]
 
     avg = {k: _avg([b.get(k, 0) for b in built]) for k in STAT_KEYS}

@@ -28,6 +28,11 @@ filled against them, which would move the grade. They were ported from the websi
 TypeScript and are pinned to its old output by golden cases, half-up rounding included
 ([ADR-009](../decisions/ADR-009.md)).
 
+Every engine reads members **as built**: `stats.as_built` turns real Lv50 stats (EVs,
+IVs, nature) back into base-stat terms, so "Speed 100+" keeps its meaning. The halving
+always lands on .5, and it rounds **half up** everywhere, so the roles, strategy,
+profile and summary all show the same number for a member.
+
 ## The AI summary
 
 `app/rag/team_summary.py` writes a short **descriptive** summary (what the team does,

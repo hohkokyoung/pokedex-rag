@@ -6,7 +6,7 @@ IVs default to 31 and EVs to 0 when a slot leaves them unset.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import math
 
 STAT_KEYS: tuple[str, ...] = ("hp", "attack", "defense", "sp_attack", "sp_defense", "speed")
 DEFAULT_LEVEL = 50
@@ -52,18 +52,20 @@ def final_stats(
     return out
 
 
-def as_built(
-    final: dict[str, int], level: int = DEFAULT_LEVEL, rnd: Callable[[float], int] = round
-) -> dict[str, int]:
+def round_half_up(x: float) -> int:
+    """JavaScript's ``Math.round``: .5 rounds up (Python's ``round`` rounds to even)."""
+    return math.floor(x + 0.5)
+
+
+def as_built(final: dict[str, int], level: int = DEFAULT_LEVEL) -> dict[str, int]:
     """Base-stat equivalents of a member's real stats (EVs, IVs and nature included).
 
     Inverts the stat formula for an uninvested, neutral, 31-IV Pokémon, so thresholds
     written in base-stat terms ("base Speed 100+") still mean the same thing while a
     252-EV, +nature spread counts as faster/stronger than the species alone.
 
-    The halving lands on .5 at level 50, so the rounding matters: the engine uses
-    Python's ``round``; the team profile passes ``team_rating.js_round`` (half up), which
-    is what the website showed before the profile moved here."""
+    The halving lands on .5 at level 50, so it rounds half up, as the team pages always
+    have; every caller (engine, strategy, profile, summary) reads the same numbers."""
     out: dict[str, int] = {}
     for key in STAT_KEYS:
         v = final.get(key, 0)
@@ -71,5 +73,5 @@ def as_built(
             raw = (v - level - 10) * 100 / level  # = 2B + 31 (+EV/4)
         else:
             raw = (v - 5) * 100 / level
-        out[key] = max(1, rnd((raw - 31) / 2))
+        out[key] = max(1, round_half_up((raw - 31) / 2))
     return out

@@ -14,8 +14,6 @@ half up (``js_round``), and a grade is read from the unrounded score.
 
 from __future__ import annotations
 
-import math
-
 from app.schemas.analysis import (
     AreaKey,
     Grade,
@@ -27,6 +25,7 @@ from app.schemas.analysis import (
     TypeThreat,
 )
 from app.services.matchups import ATTACK_ORDER
+from app.services.stats import round_half_up
 
 FAST_SPEED = 100
 
@@ -43,9 +42,7 @@ WEIGHTS: dict[str, float] = {
 Chart = dict[str, dict[str, float]]
 
 
-def js_round(x: float) -> int:
-    """JavaScript's ``Math.round``: half rounds up (Python's ``round`` rounds to even)."""
-    return math.floor(x + 0.5)
+js_round = round_half_up  # JavaScript's Math.round, which the golden cases were made with
 
 
 def grade_of(score: float) -> Grade:
