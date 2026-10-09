@@ -80,6 +80,18 @@ class PokemonSummary(BaseModel):
     stats: StatsOut | None = None
 
 
+class EvolutionChip(BaseModel):
+    label: str
+    tone: Literal["solid", "soft"]  # solid = the main mechanic; soft = a qualifier
+
+
+class EvolutionDisplay(BaseModel):
+    """How a client labels one evolution step (services/evolution_display.py)."""
+
+    chips: list[EvolutionChip]
+    description: str | None  # shown behind a "?"; None when the chips say it all
+
+
 class EvolutionStage(BaseModel):
     from_id: int | None = None
     from_name: str | None = None
@@ -89,6 +101,8 @@ class EvolutionStage(BaseModel):
     min_level: int | None = None
     item: str | None = None
     condition: str | None = None
+    # The labels every client shows for this step (chips + "?" description).
+    display: EvolutionDisplay | None = None
 
 
 class SweetTopping(BaseModel):

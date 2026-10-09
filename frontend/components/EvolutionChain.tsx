@@ -5,8 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { thumb } from "@/lib/api";
 import { titleCase, typeVars } from "@/lib/pokeTypes";
-import { buildCondition, type EvoCondition } from "@/lib/evolution";
-import type { CosmeticVariant, EvolutionMember, EvolutionStage, SpinGuide } from "@/lib/types";
+import type { CosmeticVariant, EvolutionDisplay, EvolutionMember, EvolutionStage, SpinGuide } from "@/lib/types";
 import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 type Edge = { to: number; stage: EvolutionStage };
@@ -19,7 +18,7 @@ function ConditionRow({
   open,
   onToggle,
 }: {
-  cond: EvoCondition;
+  cond: EvolutionDisplay;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -272,7 +271,7 @@ function EvoCard({
   onToggle: () => void;
   fork?: number;
 }) {
-  const cond = stage ? buildCondition(stage) : null;
+  const cond = stage?.display ?? null;
   const isCurrent = member.id === currentId;
   return (
     <div className="evo2-card" style={typeVars(member.types[0], "--c") as React.CSSProperties}>

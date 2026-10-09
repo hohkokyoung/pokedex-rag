@@ -58,6 +58,14 @@ export type EvolutionStage = {
   min_level: number | null;
   item: string | null;
   condition: string | null;
+  /** The labels to show for this step, computed by the backend (services/evolution_display.py). */
+  display?: EvolutionDisplay | null;
+};
+
+/** Chips (one "solid" main mechanic, then "soft" qualifiers) and a "?" description. */
+export type EvolutionDisplay = {
+  chips: { label: string; tone: "solid" | "soft" }[];
+  description: string | null;
 };
 
 /** One cosmetic look of a species (same stats/types), with its artwork. */

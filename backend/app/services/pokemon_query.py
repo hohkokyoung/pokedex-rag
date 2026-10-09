@@ -32,6 +32,7 @@ from app.schemas.pokemon import (
 )
 from app.services import alcremie
 from app.services import matchups as matchups_service
+from app.services.evolution_display import evolution_display
 from app.services.versions import gen_label, generation_for_version
 
 SORT_COLUMNS = {
@@ -402,6 +403,12 @@ async def get_pokemon(session: AsyncSession, id_or_name: str) -> PokemonDetail |
     )
 
 
+def _labelled(stage: EvolutionStage) -> EvolutionStage:
+    """The stage with the labels every client shows (chips + description)."""
+    stage.display = evolution_display(stage)
+    return stage
+
+
 def _form_evolution(
     target: PokemonForm,
     forms_by_id: dict[int, PokemonForm],
@@ -423,7 +430,7 @@ def _form_evolution(
             trigger, level, item, cond = e.evo_trigger, e.evo_min_level, e.evo_item, e.evo_condition
         else:
             trigger, level, item, cond = e.trigger, e.min_level, e.item, e.condition
-        return EvolutionStage(
+        return _labelled(EvolutionStage(
             from_id=frm,
             from_name=_name(frm),
             to_id=to,
@@ -432,7 +439,7 @@ def _form_evolution(
             min_level=level,
             item=item,
             condition=cond,
-        )
+        ))
 
     def _known(pid: int | None) -> bool:
         return pid in forms_by_id or pid in species_by_id
@@ -697,7 +704,7 @@ async def _evolution(
     name_by_id = {m.id: m.name for m in members_rows}
 
     stages = [
-        EvolutionStage(
+        _labelled(EvolutionStage(
             from_id=e.from_pokemon_id,
             from_name=name_by_id.get(e.from_pokemon_id) if e.from_pokemon_id else None,
             to_id=e.to_pokemon_id,
@@ -706,7 +713,7 @@ async def _evolution(
             min_level=e.min_level,
             item=e.item,
             condition=e.condition,
-        )
+        ))
         for e in edges
     ]
     members = [

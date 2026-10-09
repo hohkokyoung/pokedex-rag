@@ -7,6 +7,7 @@ code:
   - backend/app/api/profile.py
   - backend/app/services/pokemon_query.py
   - backend/app/services/alcremie.py   # spin-evolution guide (hand-written game knowledge)
+  - backend/app/services/evolution_display.py   # evolution chips + description per stage
   - backend/app/services/builder.py
   - backend/app/services/encounters.py
   - backend/app/services/versions.py

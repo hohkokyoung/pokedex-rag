@@ -1,0 +1,2577 @@
+{
+ "generator": "frontend/scripts/evolution-fixtures.ts",
+ "cases": [
+  {
+   "example": "Stantler -> Wyrdeer",
+   "trigger": "agile-style-move",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Agile style move",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Gimmighoul -> Gholdengo",
+   "trigger": "gimmighoul-coins",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Gimmighoul coins",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Metapod -> Butterfree",
+   "trigger": "level-up",
+   "min_level": 10,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 10",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Spewpa -> Vivillon",
+   "trigger": "level-up",
+   "min_level": 12,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 12",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Cyndaquil -> Quilava",
+   "trigger": "level-up",
+   "min_level": 14,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 14",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Sentret -> Furret",
+   "trigger": "level-up",
+   "min_level": 15,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 15",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Bulbasaur -> Ivysaur",
+   "trigger": "level-up",
+   "min_level": 16,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 16",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Snivy -> Servine",
+   "trigger": "level-up",
+   "min_level": 17,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 17",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Pidgey -> Pidgeotto",
+   "trigger": "level-up",
+   "min_level": 18,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 18",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Flabébé -> Floette",
+   "trigger": "level-up",
+   "min_level": 19,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 19",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Burmy -> Wormadam",
+   "trigger": "level-up",
+   "min_level": 20,
+   "item": null,
+   "condition": "(female)",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 20",
+      "tone": "solid"
+     },
+     {
+      "label": "Female",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 20."
+   }
+  },
+  {
+   "example": "Burmy -> Mothim",
+   "trigger": "level-up",
+   "min_level": 20,
+   "item": null,
+   "condition": "(male)",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 20",
+      "tone": "solid"
+     },
+     {
+      "label": "Male",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 20."
+   }
+  },
+  {
+   "example": "Yungoos -> Gumshoos",
+   "trigger": "level-up",
+   "min_level": 20,
+   "item": null,
+   "condition": "day time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 20",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 20. During the day."
+   }
+  },
+  {
+   "example": "Alolan Rattata -> Alolan Raticate",
+   "trigger": "level-up",
+   "min_level": 20,
+   "item": null,
+   "condition": "night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 20",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 20. During the night."
+   }
+  },
+  {
+   "example": "Rattata -> Raticate",
+   "trigger": "level-up",
+   "min_level": 20,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 20",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Combee -> Vespiquen",
+   "trigger": "level-up",
+   "min_level": 21,
+   "item": null,
+   "condition": "(female)",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 21",
+      "tone": "solid"
+     },
+     {
+      "label": "Female",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 21."
+   }
+  },
+  {
+   "example": "Oddish -> Gloom",
+   "trigger": "level-up",
+   "min_level": 21,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 21",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Ekans -> Arbok",
+   "trigger": "level-up",
+   "min_level": 22,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 22",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Snubbull -> Granbull",
+   "trigger": "level-up",
+   "min_level": 23,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 23",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Paras -> Parasect",
+   "trigger": "level-up",
+   "min_level": 24,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 24",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Rockruff -> Lycanroc",
+   "trigger": "level-up",
+   "min_level": 25,
+   "item": null,
+   "condition": "day time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 25",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 25. During the day."
+   }
+  },
+  {
+   "example": "Own Tempo Rockruff -> Dusk Lycanroc",
+   "trigger": "level-up",
+   "min_level": 25,
+   "item": null,
+   "condition": "dusk time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 25",
+      "tone": "solid"
+     },
+     {
+      "label": "Dusk",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 25. During the dusk."
+   }
+  },
+  {
+   "example": "Rockruff -> Midnight Lycanroc",
+   "trigger": "level-up",
+   "min_level": 25,
+   "item": null,
+   "condition": "night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 25",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 25. During the night."
+   }
+  },
+  {
+   "example": "Poliwag -> Poliwhirl",
+   "trigger": "level-up",
+   "min_level": 25,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 25",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Diglett -> Dugtrio",
+   "trigger": "level-up",
+   "min_level": 26,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 26",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Chinchou -> Lanturn",
+   "trigger": "level-up",
+   "min_level": 27,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 27",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Cubone -> Alolan Marowak",
+   "trigger": "level-up",
+   "min_level": 28,
+   "item": null,
+   "condition": "night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 28",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 28. During the night."
+   }
+  },
+  {
+   "example": "Meowth -> Persian",
+   "trigger": "level-up",
+   "min_level": 28,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 28",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Sandile -> Krokorok",
+   "trigger": "level-up",
+   "min_level": 29,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 29",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Inkay -> Malamar",
+   "trigger": "level-up",
+   "min_level": 30,
+   "item": null,
+   "condition": "holding the console upside down",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 30",
+      "tone": "solid"
+     },
+     {
+      "label": "the console upside down",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 30. While holding a the console upside down."
+   }
+  },
+  {
+   "example": "Greavard -> Houndstone",
+   "trigger": "level-up",
+   "min_level": 30,
+   "item": null,
+   "condition": "night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 30",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 30. During the night."
+   }
+  },
+  {
+   "example": "Tentacool -> Tentacruel",
+   "trigger": "level-up",
+   "min_level": 30,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 30",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Venonat -> Venomoth",
+   "trigger": "level-up",
+   "min_level": 31,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 31",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Ivysaur -> Venusaur",
+   "trigger": "level-up",
+   "min_level": 32,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 32",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Salandit -> Salazzle",
+   "trigger": "level-up",
+   "min_level": 33,
+   "item": null,
+   "condition": "(female)",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 33",
+      "tone": "solid"
+     },
+     {
+      "label": "Female",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 33."
+   }
+  },
+  {
+   "example": "Psyduck -> Golduck",
+   "trigger": "level-up",
+   "min_level": 33,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 33",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Fomantis -> Lurantis",
+   "trigger": "level-up",
+   "min_level": 34,
+   "item": null,
+   "condition": "day time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 34",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 34. During the day."
+   }
+  },
+  {
+   "example": "Seel -> Dewgong",
+   "trigger": "level-up",
+   "min_level": 34,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 34",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Linoone -> Obstagoon",
+   "trigger": "level-up",
+   "min_level": 35,
+   "item": null,
+   "condition": "night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 35",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 35. During the night."
+   }
+  },
+  {
+   "example": "Koffing -> Weezing",
+   "trigger": "level-up",
+   "min_level": 35,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 35",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Charmeleon -> Charizard",
+   "trigger": "level-up",
+   "min_level": 36,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 36",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Slowpoke -> Slowbro",
+   "trigger": "level-up",
+   "min_level": 37,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 37",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Grimer -> Muk",
+   "trigger": "level-up",
+   "min_level": 38,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 38",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Tyrunt -> Tyrantrum",
+   "trigger": "level-up",
+   "min_level": 39,
+   "item": null,
+   "condition": "day time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 39",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 39. During the day."
+   }
+  },
+  {
+   "example": "Amaura -> Aurorus",
+   "trigger": "level-up",
+   "min_level": 39,
+   "item": null,
+   "condition": "night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 39",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 39. During the night."
+   }
+  },
+  {
+   "example": "Scraggy -> Scrafty",
+   "trigger": "level-up",
+   "min_level": 39,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 39",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Ponyta -> Rapidash",
+   "trigger": "level-up",
+   "min_level": 40,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 40",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Gothorita -> Gothitelle",
+   "trigger": "level-up",
+   "min_level": 41,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 41",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Rhyhorn -> Rhydon",
+   "trigger": "level-up",
+   "min_level": 42,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 42",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Golett -> Golurk",
+   "trigger": "level-up",
+   "min_level": 43,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 43",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Sealeo -> Walrein",
+   "trigger": "level-up",
+   "min_level": 44,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 44",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Vibrava -> Flygon",
+   "trigger": "level-up",
+   "min_level": 45,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 45",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Vanillish -> Vanilluxe",
+   "trigger": "level-up",
+   "min_level": 47,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 47",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Gabite -> Garchomp",
+   "trigger": "level-up",
+   "min_level": 48,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 48",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Klang -> Klinklang",
+   "trigger": "level-up",
+   "min_level": 49,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 49",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Sliggoo -> Goodra",
+   "trigger": "level-up",
+   "min_level": 50,
+   "item": null,
+   "condition": "while raining",
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 50",
+      "tone": "solid"
+     },
+     {
+      "label": "Raining",
+      "tone": "soft"
+     }
+    ],
+    "description": "Reaches level 50. While it's raining."
+   }
+  },
+  {
+   "example": "Shelgon -> Salamence",
+   "trigger": "level-up",
+   "min_level": 50,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 50",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Pawniard -> Bisharp",
+   "trigger": "level-up",
+   "min_level": 52,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 52",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Cosmoem -> Solgaleo",
+   "trigger": "level-up",
+   "min_level": 53,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 53",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Rufflet -> Braviary",
+   "trigger": "level-up",
+   "min_level": 54,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 54",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Dragonair -> Dragonite",
+   "trigger": "level-up",
+   "min_level": 55,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 55",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Larvesta -> Volcarona",
+   "trigger": "level-up",
+   "min_level": 59,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 59",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Drakloak -> Dragapult",
+   "trigger": "level-up",
+   "min_level": 60,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 60",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Zweilous -> Hydreigon",
+   "trigger": "level-up",
+   "min_level": 64,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 64",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Caterpie -> Metapod",
+   "trigger": "level-up",
+   "min_level": 7,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 7",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Scatterbug -> Spewpa",
+   "trigger": "level-up",
+   "min_level": 9,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Lv. 9",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Eevee -> Sylveon",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "affection ≥ 2, knowing a Fairy-type move",
+   "display": {
+    "chips": [
+     {
+      "label": "Affection",
+      "tone": "solid"
+     },
+     {
+      "label": "Fairy move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up with high affection (≥ 2 hearts) from Pokémon Camp care. While knowing a Fairy-type move."
+   }
+  },
+  {
+   "example": "Feebas -> Milotic",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "beauty ≥ 170",
+   "display": {
+    "chips": [
+     {
+      "label": "Beauty",
+      "tone": "solid"
+     }
+    ],
+    "description": "Level up with high beauty (≥ 170)."
+   }
+  },
+  {
+   "example": "Happiny -> Chansey",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "day time, holding Oval Stone",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     },
+     {
+      "label": "Oval Stone",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. During the day. While holding an Oval Stone."
+   }
+  },
+  {
+   "example": "Sneasel -> Sneasler",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "day time, holding Razor Claw",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     },
+     {
+      "label": "Razor Claw",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. During the day. While holding a Razor Claw."
+   }
+  },
+  {
+   "example": "Cleffa -> Clefairy",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "happiness ≥ 160",
+   "display": {
+    "chips": [
+     {
+      "label": "Friendship",
+      "tone": "solid"
+     }
+    ],
+    "description": "Level up with high friendship (happiness ≥ 160) — a bond raised by travelling and battling together."
+   }
+  },
+  {
+   "example": "Eevee -> Espeon",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "happiness ≥ 160, day time",
+   "display": {
+    "chips": [
+     {
+      "label": "Friendship",
+      "tone": "solid"
+     },
+     {
+      "label": "Day",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up with high friendship (happiness ≥ 160) — a bond raised by travelling and battling together. During the day."
+   }
+  },
+  {
+   "example": "Eevee -> Umbreon",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "happiness ≥ 160, night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Friendship",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up with high friendship (happiness ≥ 160) — a bond raised by travelling and battling together. During the night."
+   }
+  },
+  {
+   "example": "Pichu -> Pikachu",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "happiness ≥ 220",
+   "display": {
+    "chips": [
+     {
+      "label": "Friendship",
+      "tone": "solid"
+     }
+    ],
+    "description": "Level up with high friendship (happiness ≥ 220) — a bond raised by travelling and battling together."
+   }
+  },
+  {
+   "example": "Chingling -> Chimecho",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "happiness ≥ 220, night time",
+   "display": {
+    "chips": [
+     {
+      "label": "Friendship",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up with high friendship (happiness ≥ 220) — a bond raised by travelling and battling together. During the night."
+   }
+  },
+  {
+   "example": "Tangela -> Tangrowth",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Ancient Power",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Ancient Power move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Ancient Power-type move."
+   }
+  },
+  {
+   "example": "Aipom -> Ambipom",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Double Hit",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Double Hit move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Double Hit-type move."
+   }
+  },
+  {
+   "example": "Dipplin -> Hydrapple",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Dragon Cheer",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Dragon Cheer move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Dragon Cheer-type move."
+   }
+  },
+  {
+   "example": "Poipole -> Naganadel",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Dragon Pulse",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Dragon Pulse move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Dragon Pulse-type move."
+   }
+  },
+  {
+   "example": "Dunsparce -> Dudunsparce",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Hyper Drill",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Hyper Drill move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Hyper Drill-type move."
+   }
+  },
+  {
+   "example": "Mime Jr. -> Mr. Mime",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Mimic",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Mimic move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Mimic-type move."
+   }
+  },
+  {
+   "example": "Lickitung -> Lickilicky",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Rollout",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Rollout move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Rollout-type move."
+   }
+  },
+  {
+   "example": "Steenee -> Tsareena",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Stomp",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Stomp move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Stomp-type move."
+   }
+  },
+  {
+   "example": "Clobbopus -> Grapploct",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Taunt",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Taunt move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Taunt-type move."
+   }
+  },
+  {
+   "example": "Girafarig -> Farigiraf",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "knowing Twin Beam",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Twin Beam move",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While knowing a Twin Beam-type move."
+   }
+  },
+  {
+   "example": "Eevee -> Leafeon",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "near Eterna Forest",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Eterna Forest",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. Near Eterna Forest."
+   }
+  },
+  {
+   "example": "Crabrawler -> Crabominable",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "near Mount Lanakila",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Mount Lanakila",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. Near Mount Lanakila."
+   }
+  },
+  {
+   "example": "Magneton -> Magnezone",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "near Mt. Coronet",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Mt. Coronet",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. Near Mt. Coronet."
+   }
+  },
+  {
+   "example": "Eevee -> Glaceon",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "near Route 217",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Route 217",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. Near Route 217."
+   }
+  },
+  {
+   "example": "Charjabug -> Vikavolt",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "near Vast Poni Canyon",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Vast Poni Canyon",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. Near Vast Poni Canyon."
+   }
+  },
+  {
+   "example": "Sneasel -> Weavile",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "night time, holding Razor Claw",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     },
+     {
+      "label": "Razor Claw",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. During the night. While holding a Razor Claw."
+   }
+  },
+  {
+   "example": "Gligar -> Gliscor",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "night time, holding Razor Fang",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Night",
+      "tone": "soft"
+     },
+     {
+      "label": "Razor Fang",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. During the night. While holding a Razor Fang."
+   }
+  },
+  {
+   "example": "Mantyke -> Mantine",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": "with Remoraid in party",
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     },
+     {
+      "label": "Remoraid",
+      "tone": "soft"
+     }
+    ],
+    "description": "Level up. While Remoraid is in your party."
+   }
+  },
+  {
+   "example": "Mime Jr. -> Galarian Mr. Mime",
+   "trigger": "level-up",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Tandemaus -> Maushold",
+   "trigger": "other",
+   "min_level": 25,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Other",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Basculin -> Basculegion",
+   "trigger": "recoil-damage",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Recoil damage",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Nincada -> Shedinja",
+   "trigger": "shed",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Shed",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Milcery -> Alcremie",
+   "trigger": "spin",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Spin",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Qwilfish -> Overqwil",
+   "trigger": "strong-style-move",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Strong style move",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Yamask -> Runerigus",
+   "trigger": "take-damage",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Take damage",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Farfetch’d -> Sirfetch’d",
+   "trigger": "three-critical-hits",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Three critical hits",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Bisharp -> Kingambit",
+   "trigger": "three-defeated-bisharp",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Three defeated bisharp",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Kubfu -> Urshifu",
+   "trigger": "tower-of-darkness",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Tower of darkness",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Shelmet -> Accelgor",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "for Karrablast",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "For Karrablast",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading."
+   }
+  },
+  {
+   "example": "Karrablast -> Escavalier",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "for Shelmet",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "For Shelmet",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading."
+   }
+  },
+  {
+   "example": "Clamperl -> Gorebyss",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Deep Sea Scale",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Deep Sea Scale",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Deep Sea Scale."
+   }
+  },
+  {
+   "example": "Clamperl -> Huntail",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Deep Sea Tooth",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Deep Sea Tooth",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Deep Sea Tooth."
+   }
+  },
+  {
+   "example": "Seadra -> Kingdra",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Dragon Scale",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Dragon Scale",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Dragon Scale."
+   }
+  },
+  {
+   "example": "Porygon2 -> Porygon-Z",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Dubious Disc",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Dubious Disc",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Dubious Disc."
+   }
+  },
+  {
+   "example": "Electabuzz -> Electivire",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Electirizer",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Electirizer",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding an Electirizer."
+   }
+  },
+  {
+   "example": "Poliwhirl -> Politoed",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding King’s Rock",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "King’s Rock",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a King’s Rock."
+   }
+  },
+  {
+   "example": "Magmar -> Magmortar",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Magmarizer",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Magmarizer",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Magmarizer."
+   }
+  },
+  {
+   "example": "Onix -> Steelix",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Metal Coat",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Metal Coat",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Metal Coat."
+   }
+  },
+  {
+   "example": "Rhydon -> Rhyperior",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Protector",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Protector",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Protector."
+   }
+  },
+  {
+   "example": "Dusclops -> Dusknoir",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Reaper Cloth",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Reaper Cloth",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Reaper Cloth."
+   }
+  },
+  {
+   "example": "Spritzee -> Aromatisse",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Sachet",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Sachet",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Sachet."
+   }
+  },
+  {
+   "example": "Porygon -> Porygon2",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Upgrade",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Upgrade",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding an Upgrade."
+   }
+  },
+  {
+   "example": "Swirlix -> Slurpuff",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": "holding Whipped Dream",
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     },
+     {
+      "label": "Whipped Dream",
+      "tone": "soft"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading. While holding a Whipped Dream."
+   }
+  },
+  {
+   "example": "Kadabra -> Alakazam",
+   "trigger": "trade",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Trade",
+      "tone": "solid"
+     }
+    ],
+    "description": "Trade this Pokémon. Since Gen VIII (Pokémon Legends: Arceus), a Linking Cord also evolves it without trading."
+   }
+  },
+  {
+   "example": "Charcadet -> Armarouge",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Auspicious Armor",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Auspicious Armor",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Scyther -> Kleavor",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Black Augurite",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Black Augurite",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Sinistea -> Polteageist",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Cracked Pot",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Cracked Pot",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Snorunt -> Froslass",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Dawn Stone",
+   "condition": "(female)",
+   "display": {
+    "chips": [
+     {
+      "label": "Dawn Stone",
+      "tone": "solid"
+     },
+     {
+      "label": "Female",
+      "tone": "soft"
+     }
+    ],
+    "description": "Use a Dawn Stone."
+   }
+  },
+  {
+   "example": "Kirlia -> Gallade",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Dawn Stone",
+   "condition": "(male)",
+   "display": {
+    "chips": [
+     {
+      "label": "Dawn Stone",
+      "tone": "solid"
+     },
+     {
+      "label": "Male",
+      "tone": "soft"
+     }
+    ],
+    "description": "Use a Dawn Stone."
+   }
+  },
+  {
+   "example": "Murkrow -> Honchkrow",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Dusk Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Dusk Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Vulpix -> Ninetales",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Fire Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Fire Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Galarian Slowpoke -> Galarian Slowbro",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Galarica Cuff",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Galarica Cuff",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Galarian Slowpoke -> Galarian Slowking",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Galarica Wreath",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Galarica Wreath",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Alolan Sandshrew -> Alolan Sandslash",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Ice Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Ice Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Gloom -> Vileplume",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Leaf Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Leaf Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Charcadet -> Ceruledge",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Malicious Armor",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Malicious Armor",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Duraludon -> Archaludon",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Metal Alloy",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Metal Alloy",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Nidorina -> Nidoqueen",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Moon Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Moon Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Ursaring -> Ursaluna",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Peat Block",
+   "condition": "full-moon time",
+   "display": {
+    "chips": [
+     {
+      "label": "Peat Block",
+      "tone": "solid"
+     },
+     {
+      "label": "Full-moon time",
+      "tone": "soft"
+     }
+    ],
+    "description": "Use a Peat Block."
+   }
+  },
+  {
+   "example": "Kubfu -> Rapid Strike Urshifu",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Scroll of Waters",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Scroll of Waters",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Togetic -> Togekiss",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Shiny Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Shiny Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Gloom -> Bellossom",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Sun Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Sun Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Applin -> Appletun",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Sweet Apple",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Sweet Apple",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Applin -> Dipplin",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Syrupy Apple",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Syrupy Apple",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Applin -> Flapple",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Tart Apple",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Tart Apple",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Pikachu -> Raichu",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Thunder Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Thunder Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Poltchageist -> Sinistcha",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Unremarkable Teacup",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Unremarkable Teacup",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Poliwhirl -> Poliwrath",
+   "trigger": "use-item",
+   "min_level": null,
+   "item": "Water Stone",
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Water Stone",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "Primeape -> Annihilape",
+   "trigger": "use-move",
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Use move",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  },
+  {
+   "example": "None -> Melmetal",
+   "trigger": null,
+   "min_level": null,
+   "item": null,
+   "condition": null,
+   "display": {
+    "chips": [
+     {
+      "label": "Level up",
+      "tone": "solid"
+     }
+    ],
+    "description": null
+   }
+  }
+ ]
+}
