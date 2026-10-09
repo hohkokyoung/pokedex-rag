@@ -82,8 +82,14 @@ the answer), typed **views** the UI draws, a one-line **summary** for the live p
 **status** (`done` / `empty` / `error`), and optional **data** for code-rendered answers
 and a **note** that guides the answer LLM.
 
-`RetrievedChunk` is described in [retrieval.md](retrieval.md). The frontend draws
-`views` directly and never parses chunk text.
+`RetrievedChunk` is described in [retrieval.md](retrieval.md). The website and the
+mobile app draw `views` directly and never parse chunk text.
+
+Views are typed in the API: `AskResponse.views` is the `View` union (`agent/views.py`),
+discriminated by `kind`, so the OpenAPI schema lists every view and generated clients
+decode them. Each view carries the `step` that produced it (the runner sets it), and its
+`chunk_refs` are indexes into that step's chunks; a source's `step` + `step_index` map
+them to the answer's global `[n]`.
 
 ## 3. Choosing a planner
 

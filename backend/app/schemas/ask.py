@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from app.agent.views import View
+
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
@@ -41,6 +43,7 @@ class AskResponse(BaseModel):
     planner: str  # "llm" | "keyword"
     cached: bool = False
     steps: list[PlanStepOut] = Field(default_factory=list)
-    views: list[dict] = Field(default_factory=list)  # each has "step" and "kind"
+    # Typed result views (a union discriminated by "kind"), so clients can generate them.
+    views: list[View] = Field(default_factory=list)
     sources: list[Source]
     usage: dict[str, int] = Field(default_factory=dict)

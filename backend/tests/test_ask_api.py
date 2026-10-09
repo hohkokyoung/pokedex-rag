@@ -125,3 +125,30 @@ async def test_route_logs_its_trace(monkeypatch, path) -> None:
     assert (q, planner, trace["scope"], trace["planner"]) == (
         "Can Garchomp learn Earthquake?", "keyword", "ask", "keyword")
     assert trace["steps"][0]["tool"] == "learnset"
+
+
+async def test_non_streaming_views_are_typed_and_keep_their_step() -> None:
+    """/api/ask's views are the agent's typed View union, each tagged with its plan step."""
+    async with _client() as c:
+        r = await c.post("/api/ask", json={"question": "Can Garchomp learn Earthquake?"})
+    body = r.json()
+    plan_ids = {s["id"] for s in body["steps"]}
+    assert body["views"], "a learn check produces a view"
+    view = body["views"][0]
+    assert view["kind"] == "learn_check" and view["ok"] is True
+    assert view["step"] in plan_ids
+    # The schema declares the union, discriminated by kind, with step on each member.
+    schema = app.openapi()
+    items = schema["components"]["schemas"]["AskResponse"]["properties"]["views"]["items"]
+    assert items["discriminator"]["propertyName"] == "kind"
+    assert "LearnCheckView" in items["discriminator"]["mapping"]["learn_check"]
+    assert "step" in schema["components"]["schemas"]["LearnCheckView"]["properties"]
+
+
+async def test_streamed_view_keeps_its_step() -> None:
+    async with _client() as c:
+        r = await c.post("/api/ask/stream", json={"question": "Can Garchomp learn Earthquake?"})
+    events = _parse_sse(r.text)
+    plan_ids = {s["id"] for s in events[0][1]["steps"]}
+    view = dict(events)["view"]
+    assert view["step"] in plan_ids  # not overwritten by the model's own (empty) step

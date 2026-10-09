@@ -38,6 +38,7 @@ class RankingRow(PokemonCard):
 
 class RankingView(BaseModel):
     kind: Literal["ranking"] = "ranking"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     stat: str  # a StructuredQuery stat name, e.g. "speed"
     order: Literal["asc", "desc"] = "desc"
     total: int  # how many match, ignoring the limit
@@ -47,6 +48,7 @@ class RankingView(BaseModel):
 
 class PokemonListView(BaseModel):
     kind: Literal["pokemon_list"] = "pokemon_list"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     title: str | None = None
     cards: list[PokemonCard]
     chunk_refs: list[int] = Field(default_factory=list)
@@ -56,6 +58,7 @@ class TypeChartView(BaseModel):
     """How one type (or a dual typing) fares defensively."""
 
     kind: Literal["type_chart"] = "type_chart"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     types: list[str]
     weak_4x: list[str] = Field(default_factory=list)
     weak_2x: list[str] = Field(default_factory=list)
@@ -82,6 +85,7 @@ class MoveRow(BaseModel):
 
 class MoveListView(BaseModel):
     kind: Literal["move_list"] = "move_list"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     moves: list[MoveRow]
     chunk_refs: list[int] = Field(default_factory=list)
 
@@ -106,6 +110,7 @@ class LearnsetView(BaseModel):
     """A Pokémon's moves, grouped by how it learns them."""
 
     kind: Literal["learnset"] = "learnset"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     pokemon: PokemonCard
     game: str | None = None
     groups: list[LearnGroup]
@@ -116,6 +121,7 @@ class LearnersView(BaseModel):
     """Who learns a move: how many, by which method, and the standout users."""
 
     kind: Literal["learners"] = "learners"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     move: MoveRow
     total: int
     by_method: dict[str, int] = Field(default_factory=dict)
@@ -131,6 +137,7 @@ class LearnCheckView(BaseModel):
     """Can this Pokémon learn this move? Yes (with how) or no."""
 
     kind: Literal["learn_check"] = "learn_check"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     pokemon: PokemonCard
     move: MoveRow
     ok: bool
@@ -154,6 +161,7 @@ class CandidatesView(BaseModel):
     """Pokémon the coach suggests adding; each card adds only when clicked."""
 
     kind: Literal["candidates"] = "candidates"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     team_id: int
     candidates: list[Candidate]
     team_full: bool = False
@@ -173,6 +181,7 @@ class SetEditView(BaseModel):
     """A proposed set for one member, shown was → now; saved only on Apply."""
 
     kind: Literal["set_edit"] = "set_edit"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     side: Literal["ours", "theirs"]
     team_id: int
     slot: int
@@ -192,6 +201,7 @@ class MemberAddedView(BaseModel):
     """An explicit "add X": what was added where (Undo clears the slot), or why not."""
 
     kind: Literal["member_added"] = "member_added"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     team_id: int
     added: bool
     slot: int | None = None
@@ -204,6 +214,7 @@ class DuelView(BaseModel):
     """One pairing played out turn by turn by the deterministic duel engine."""
 
     kind: Literal["duel"] = "duel"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     team_id: int
     opponent_id: int
     duel: DuelOut
@@ -237,6 +248,7 @@ class CalcApply(BaseModel):
 
 class DamageView(BaseModel):
     kind: Literal["damage"] = "damage"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     attacker: CalcRef
     defender: CalcRef
     move: MoveRow
@@ -249,6 +261,7 @@ class DamageView(BaseModel):
 
 class SurviveView(BaseModel):
     kind: Literal["survive"] = "survive"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     defender: CalcRef
     attacker: CalcRef
     move: MoveRow
@@ -267,6 +280,7 @@ class SurviveView(BaseModel):
 
 class BuildProposalView(BaseModel):
     kind: Literal["build_proposal"] = "build_proposal"
+    step: str | None = None  # the plan step that produced it (set by the runner)
     slot: int
     pokemon: str
     build: BuildSuggestion

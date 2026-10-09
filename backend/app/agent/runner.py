@@ -204,7 +204,7 @@ async def _execute(
             "ms": round(ev.elapsed * 1000),
         }
         for view in (r.views if r else []):
-            yield "view", {"step": ev.step.id, **view.model_dump(mode="json")}
+            yield "view", {**view.model_dump(mode="json"), "step": ev.step.id}
         if r is not None and r.data.get("team_updated"):
             yield "team_updated", r.data["team_updated"]
 
