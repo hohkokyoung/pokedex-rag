@@ -1,0 +1,73 @@
+{
+ "answer": "A Fire-type Pokémon is weak to Ground, Rock and Water moves [1].\n\n- **Resists** — Bug, Steel, Fire, Grass, Ice and Fairy [1]\n- **Super-effective against** — Bug, Grass, Ice and Steel [1]",
+ "planner": "keyword",
+ "cached": false,
+ "steps": [
+  {
+   "id": "s1",
+   "tool": "type_matchup",
+   "why": "the fire type chart",
+   "args": {
+    "types": [
+     "fire"
+    ]
+   },
+   "state": "done",
+   "summary": "fire type chart",
+   "replan": false
+  }
+ ],
+ "views": [
+  {
+   "kind": "type_chart",
+   "step": "s1",
+   "types": [
+    "fire"
+   ],
+   "weak_4x": [],
+   "weak_2x": [
+    "ground",
+    "rock",
+    "water"
+   ],
+   "resist_half": [
+    "bug",
+    "steel",
+    "fire",
+    "grass",
+    "ice",
+    "fairy"
+   ],
+   "resist_quarter": [],
+   "immune": [],
+   "strong_against": [
+    "bug",
+    "grass",
+    "ice",
+    "steel"
+   ],
+   "chunk_refs": [
+    0
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "n": 1,
+   "pokemon_id": null,
+   "pokemon_name": null,
+   "dex_number": null,
+   "chunk_type": "type_chart",
+   "source_ref": "fire defence",
+   "snippet": "Type chart: a Fire-type Pokémon takes super-effective (2x) damage from Ground, Rock and Water moves; resists (0.5x) Bug, Fairy, Fire, Grass, Ice and Steel moves. Fire moves are super-effective against Bug, Grass, Ice and Steel-types.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 0
+  }
+ ],
+ "usage": {
+  "llm_calls": 0,
+  "input_tokens": 0,
+  "output_tokens": 0
+ }
+}

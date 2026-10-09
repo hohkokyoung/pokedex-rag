@@ -1,0 +1,232 @@
+{
+ "answer": "Among non-legendary Fire-type Pokémon, **Talonflame** has the highest Speed at 126 [1].\n\n- **Cinderace** — 119 [2]\n- **Salazzle** — 117 [3]\n- **Iron Moth** — 110 [4]\n- **Infernape** — 108 [5]",
+ "planner": "keyword",
+ "cached": false,
+ "steps": [
+  {
+   "id": "s1",
+   "tool": "query_pokemon",
+   "why": "filter and rank Pokémon",
+   "args": {
+    "types_all": [
+     "fire"
+    ],
+    "generation": null,
+    "legendary": false,
+    "mythical": false,
+    "stat_filters": [],
+    "sort_by": "speed",
+    "order": "desc",
+    "limit": 5,
+    "game": null
+   },
+   "state": "done",
+   "summary": "73 match · top Talonflame (Speed 126)",
+   "replan": false
+  }
+ ],
+ "views": [
+  {
+   "kind": "ranking",
+   "step": "s1",
+   "stat": "speed",
+   "order": "desc",
+   "total": 73,
+   "rows": [
+    {
+     "ref": 0,
+     "pokemon_id": 663,
+     "name": "Talonflame",
+     "dex_number": 663,
+     "types": [
+      "fire",
+      "flying"
+     ],
+     "stats": {
+      "hp": 78,
+      "attack": 81,
+      "defense": 71,
+      "sp_attack": 74,
+      "sp_defense": 69,
+      "speed": 126
+     },
+     "total": 499,
+     "entry": null,
+     "match": null,
+     "coverage": [],
+     "via": null,
+     "value": 126.0
+    },
+    {
+     "ref": 1,
+     "pokemon_id": 815,
+     "name": "Cinderace",
+     "dex_number": 815,
+     "types": [
+      "fire"
+     ],
+     "stats": {
+      "hp": 80,
+      "attack": 116,
+      "defense": 75,
+      "sp_attack": 65,
+      "sp_defense": 75,
+      "speed": 119
+     },
+     "total": 530,
+     "entry": null,
+     "match": null,
+     "coverage": [],
+     "via": null,
+     "value": 119.0
+    },
+    {
+     "ref": 2,
+     "pokemon_id": 758,
+     "name": "Salazzle",
+     "dex_number": 758,
+     "types": [
+      "poison",
+      "fire"
+     ],
+     "stats": {
+      "hp": 68,
+      "attack": 64,
+      "defense": 60,
+      "sp_attack": 111,
+      "sp_defense": 60,
+      "speed": 117
+     },
+     "total": 480,
+     "entry": null,
+     "match": null,
+     "coverage": [],
+     "via": null,
+     "value": 117.0
+    },
+    {
+     "ref": 3,
+     "pokemon_id": 994,
+     "name": "Iron Moth",
+     "dex_number": 994,
+     "types": [
+      "fire",
+      "poison"
+     ],
+     "stats": {
+      "hp": 80,
+      "attack": 70,
+      "defense": 60,
+      "sp_attack": 140,
+      "sp_defense": 110,
+      "speed": 110
+     },
+     "total": 570,
+     "entry": null,
+     "match": null,
+     "coverage": [],
+     "via": null,
+     "value": 110.0
+    },
+    {
+     "ref": 4,
+     "pokemon_id": 392,
+     "name": "Infernape",
+     "dex_number": 392,
+     "types": [
+      "fire",
+      "fighting"
+     ],
+     "stats": {
+      "hp": 76,
+      "attack": 104,
+      "defense": 71,
+      "sp_attack": 104,
+      "sp_defense": 71,
+      "speed": 108
+     },
+     "total": 534,
+     "entry": null,
+     "match": null,
+     "coverage": [],
+     "via": null,
+     "value": 108.0
+    }
+   ],
+   "chunk_refs": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "n": 1,
+   "pokemon_id": 663,
+   "pokemon_name": "Talonflame",
+   "dex_number": 663,
+   "chunk_type": "sql_row",
+   "source_ref": "structured query",
+   "snippet": "Talonflame (#663, fire/flying-type): HP 78, Attack 81, Defense 71, Sp. Atk 74, Sp. Def 69, Speed 126, base stat total 499. Height 1.2 m, weight 24.5 kg, capture rate 45.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 0
+  },
+  {
+   "n": 2,
+   "pokemon_id": 815,
+   "pokemon_name": "Cinderace",
+   "dex_number": 815,
+   "chunk_type": "sql_row",
+   "source_ref": "structured query",
+   "snippet": "Cinderace (#815, fire-type): HP 80, Attack 116, Defense 75, Sp. Atk 65, Sp. Def 75, Speed 119, base stat total 530. Height 1.4 m, weight 33 kg, capture rate 45.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 1
+  },
+  {
+   "n": 3,
+   "pokemon_id": 758,
+   "pokemon_name": "Salazzle",
+   "dex_number": 758,
+   "chunk_type": "sql_row",
+   "source_ref": "structured query",
+   "snippet": "Salazzle (#758, poison/fire-type): HP 68, Attack 64, Defense 60, Sp. Atk 111, Sp. Def 60, Speed 117, base stat total 480. Height 1.2 m, weight 22.2 kg, capture rate 45.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 2
+  },
+  {
+   "n": 4,
+   "pokemon_id": 994,
+   "pokemon_name": "Iron Moth",
+   "dex_number": 994,
+   "chunk_type": "sql_row",
+   "source_ref": "structured query",
+   "snippet": "Iron Moth (#994, fire/poison-type): HP 80, Attack 70, Defense 60, Sp. Atk 140, Sp. Def 110, Speed 110, base stat total 570. Height 1.2 m, weight 36 kg, capture rate 30.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 3
+  },
+  {
+   "n": 5,
+   "pokemon_id": 392,
+   "pokemon_name": "Infernape",
+   "dex_number": 392,
+   "chunk_type": "sql_row",
+   "source_ref": "structured query",
+   "snippet": "Infernape (#392, fire/fighting-type): HP 76, Attack 104, Defense 71, Sp. Atk 104, Sp. Def 71, Speed 108, base stat total 534. Height 1.2 m, weight 55 kg, capture rate 45.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 4
+  }
+ ],
+ "usage": {
+  "llm_calls": 0,
+  "input_tokens": 0,
+  "output_tokens": 0
+ }
+}

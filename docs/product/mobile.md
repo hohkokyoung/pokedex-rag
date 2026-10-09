@@ -1,9 +1,9 @@
 # Mobile app (`mobile/`)
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
-home network. It covers the Pokédex (and your favourites) and Teams; Ask, the coaches
+home network. It covers the Pokédex (and your favourites), Teams and Ask; the coaches
 and the calculators stay on the website for now. Tabs at the bottom switch between
-Pokédex and Teams; each keeps its place.
+Pokédex, Teams and Ask; each keeps its place.
 
 ## List
 
@@ -59,6 +59,27 @@ The same saved teams as the website's `/teams`, rated by the server:
   - the report: rating and AI summary (↻ Regenerate), the six grades with fixes, How it
     plays (strategy axes, now and with learnable moves), type profile, Sets with **Use
     suggested** (fills only the empty parts), and Defence per attacking type.
+
+## Ask
+
+The same assistant as the website's Ask, streamed from the server:
+
+- **Starters** (the website's suggestions) until you ask; a line says whether answers
+  are narrated by the LLM or keyless.
+- The answer streams in with tappable **[n]** citations. Tapping one shows that
+  record's text and, for a Pokémon, **Open** its page. If the plan couldn't apply part
+  of the question, that is said first.
+- **How it was answered:** planner (or cached), time, LLM calls and lookups; tap it for
+  each step and what it found.
+- **Cards** for each result: rankings, Pokémon lists, type matchups, moves, learnsets,
+  who learns a move, and learn checks (✓ / ✗ with how). Each lists its sources; tap a
+  Pokémon to open it.
+- **Ask next:** follow-ups about the Pokémon the answer cited (none when it abstains).
+- The **profile** button sets your preferred types (shared with the website) for
+  "for you" questions and lists your favourites.
+
+Questions the server answers in code (rankings, learn checks, type charts, move info)
+spend no LLM calls, as on the website.
 
 ## Server
 

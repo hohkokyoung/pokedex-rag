@@ -6,6 +6,8 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/ability_out.dart';
+import '../models/ask_request.dart';
+import '../models/ask_response.dart';
 import '../models/generation_out.dart';
 import '../models/health_response.dart';
 import '../models/item_out.dart';
@@ -35,6 +37,18 @@ part 'pokerag_client.g.dart';
 @RestApi()
 abstract class PokeragClient {
   factory PokeragClient(Dio dio, {String? baseUrl}) = _PokeragClient;
+
+  /// Ask
+  @POST('/api/ask')
+  Future<AskResponse> askApiAskPost({
+    @Body() required AskRequest body,
+  });
+
+  /// Ask Status.
+  ///
+  /// Whether the RAG assistant is configured, and which provider is active.
+  @GET('/api/ask/status')
+  Future<dynamic> askStatusApiAskStatusGet();
 
   /// List Generations
   @GET('/api/generations')

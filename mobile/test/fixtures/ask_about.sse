@@ -1,0 +1,21 @@
+event: plan
+data: {"planner": "keyword", "cached": false, "replan": false, "steps": [{"id": "s1", "tool": "get_pokemon", "why": "Snorlax's profile", "args": {"name": "Snorlax"}}]}
+
+event: step
+data: {"id": "s1", "state": "running", "summary": "", "ms": 0}
+
+event: step
+data: {"id": "s1", "state": "done", "summary": "Snorlax", "ms": 8}
+
+event: view
+data: {"kind": "pokemon_list", "step": "s1", "title": null, "cards": [{"ref": 0, "pokemon_id": 143, "name": "Snorlax", "dex_number": 143, "types": ["normal"], "stats": {"hp": 160, "attack": 110, "defense": 65, "sp_attack": 65, "sp_defense": 110, "speed": 30}, "total": 540, "entry": "What sounds like its cry may ac tually be its snores or the rumblings of its hungry belly.", "match": null, "coverage": [], "via": null}], "chunk_refs": [0, 1, 2]}
+
+event: sources
+data: [{"n": 1, "pokemon_id": 143, "pokemon_name": "Snorlax", "dex_number": 143, "chunk_type": "profile", "source_ref": "target", "snippet": "Snorlax (National Pok\u00e9dex #143) is a Normal-type Pok\u00e9mon, the Sleeping Pok\u00e9mon. Base stats \u2014 HP 160, Attack 110, Defense 65, Special Attack 65, Special Defense 110, Speed 30 (base stat total 540). Abilities: Immunity, Thick Fat, Gluttony. It is 2.1 m tall and weighs 460.0 kg. Its habitat is mountain.. Evolves from Munchlax via level up", "score": 1.0, "step": "s1", "step_index": 0}, {"n": 2, "pokemon_id": 143, "pokemon_name": "Snorlax", "dex_number": 143, "chunk_type": "dex_entry", "source_ref": "Gold", "snippet": "Snorlax \u2014 Pok\u00e9dex entry: What sounds like its cry may ac tually be its snores or the rumblings of its hungry belly.", "score": 1.0, "step": "s1", "step_index": 1}, {"n": 3, "pokemon_id": 143, "pokemon_name": "Snorlax", "dex_number": 143, "chunk_type": "dex_entry", "source_ref": "Silver", "snippet": "Snorlax \u2014 Pok\u00e9dex entry: Its stomach's di gestive juices can dissolve any kind of poison. It can even eat things off the ground.", "score": 1.0, "step": "s1", "step_index": 2}]
+
+event: delta
+data: {"text": "(Showing facts straight from the Pok\u00e9dex \u2014 add an LLM key for narrated answers.)\n\nSnorlax (National Pok\u00e9dex #143) is a Normal-type Pok\u00e9mon, the Sleeping Pok\u00e9mon. Base stats \u2014 HP 160, Attack 110, Defense 65, Special Attack 65, Special Defense 110, Speed 30 (base stat total 540). Abilities: Immunity, Thick Fat, Gluttony. It is 2.1 m tall and weighs 460.0 kg. Its habitat is mountain.. Evolves from Munchlax via level up [1] Pok\u00e9dex entry: \"What sounds like its cry may ac tually be its snores or the rumblings of its hungry belly.\" [2] Pok\u00e9dex entry: \"Its stomach's di gestive juices can dissolve any kind of poison. It can even eat things off the ground.\" [3]"}
+
+event: done
+data: {"usage": {"llm_calls": 0, "input_tokens": 0, "output_tokens": 0}, "fallback": false}
+

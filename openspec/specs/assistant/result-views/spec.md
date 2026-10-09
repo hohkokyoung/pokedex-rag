@@ -48,11 +48,19 @@ A step whose result has a visual form SHALL send a `view` event. The event carri
 - **THEN** a `damage` view is sent with the attacker and defender slots, the move, the current min–max % and KO call, and the what-if's min–max % and KO call
 
 ### Requirement: Non-streaming Ask returns the plan and views
-The non-streaming Ask response SHALL contain the answer, the `planner`, the executed steps with their final states, the views, the sources, and usage. It SHALL NOT contain a `route`.
+The non-streaming Ask response SHALL contain the answer, the `planner`, the executed steps with their final states, the views, the sources, and usage. It SHALL NOT contain a `route`. Its views SHALL be declared in the API schema as a union of the view types, discriminated by `kind`, each with the id of the plan step that produced it.
 
 #### Scenario: Non-streaming answer
 - **WHEN** a client POSTs a question to the non-streaming Ask endpoint
 - **THEN** the response contains the planner, the steps with terminal states, the views, the sources and usage, and no `route` field
+
+#### Scenario: Views are typed in the schema
+- **WHEN** a client reads the API schema
+- **THEN** the Ask response's views are a `kind`-discriminated union of the view types (ranking, pokemon_list, type_chart, move_list, learnset, learners, learn_check and the coach views), each with an optional `step`
+
+#### Scenario: Each view keeps its step
+- **WHEN** a streamed or non-streamed answer includes a view
+- **THEN** the view's `step` is the id of the plan step that produced it
 
 ### Requirement: Ask shows live plan steps
 While a question runs, the Ask page SHALL show each step with its reason and current state, updating live. Keyword plans SHALL be labelled as planned by keywords, with the question's LLM call count shown alongside (a keyword plan can still spend a call on a build or an answer). Once the answer finishes, the list SHALL collapse to a one-line summary (step count and time) that can be expanded again. Under reduced motion, state changes SHALL appear without animated transitions. When the plan reports constraints it couldn't apply, the answer's opening note SHALL be shown as a notice before the verdict, never as the verdict.

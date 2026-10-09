@@ -1,0 +1,60 @@
+{
+ "answer": "**Earthquake** is a Ground-type physical move with 100 power, 100% accuracy and 10 PP [1].\n\n- **Effect** — Inflicts regular damage and can hit Dig users. [1]\n- **Learned by** — 292 Pokémon [1]",
+ "planner": "keyword",
+ "cached": false,
+ "steps": [
+  {
+   "id": "s1",
+   "tool": "move_info",
+   "why": "what Earthquake does",
+   "args": {
+    "name": "Earthquake"
+   },
+   "state": "done",
+   "summary": "Earthquake",
+   "replan": false
+  }
+ ],
+ "views": [
+  {
+   "kind": "move_list",
+   "step": "s1",
+   "moves": [
+    {
+     "ref": 0,
+     "move_id": 89,
+     "name": "Earthquake",
+     "type": "ground",
+     "damage_class": "physical",
+     "power": 100,
+     "accuracy": 100,
+     "pp": 10,
+     "learners": 292,
+     "effect": "Inflicts regular damage and can hit Dig users."
+    }
+   ],
+   "chunk_refs": [
+    0
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "n": 1,
+   "pokemon_id": null,
+   "pokemon_name": null,
+   "dex_number": null,
+   "chunk_type": "move",
+   "source_ref": "Earthquake",
+   "snippet": "Earthquake is a Ground-type physical move: 100 power, 100% accuracy, 10 PP. Learned by 292 Pokémon. Effect: Inflicts regular damage and can hit Dig users.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 0
+  }
+ ],
+ "usage": {
+  "llm_calls": 0,
+  "input_tokens": 0,
+  "output_tokens": 0
+ }
+}

@@ -51,6 +51,467 @@
     "title": "AbilityOut",
     "type": "object"
    },
+   "AskRequest": {
+    "properties": {
+     "question": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Question",
+      "type": "string"
+     }
+    },
+    "required": [
+     "question"
+    ],
+    "title": "AskRequest",
+    "type": "object"
+   },
+   "AskResponse": {
+    "properties": {
+     "answer": {
+      "title": "Answer",
+      "type": "string"
+     },
+     "cached": {
+      "default": false,
+      "title": "Cached",
+      "type": "boolean"
+     },
+     "planner": {
+      "title": "Planner",
+      "type": "string"
+     },
+     "sources": {
+      "items": {
+       "$ref": "#/components/schemas/Source"
+      },
+      "title": "Sources",
+      "type": "array"
+     },
+     "steps": {
+      "items": {
+       "$ref": "#/components/schemas/PlanStepOut"
+      },
+      "title": "Steps",
+      "type": "array"
+     },
+     "usage": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Usage",
+      "type": "object"
+     },
+     "views": {
+      "items": {
+       "discriminator": {
+        "mapping": {
+         "build_proposal": "#/components/schemas/BuildProposalView",
+         "candidates": "#/components/schemas/CandidatesView",
+         "damage": "#/components/schemas/DamageView",
+         "duel": "#/components/schemas/DuelView",
+         "learn_check": "#/components/schemas/LearnCheckView",
+         "learners": "#/components/schemas/LearnersView",
+         "learnset": "#/components/schemas/LearnsetView",
+         "member_added": "#/components/schemas/MemberAddedView",
+         "move_list": "#/components/schemas/MoveListView",
+         "pokemon_list": "#/components/schemas/PokemonListView",
+         "ranking": "#/components/schemas/RankingView",
+         "set_edit": "#/components/schemas/SetEditView",
+         "survive": "#/components/schemas/SurviveView",
+         "type_chart": "#/components/schemas/TypeChartView"
+        },
+        "propertyName": "kind"
+       },
+       "oneOf": [
+        {
+         "$ref": "#/components/schemas/RankingView"
+        },
+        {
+         "$ref": "#/components/schemas/PokemonListView"
+        },
+        {
+         "$ref": "#/components/schemas/TypeChartView"
+        },
+        {
+         "$ref": "#/components/schemas/MoveListView"
+        },
+        {
+         "$ref": "#/components/schemas/LearnsetView"
+        },
+        {
+         "$ref": "#/components/schemas/LearnersView"
+        },
+        {
+         "$ref": "#/components/schemas/LearnCheckView"
+        },
+        {
+         "$ref": "#/components/schemas/CandidatesView"
+        },
+        {
+         "$ref": "#/components/schemas/SetEditView"
+        },
+        {
+         "$ref": "#/components/schemas/MemberAddedView"
+        },
+        {
+         "$ref": "#/components/schemas/DuelView"
+        },
+        {
+         "$ref": "#/components/schemas/DamageView"
+        },
+        {
+         "$ref": "#/components/schemas/SurviveView"
+        },
+        {
+         "$ref": "#/components/schemas/BuildProposalView"
+        }
+       ]
+      },
+      "title": "Views",
+      "type": "array"
+     }
+    },
+    "required": [
+     "answer",
+     "planner",
+     "sources"
+    ],
+    "title": "AskResponse",
+    "type": "object"
+   },
+   "BuildProposalView": {
+    "properties": {
+     "build": {
+      "$ref": "#/components/schemas/BuildSuggestion"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "kind": {
+      "const": "build_proposal",
+      "default": "build_proposal",
+      "title": "Kind",
+      "type": "string"
+     },
+     "pokemon": {
+      "title": "Pokemon",
+      "type": "string"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     }
+    },
+    "required": [
+     "slot",
+     "pokemon",
+     "build"
+    ],
+    "title": "BuildProposalView",
+    "type": "object"
+   },
+   "BuildSet": {
+    "properties": {
+     "ability": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability"
+     },
+     "evs": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Evs",
+      "type": "object"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item"
+     },
+     "moves": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "nature": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nature"
+     }
+    },
+    "title": "BuildSet",
+    "type": "object"
+   },
+   "BuildSuggestion": {
+    "properties": {
+     "ability": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability"
+     },
+     "evs": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Evs",
+      "type": "object"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item"
+     },
+     "moves": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "nature": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nature"
+     },
+     "pokemon": {
+      "title": "Pokemon",
+      "type": "string"
+     },
+     "why": {
+      "default": "",
+      "title": "Why",
+      "type": "string"
+     }
+    },
+    "required": [
+     "pokemon",
+     "moves",
+     "evs"
+    ],
+    "title": "BuildSuggestion",
+    "type": "object"
+   },
+   "CalcApply": {
+    "description": "Calculator fields to set on one slot when the user clicks Apply.",
+    "properties": {
+     "fields": {
+      "additionalProperties": true,
+      "title": "Fields",
+      "type": "object"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "fields"
+    ],
+    "title": "CalcApply",
+    "type": "object"
+   },
+   "CalcRef": {
+    "properties": {
+     "dex_number": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dex Number"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "side": {
+      "title": "Side",
+      "type": "integer"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "name",
+     "side"
+    ],
+    "title": "CalcRef",
+    "type": "object"
+   },
+   "Candidate": {
+    "properties": {
+     "base_stats": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Base Stats",
+      "type": "object"
+     },
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "pokemon_id": {
+      "title": "Pokemon Id",
+      "type": "integer"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     },
+     "role": {
+      "title": "Role",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "pokemon_id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url",
+     "role",
+     "base_stats",
+     "reason"
+    ],
+    "title": "Candidate",
+    "type": "object"
+   },
+   "CandidatesView": {
+    "description": "Pokémon the coach suggests adding; each card adds only when clicked.",
+    "properties": {
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/Candidate"
+      },
+      "title": "Candidates",
+      "type": "array"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "kind": {
+      "const": "candidates",
+      "default": "candidates",
+      "title": "Kind",
+      "type": "string"
+     },
+     "members": {
+      "items": {
+       "$ref": "#/components/schemas/SlotRef"
+      },
+      "title": "Members",
+      "type": "array"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "team_full": {
+      "default": false,
+      "title": "Team Full",
+      "type": "boolean"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "team_id",
+     "candidates"
+    ],
+    "title": "CandidatesView",
+    "type": "object"
+   },
    "CosmeticVariantOut": {
     "properties": {
      "name": {
@@ -101,6 +562,79 @@
     "title": "CreamRule",
     "type": "object"
    },
+   "DamageView": {
+    "properties": {
+     "apply": {
+      "items": {
+       "$ref": "#/components/schemas/CalcApply"
+      },
+      "title": "Apply",
+      "type": "array"
+     },
+     "attacker": {
+      "$ref": "#/components/schemas/CalcRef"
+     },
+     "changes": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "title": "Changes",
+      "type": "array"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "current": {
+      "$ref": "#/components/schemas/HitRange"
+     },
+     "defender": {
+      "$ref": "#/components/schemas/CalcRef"
+     },
+     "kind": {
+      "const": "damage",
+      "default": "damage",
+      "title": "Kind",
+      "type": "string"
+     },
+     "move": {
+      "$ref": "#/components/schemas/MoveRow"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "whatif": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/HitRange"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "attacker",
+     "defender",
+     "move",
+     "current"
+    ],
+    "title": "DamageView",
+    "type": "object"
+   },
    "DefensiveProfile": {
     "properties": {
      "matrix": {
@@ -123,6 +657,290 @@
      "shared_weaknesses"
     ],
     "title": "DefensiveProfile",
+    "type": "object"
+   },
+   "DuelEvent": {
+    "description": "One step of a played-out one-on-one (side \"a\" = our member, \"b\" = theirs).",
+    "properties": {
+     "ability": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability"
+     },
+     "boosts": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "integer"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Boosts"
+     },
+     "hp": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hp"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "move": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Move"
+     },
+     "mult": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mult"
+     },
+     "pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pct"
+     },
+     "side": {
+      "enum": [
+       "a",
+       "b"
+      ],
+      "title": "Side",
+      "type": "string"
+     },
+     "turn": {
+      "title": "Turn",
+      "type": "integer"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     }
+    },
+    "required": [
+     "turn",
+     "side",
+     "kind"
+    ],
+    "title": "DuelEvent",
+    "type": "object"
+   },
+   "DuelOut": {
+    "properties": {
+     "first": {
+      "enum": [
+       "ours",
+       "theirs",
+       "tie"
+      ],
+      "title": "First",
+      "type": "string"
+     },
+     "log": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/DuelEvent"
+      },
+      "title": "Log",
+      "type": "array"
+     },
+     "notes": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+     },
+     "our_moves": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Our Moves",
+      "type": "array"
+     },
+     "our_moves_learned": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Our Moves Learned",
+      "type": "array"
+     },
+     "our_name": {
+      "title": "Our Name",
+      "type": "string"
+     },
+     "our_setup": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Our Setup"
+     },
+     "our_slot": {
+      "title": "Our Slot",
+      "type": "integer"
+     },
+     "outcome": {
+      "enum": [
+       "win",
+       "lose",
+       "even"
+      ],
+      "title": "Outcome",
+      "type": "string"
+     },
+     "their_moves": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Their Moves",
+      "type": "array"
+     },
+     "their_moves_learned": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Their Moves Learned",
+      "type": "array"
+     },
+     "their_name": {
+      "title": "Their Name",
+      "type": "string"
+     },
+     "their_setup": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Their Setup"
+     },
+     "their_slot": {
+      "title": "Their Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "our_slot",
+     "their_slot",
+     "our_name",
+     "their_name",
+     "outcome",
+     "first"
+    ],
+    "title": "DuelOut",
+    "type": "object"
+   },
+   "DuelView": {
+    "description": "One pairing played out turn by turn by the deterministic duel engine.",
+    "properties": {
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "duel": {
+      "$ref": "#/components/schemas/DuelOut"
+     },
+     "kind": {
+      "const": "duel",
+      "default": "duel",
+      "title": "Kind",
+      "type": "string"
+     },
+     "opponent_id": {
+      "title": "Opponent Id",
+      "type": "integer"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "team_id",
+     "opponent_id",
+     "duel"
+    ],
+    "title": "DuelView",
     "type": "object"
    },
    "EncounterGameOut": {
@@ -1027,6 +1845,39 @@
     "title": "HealthResponse",
     "type": "object"
    },
+   "HitRange": {
+    "properties": {
+     "ko": {
+      "title": "Ko",
+      "type": "integer"
+     },
+     "ko_text": {
+      "default": "",
+      "title": "Ko Text",
+      "type": "string"
+     },
+     "max_pct": {
+      "title": "Max Pct",
+      "type": "number"
+     },
+     "min_pct": {
+      "title": "Min Pct",
+      "type": "number"
+     },
+     "te": {
+      "default": 1,
+      "title": "Te",
+      "type": "number"
+     }
+    },
+    "required": [
+     "min_pct",
+     "max_pct",
+     "ko"
+    ],
+    "title": "HitRange",
+    "type": "object"
+   },
    "ItemOut": {
     "properties": {
      "category": {
@@ -1105,6 +1956,138 @@
     "title": "ItemOut",
     "type": "object"
    },
+   "LearnCheckView": {
+    "description": "Can this Pokémon learn this move? Yes (with how) or no.",
+    "properties": {
+     "absent": {
+      "default": false,
+      "title": "Absent",
+      "type": "boolean"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "game": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Game"
+     },
+     "how": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "How"
+     },
+     "kind": {
+      "const": "learn_check",
+      "default": "learn_check",
+      "title": "Kind",
+      "type": "string"
+     },
+     "max_level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Level"
+     },
+     "method": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Method"
+     },
+     "move": {
+      "$ref": "#/components/schemas/MoveRow"
+     },
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     },
+     "pokemon": {
+      "$ref": "#/components/schemas/PokemonCard"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     }
+    },
+    "required": [
+     "pokemon",
+     "move",
+     "ok"
+    ],
+    "title": "LearnCheckView",
+    "type": "object"
+   },
+   "LearnGroup": {
+    "properties": {
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "method": {
+      "title": "Method",
+      "type": "string"
+     },
+     "moves": {
+      "items": {
+       "$ref": "#/components/schemas/LearnMove"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "ref": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ref"
+     }
+    },
+    "required": [
+     "method",
+     "label",
+     "moves"
+    ],
+    "title": "LearnGroup",
+    "type": "object"
+   },
    "LearnMethodOut": {
     "properties": {
      "level": {
@@ -1138,6 +2121,165 @@
      "method"
     ],
     "title": "LearnMethodOut",
+    "type": "object"
+   },
+   "LearnMove": {
+    "properties": {
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Level"
+     },
+     "level_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Level Note"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "type"
+    ],
+    "title": "LearnMove",
+    "type": "object"
+   },
+   "LearnersView": {
+    "description": "Who learns a move: how many, by which method, and the standout users.",
+    "properties": {
+     "by_method": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "By Method",
+      "type": "object"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "game": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Game"
+     },
+     "kind": {
+      "const": "learners",
+      "default": "learners",
+      "title": "Kind",
+      "type": "string"
+     },
+     "max_level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Level"
+     },
+     "method": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Method"
+     },
+     "move": {
+      "$ref": "#/components/schemas/MoveRow"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/PokemonCard"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "scope": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Scope",
+      "type": "array"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "move",
+     "total",
+     "rows"
+    ],
+    "title": "LearnersView",
     "type": "object"
    },
    "LearnsetMoveOut": {
@@ -1265,6 +2407,62 @@
      "name"
     ],
     "title": "LearnsetMoveOut",
+    "type": "object"
+   },
+   "LearnsetView": {
+    "description": "A Pokémon's moves, grouped by how it learns them.",
+    "properties": {
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "game": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Game"
+     },
+     "groups": {
+      "items": {
+       "$ref": "#/components/schemas/LearnGroup"
+      },
+      "title": "Groups",
+      "type": "array"
+     },
+     "kind": {
+      "const": "learnset",
+      "default": "learnset",
+      "title": "Kind",
+      "type": "string"
+     },
+     "pokemon": {
+      "$ref": "#/components/schemas/PokemonCard"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     }
+    },
+    "required": [
+     "pokemon",
+     "groups"
+    ],
+    "title": "LearnsetView",
     "type": "object"
    },
    "MatchupCell": {
@@ -1471,6 +2669,69 @@
     "title": "MatchupsOut",
     "type": "object"
    },
+   "MemberAddedView": {
+    "description": "An explicit \"add X\": what was added where (Undo clears the slot), or why not.",
+    "properties": {
+     "added": {
+      "title": "Added",
+      "type": "boolean"
+     },
+     "card": {
+      "$ref": "#/components/schemas/PokemonCard"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "kind": {
+      "const": "member_added",
+      "default": "member_added",
+      "title": "Kind",
+      "type": "string"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "slot": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Slot"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "team_id",
+     "added",
+     "card",
+     "message"
+    ],
+    "title": "MemberAddedView",
+    "type": "object"
+   },
    "MemberDefense": {
     "properties": {
      "multipliers": {
@@ -1658,6 +2919,152 @@
     "title": "MoveGameLearnersOut",
     "type": "object"
    },
+   "MoveListView": {
+    "properties": {
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "kind": {
+      "const": "move_list",
+      "default": "move_list",
+      "title": "Kind",
+      "type": "string"
+     },
+     "moves": {
+      "items": {
+       "$ref": "#/components/schemas/MoveRow"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     }
+    },
+    "required": [
+     "moves"
+    ],
+    "title": "MoveListView",
+    "type": "object"
+   },
+   "MoveRow": {
+    "properties": {
+     "accuracy": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accuracy"
+     },
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effect"
+     },
+     "learners": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Learners"
+     },
+     "move_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Move Id"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "pp": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pp"
+     },
+     "ref": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ref"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "type"
+    ],
+    "title": "MoveRow",
+    "type": "object"
+   },
    "NatureOut": {
     "properties": {
      "decreased_stat": {
@@ -1791,6 +3198,165 @@
      "via"
     ],
     "title": "OpponentThreat",
+    "type": "object"
+   },
+   "PlanStepOut": {
+    "description": "One executed plan step with its final state.",
+    "properties": {
+     "args": {
+      "additionalProperties": true,
+      "title": "Args",
+      "type": "object"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "replan": {
+      "default": false,
+      "title": "Replan",
+      "type": "boolean"
+     },
+     "state": {
+      "default": "pending",
+      "title": "State",
+      "type": "string"
+     },
+     "summary": {
+      "default": "",
+      "title": "Summary",
+      "type": "string"
+     },
+     "tool": {
+      "title": "Tool",
+      "type": "string"
+     },
+     "why": {
+      "default": "",
+      "title": "Why",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "tool"
+    ],
+    "title": "PlanStepOut",
+    "type": "object"
+   },
+   "PokemonCard": {
+    "description": "One Pokémon as evidence: art, types, stats, and whatever the step adds.",
+    "properties": {
+     "coverage": {
+      "items": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "title": "Coverage",
+      "type": "array"
+     },
+     "dex_number": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dex Number"
+     },
+     "entry": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Entry"
+     },
+     "match": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Match"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "pokemon_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pokemon Id"
+     },
+     "ref": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ref"
+     },
+     "stats": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Stats",
+      "type": "object"
+     },
+     "total": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Total"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "via": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Via"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "PokemonCard",
     "type": "object"
    },
    "PokemonDetail": {
@@ -2245,6 +3811,57 @@
     "title": "PokemonListResponse",
     "type": "object"
    },
+   "PokemonListView": {
+    "properties": {
+     "cards": {
+      "items": {
+       "$ref": "#/components/schemas/PokemonCard"
+      },
+      "title": "Cards",
+      "type": "array"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "kind": {
+      "const": "pokemon_list",
+      "default": "pokemon_list",
+      "title": "Kind",
+      "type": "string"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     }
+    },
+    "required": [
+     "cards"
+    ],
+    "title": "PokemonListView",
+    "type": "object"
+   },
    "PokemonSummary": {
     "description": "Compact representation for grid/list views.",
     "properties": {
@@ -2418,6 +4035,190 @@
     "title": "ProfileUpdate",
     "type": "object"
    },
+   "RankingRow": {
+    "properties": {
+     "coverage": {
+      "items": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "title": "Coverage",
+      "type": "array"
+     },
+     "dex_number": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dex Number"
+     },
+     "entry": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Entry"
+     },
+     "match": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Match"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "pokemon_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pokemon Id"
+     },
+     "ref": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ref"
+     },
+     "stats": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Stats",
+      "type": "object"
+     },
+     "total": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Total"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "via": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Via"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "RankingRow",
+    "type": "object"
+   },
+   "RankingView": {
+    "properties": {
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "kind": {
+      "const": "ranking",
+      "default": "ranking",
+      "title": "Kind",
+      "type": "string"
+     },
+     "order": {
+      "default": "desc",
+      "enum": [
+       "asc",
+       "desc"
+      ],
+      "title": "Order",
+      "type": "string"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/RankingRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "stat": {
+      "title": "Stat",
+      "type": "string"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "stat",
+     "total",
+     "rows"
+    ],
+    "title": "RankingView",
+    "type": "object"
+   },
    "RatingArea": {
     "properties": {
      "fix": {
@@ -2566,6 +4367,91 @@
      "edge"
     ],
     "title": "ScoreRow",
+    "type": "object"
+   },
+   "SetEditView": {
+    "description": "A proposed set for one member, shown was → now; saved only on Apply.",
+    "properties": {
+     "after": {
+      "$ref": "#/components/schemas/BuildSet"
+     },
+     "before": {
+      "$ref": "#/components/schemas/BuildSet"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "fields": {
+      "additionalProperties": true,
+      "title": "Fields",
+      "type": "object"
+     },
+     "kind": {
+      "const": "set_edit",
+      "default": "set_edit",
+      "title": "Kind",
+      "type": "string"
+     },
+     "member": {
+      "additionalProperties": true,
+      "title": "Member",
+      "type": "object"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "side": {
+      "enum": [
+       "ours",
+       "theirs"
+      ],
+      "title": "Side",
+      "type": "string"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "sprite_url": {
+      "default": "",
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     },
+     "why": {
+      "default": "",
+      "title": "Why",
+      "type": "string"
+     }
+    },
+    "required": [
+     "side",
+     "team_id",
+     "slot",
+     "name",
+     "before",
+     "after"
+    ],
+    "title": "SetEditView",
     "type": "object"
    },
    "SetMember": {
@@ -2953,6 +4839,24 @@
     "title": "SlotNature",
     "type": "object"
    },
+   "SlotRef": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "name"
+    ],
+    "title": "SlotRef",
+    "type": "object"
+   },
    "SlotSuggestion": {
     "properties": {
      "ability_reason": {
@@ -3134,6 +5038,100 @@
      "pokemon_id"
     ],
     "title": "SlotUpdate",
+    "type": "object"
+   },
+   "Source": {
+    "properties": {
+     "chunk_type": {
+      "title": "Chunk Type",
+      "type": "string"
+     },
+     "dex_number": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dex Number"
+     },
+     "n": {
+      "title": "N",
+      "type": "integer"
+     },
+     "pokemon_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pokemon Id"
+     },
+     "pokemon_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pokemon Name"
+     },
+     "score": {
+      "title": "Score",
+      "type": "number"
+     },
+     "snippet": {
+      "title": "Snippet",
+      "type": "string"
+     },
+     "source_ref": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Ref"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "step_index": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step Index"
+     }
+    },
+    "required": [
+     "n",
+     "chunk_type",
+     "snippet",
+     "score"
+    ],
+    "title": "Source",
     "type": "object"
    },
    "SpeedEntry": {
@@ -3356,6 +5354,107 @@
      "is_set"
     ],
     "title": "SuggestedMove",
+    "type": "object"
+   },
+   "SurviveView": {
+    "properties": {
+     "already": {
+      "default": false,
+      "title": "Already",
+      "type": "boolean"
+     },
+     "apply": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/CalcApply"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "attacker": {
+      "$ref": "#/components/schemas/CalcRef"
+     },
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "current": {
+      "$ref": "#/components/schemas/HitRange"
+     },
+     "defender": {
+      "$ref": "#/components/schemas/CalcRef"
+     },
+     "hp_ev": {
+      "title": "Hp Ev",
+      "type": "integer"
+     },
+     "kind": {
+      "const": "survive",
+      "default": "survive",
+      "title": "Kind",
+      "type": "string"
+     },
+     "move": {
+      "$ref": "#/components/schemas/MoveRow"
+     },
+     "nature": {
+      "title": "Nature",
+      "type": "string"
+     },
+     "nature_changed": {
+      "title": "Nature Changed",
+      "type": "boolean"
+     },
+     "range": {
+      "$ref": "#/components/schemas/HitRange"
+     },
+     "stat": {
+      "enum": [
+       "def",
+       "spd"
+      ],
+      "title": "Stat",
+      "type": "string"
+     },
+     "stat_ev": {
+      "title": "Stat Ev",
+      "type": "integer"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "survives": {
+      "title": "Survives",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "defender",
+     "attacker",
+     "move",
+     "survives",
+     "stat",
+     "hp_ev",
+     "stat_ev",
+     "nature",
+     "nature_changed",
+     "range",
+     "current"
+    ],
+    "title": "SurviveView",
     "type": "object"
    },
    "SweetTopping": {
@@ -4034,6 +6133,89 @@
     "title": "TypeChartOut",
     "type": "object"
    },
+   "TypeChartView": {
+    "description": "How one type (or a dual typing) fares defensively.",
+    "properties": {
+     "chunk_refs": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Chunk Refs",
+      "type": "array"
+     },
+     "immune": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Immune",
+      "type": "array"
+     },
+     "kind": {
+      "const": "type_chart",
+      "default": "type_chart",
+      "title": "Kind",
+      "type": "string"
+     },
+     "resist_half": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Resist Half",
+      "type": "array"
+     },
+     "resist_quarter": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Resist Quarter",
+      "type": "array"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "strong_against": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Strong Against",
+      "type": "array"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "weak_2x": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Weak 2X",
+      "type": "array"
+     },
+     "weak_4x": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Weak 4X",
+      "type": "array"
+     }
+    },
+    "required": [
+     "types"
+    ],
+    "title": "TypeChartView",
+    "type": "object"
+   },
    "TypeCover": {
     "properties": {
      "learnable": {
@@ -4354,6 +6536,71 @@
  },
  "openapi": "3.1.0",
  "paths": {
+  "/api/ask": {
+   "post": {
+    "operationId": "ask_api_ask_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AskRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AskResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Ask",
+    "tags": [
+     "ask"
+    ]
+   }
+  },
+  "/api/ask/status": {
+   "get": {
+    "description": "Whether the RAG assistant is configured, and which provider is active.",
+    "operationId": "ask_status_api_ask_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Ask Status Api Ask Status Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Ask Status",
+    "tags": [
+     "ask"
+    ]
+   }
+  },
   "/api/generations": {
    "get": {
     "operationId": "list_generations_api_generations_get",

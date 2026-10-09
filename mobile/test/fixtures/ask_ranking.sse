@@ -1,0 +1,21 @@
+event: plan
+data: {"planner": "keyword", "cached": false, "replan": false, "steps": [{"id": "s1", "tool": "query_pokemon", "why": "filter and rank Pok\u00e9mon", "args": {"types_all": [], "generation": null, "legendary": null, "mythical": null, "stat_filters": [], "sort_by": "attack", "order": "desc", "limit": 5, "game": null}}]}
+
+event: step
+data: {"id": "s1", "state": "running", "summary": "", "ms": 0}
+
+event: step
+data: {"id": "s1", "state": "done", "summary": "1025 match \u00b7 top Kartana (Attack 181)", "ms": 7}
+
+event: view
+data: {"kind": "ranking", "step": "s1", "stat": "attack", "order": "desc", "total": 1025, "rows": [{"ref": 0, "pokemon_id": 798, "name": "Kartana", "dex_number": 798, "types": ["grass", "steel"], "stats": {"hp": 59, "attack": 181, "defense": 131, "sp_attack": 59, "sp_defense": 31, "speed": 109}, "total": 570, "entry": null, "match": null, "coverage": [], "via": null, "value": 181.0}, {"ref": 1, "pokemon_id": 409, "name": "Rampardos", "dex_number": 409, "types": ["rock"], "stats": {"hp": 97, "attack": 165, "defense": 60, "sp_attack": 65, "sp_defense": 50, "speed": 58}, "total": 495, "entry": null, "match": null, "coverage": [], "via": null, "value": 165.0}, {"ref": 2, "pokemon_id": 289, "name": "Slaking", "dex_number": 289, "types": ["normal"], "stats": {"hp": 150, "attack": 160, "defense": 100, "sp_attack": 95, "sp_defense": 65, "speed": 100}, "total": 670, "entry": null, "match": null, "coverage": [], "via": null, "value": 160.0}, {"ref": 3, "pokemon_id": 486, "name": "Regigigas", "dex_number": 486, "types": ["normal"], "stats": {"hp": 110, "attack": 160, "defense": 110, "sp_attack": 80, "sp_defense": 110, "speed": 100}, "total": 670, "entry": null, "match": null, "coverage": [], "via": null, "value": 160.0}, {"ref": 4, "pokemon_id": 383, "name": "Groudon", "dex_number": 383, "types": ["ground"], "stats": {"hp": 100, "attack": 150, "defense": 140, "sp_attack": 100, "sp_defense": 90, "speed": 90}, "total": 670, "entry": null, "match": null, "coverage": [], "via": null, "value": 150.0}], "chunk_refs": [0, 1, 2, 3, 4]}
+
+event: sources
+data: [{"n": 1, "pokemon_id": 798, "pokemon_name": "Kartana", "dex_number": 798, "chunk_type": "sql_row", "source_ref": "structured query", "snippet": "Kartana (#798, grass/steel-type): HP 59, Attack 181, Defense 131, Sp. Atk 59, Sp. Def 31, Speed 109, base stat total 570. Height 0.3 m, weight 0.1 kg, capture rate 45.", "score": 1.0, "step": "s1", "step_index": 0}, {"n": 2, "pokemon_id": 409, "pokemon_name": "Rampardos", "dex_number": 409, "chunk_type": "sql_row", "source_ref": "structured query", "snippet": "Rampardos (#409, rock-type): HP 97, Attack 165, Defense 60, Sp. Atk 65, Sp. Def 50, Speed 58, base stat total 495. Height 1.6 m, weight 102.5 kg, capture rate 45.", "score": 1.0, "step": "s1", "step_index": 1}, {"n": 3, "pokemon_id": 289, "pokemon_name": "Slaking", "dex_number": 289, "chunk_type": "sql_row", "source_ref": "structured query", "snippet": "Slaking (#289, normal-type): HP 150, Attack 160, Defense 100, Sp. Atk 95, Sp. Def 65, Speed 100, base stat total 670. Height 2 m, weight 130.5 kg, capture rate 45.", "score": 1.0, "step": "s1", "step_index": 2}, {"n": 4, "pokemon_id": 486, "pokemon_name": "Regigigas", "dex_number": 486, "chunk_type": "sql_row", "source_ref": "structured query", "snippet": "Regigigas (#486, normal-type): HP 110, Attack 160, Defense 110, Sp. Atk 80, Sp. Def 110, Speed 100, base stat total 670. Height 3.7 m, weight 420 kg, capture rate 3.", "score": 1.0, "step": "s1", "step_index": 3}, {"n": 5, "pokemon_id": 383, "pokemon_name": "Groudon", "dex_number": 383, "chunk_type": "sql_row", "source_ref": "structured query", "snippet": "Groudon (#383, ground-type): HP 100, Attack 150, Defense 140, Sp. Atk 100, Sp. Def 90, Speed 90, base stat total 670. Height 3.5 m, weight 950 kg, capture rate 3.", "score": 1.0, "step": "s1", "step_index": 4}]
+
+event: delta
+data: {"text": "**Kartana** has the highest Attack of any Pok\u00e9mon at 181 [1].\n\n- **Rampardos** \u2014 165 [2]\n- **Slaking** \u2014 160 [3]\n- **Regigigas** \u2014 160 [4]\n- **Groudon** \u2014 150 [5]"}
+
+event: done
+data: {"usage": {"llm_calls": 0, "input_tokens": 0, "output_tokens": 0}, "fallback": false}
+

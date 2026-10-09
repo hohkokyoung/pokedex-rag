@@ -1,0 +1,116 @@
+{
+ "answer": "Yes — **Garchomp** can learn **Earthquake** by TM [1].",
+ "planner": "keyword",
+ "cached": false,
+ "steps": [
+  {
+   "id": "s1",
+   "tool": "learnset",
+   "why": "check Garchomp × Earthquake",
+   "args": {
+    "pokemon": "Garchomp",
+    "move": "Earthquake",
+    "method": null,
+    "game": null,
+    "max_level": null
+   },
+   "state": "done",
+   "summary": "Garchomp × Earthquake: yes, by TM",
+   "replan": false
+  }
+ ],
+ "views": [
+  {
+   "kind": "learn_check",
+   "step": "s1",
+   "pokemon": {
+    "ref": 0,
+    "pokemon_id": 445,
+    "name": "Garchomp",
+    "dex_number": 445,
+    "types": [
+     "dragon",
+     "ground"
+    ],
+    "stats": {
+     "hp": 108,
+     "attack": 130,
+     "defense": 95,
+     "sp_attack": 80,
+     "sp_defense": 85,
+     "speed": 102
+    },
+    "total": 600,
+    "entry": null,
+    "match": null,
+    "coverage": [],
+    "via": null
+   },
+   "move": {
+    "ref": 1,
+    "move_id": 89,
+    "name": "Earthquake",
+    "type": "ground",
+    "damage_class": "physical",
+    "power": 100,
+    "accuracy": 100,
+    "pp": 10,
+    "learners": 292,
+    "effect": "Inflicts regular damage and can hit Dig users."
+   },
+   "ok": true,
+   "how": "by TM",
+   "method": null,
+   "max_level": null,
+   "game": null,
+   "absent": false,
+   "chunk_refs": [
+    0,
+    1
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "n": 1,
+   "pokemon_id": 445,
+   "pokemon_name": "Garchomp",
+   "dex_number": 445,
+   "chunk_type": "learnset",
+   "source_ref": "learnset check",
+   "snippet": "Garchomp can learn Earthquake by TM.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 0
+  },
+  {
+   "n": 2,
+   "pokemon_id": null,
+   "pokemon_name": null,
+   "dex_number": null,
+   "chunk_type": "move",
+   "source_ref": "Earthquake",
+   "snippet": "Earthquake is a Ground-type physical move: 100 power, 100% accuracy, 10 PP. Learned by 292 Pokémon. Effect: Inflicts regular damage and can hit Dig users.",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 1
+  },
+  {
+   "n": 3,
+   "pokemon_id": 445,
+   "pokemon_name": "Garchomp",
+   "dex_number": 445,
+   "chunk_type": "profile",
+   "source_ref": "target",
+   "snippet": "Garchomp (National Pokédex #445) is a Dragon/Ground-type Pokémon, the Mach Pokémon. Base stats — HP 108, Attack 130, Defense 95, Special Attack 80, Special Defense 85, Speed 102 (base stat total 600). Abilities: Sand Veil, Rough Skin. It is 1.9 m tall and weighs 95.0 kg.. Evolves from Gabite at level 48",
+   "score": 1.0,
+   "step": "s1",
+   "step_index": 2
+  }
+ ],
+ "usage": {
+  "llm_calls": 0,
+  "input_tokens": 0,
+  "output_tokens": 0
+ }
+}

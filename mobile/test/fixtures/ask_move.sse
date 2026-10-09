@@ -1,0 +1,21 @@
+event: plan
+data: {"planner": "keyword", "cached": false, "replan": false, "steps": [{"id": "s1", "tool": "move_info", "why": "what Earthquake does", "args": {"name": "Earthquake"}}]}
+
+event: step
+data: {"id": "s1", "state": "running", "summary": "", "ms": 0}
+
+event: step
+data: {"id": "s1", "state": "done", "summary": "Earthquake", "ms": 7}
+
+event: view
+data: {"kind": "move_list", "step": "s1", "moves": [{"ref": 0, "move_id": 89, "name": "Earthquake", "type": "ground", "damage_class": "physical", "power": 100, "accuracy": 100, "pp": 10, "learners": 292, "effect": "Inflicts regular damage and can hit Dig users."}], "chunk_refs": [0]}
+
+event: sources
+data: [{"n": 1, "pokemon_id": null, "pokemon_name": null, "dex_number": null, "chunk_type": "move", "source_ref": "Earthquake", "snippet": "Earthquake is a Ground-type physical move: 100 power, 100% accuracy, 10 PP. Learned by 292 Pok\u00e9mon. Effect: Inflicts regular damage and can hit Dig users.", "score": 1.0, "step": "s1", "step_index": 0}]
+
+event: delta
+data: {"text": "**Earthquake** is a Ground-type physical move with 100 power, 100% accuracy and 10 PP [1].\n\n- **Effect** \u2014 Inflicts regular damage and can hit Dig users. [1]\n- **Learned by** \u2014 292 Pok\u00e9mon [1]"}
+
+event: done
+data: {"usage": {"llm_calls": 0, "input_tokens": 0, "output_tokens": 0}, "fallback": false}
+

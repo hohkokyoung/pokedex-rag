@@ -10,6 +10,16 @@ Object? fixture(String name) => jsonDecode(File('test/fixtures/$name.json').read
 
 typedef Handler = Object? Function(RequestOptions o);
 
+/// A raw response body (e.g. a recorded text/event-stream), sent as-is.
+class Raw {
+  const Raw(this.text, {this.contentType = 'text/event-stream'});
+  final String text;
+  final String contentType;
+}
+
+/// A recorded Ask stream (test/fixtures/<name>.sse).
+Raw sse(String name) => Raw(File('test/fixtures/$name.sse').readAsStringSync());
+
 class FakeBackend implements HttpClientAdapter {
   FakeBackend(this.handler);
 
@@ -31,6 +41,11 @@ class FakeBackend implements HttpClientAdapter {
     hits[o.path] = (hits[o.path] ?? 0) + 1;
     requests.add(o);
     final out = handler(o);
+    if (out is Raw) {
+      return ResponseBody.fromString(out.text, 200, headers: {
+        Headers.contentTypeHeader: [out.contentType],
+      });
+    }
     if (out is int) return ResponseBody.fromString('{"detail":"x"}', out, headers: _json);
     return ResponseBody.fromString(jsonEncode(out), 200, headers: _json);
   }

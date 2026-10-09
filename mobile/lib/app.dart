@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/ask/ask_screen.dart';
 import 'features/pokedex/detail_screen.dart';
 import 'features/pokedex/favourites.dart';
 import 'features/pokedex/list_screen.dart';
@@ -31,6 +32,7 @@ GoRouter buildRouter() => GoRouter(routes: [
               ],
             ),
           ]),
+          StatefulShellBranch(routes: [GoRoute(path: '/ask', builder: (_, _) => const AskScreen())]),
         ],
       ),
       GoRoute(
@@ -63,6 +65,7 @@ class AppShell extends StatelessWidget {
           destinations: const [
             NavigationDestination(key: Key('tab-pokedex'), icon: Icon(Icons.catching_pokemon_outlined), selectedIcon: Icon(Icons.catching_pokemon), label: 'Pokédex'),
             NavigationDestination(key: Key('tab-teams'), icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: 'Teams'),
+            NavigationDestination(key: Key('tab-ask'), icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Ask'),
           ],
         ),
       );
