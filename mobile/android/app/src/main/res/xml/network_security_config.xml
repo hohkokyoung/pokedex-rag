@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pokérag talks to your own server on the home network over plain HTTP. Domain rules
+     can't match IP ranges, so cleartext is allowed app-wide; revisit if the server is
+     ever hosted behind TLS. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

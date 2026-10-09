@@ -5,7 +5,7 @@
 DB_URL ?= postgresql+asyncpg://pokedex:pokedex@localhost:5433/pokedex
 BACKEND = cd backend && DATABASE_URL=$(DB_URL)
 
-.PHONY: video-setup video-promo video-tour traces damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites thumbs data test lint
+.PHONY: video-setup video-promo video-tour traces damage-fixtures up down logs migrate ingest items forms learnsets encounters ability-effects move-targets evolutions sprites variant-sprites female-sprites thumbs data test lint mobile-api mobile-tokens mobile-test mobile-ios mobile-android
 
 up:            ## Build and start the full stack
 	docker compose up --build -d
@@ -108,3 +108,22 @@ video-promo:   ## Re-capture the UI and render the promo MP4 + README preview â†
 
 video-tour:    ## Re-record the two-minute screen tour â†’ docs/media/pokerag-tour.mp4
 	$(VIDEO) node tour.mjs
+
+# ---- Mobile app (mobile/, Flutter via fvm) ----
+MOBILE_API ?= http://localhost:8001
+
+mobile-api:    ## Snapshot the backend's API schema for the app and regenerate its Dart client
+	cd backend && uv run python ../tools/mobile/openapi_snapshot.py ../mobile/openapi.json
+	cd mobile && dart run swagger_parser && dart run build_runner build -d
+
+mobile-tokens: ## Regenerate the app's design tokens from DESIGN.md
+	cd backend && uv run python ../tools/mobile/gen_tokens.py ../DESIGN.md ../mobile/lib/theme/tokens.g.dart
+
+mobile-test:   ## Run the app's Flutter tests
+	cd mobile && flutter test
+
+mobile-ios:    ## Run the app on a booted iOS Simulator (MOBILE_API=http://<mac-ip>:8001 for a phone)
+	cd mobile && flutter run -d iphone --dart-define=API_BASE_URL=$(MOBILE_API)
+
+mobile-android: ## Run the app on the Android emulator (its alias for the host is 10.0.2.2)
+	cd mobile && flutter run -d emulator --dart-define=API_BASE_URL=http://10.0.2.2:8001

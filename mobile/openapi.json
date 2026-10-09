@@ -1,0 +1,1612 @@
+{
+ "components": {
+  "schemas": {
+   "AbilityOut": {
+    "properties": {
+     "effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effect"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "is_hidden": {
+      "default": false,
+      "title": "Is Hidden",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "short_effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Short Effect"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name"
+    ],
+    "title": "AbilityOut",
+    "type": "object"
+   },
+   "CosmeticVariantOut": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "default": "",
+      "title": "Sprite Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "CosmeticVariantOut",
+    "type": "object"
+   },
+   "CreamRule": {
+    "properties": {
+     "cream": {
+      "title": "Cream",
+      "type": "string"
+     },
+     "direction": {
+      "enum": [
+       "Clockwise",
+       "Counter-clockwise"
+      ],
+      "title": "Direction",
+      "type": "string"
+     },
+     "duration": {
+      "title": "Duration",
+      "type": "string"
+     },
+     "time": {
+      "title": "Time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "cream",
+     "direction",
+     "duration",
+     "time"
+    ],
+    "title": "CreamRule",
+    "type": "object"
+   },
+   "EvolutionChip": {
+    "properties": {
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "tone": {
+      "enum": [
+       "solid",
+       "soft"
+      ],
+      "title": "Tone",
+      "type": "string"
+     }
+    },
+    "required": [
+     "label",
+     "tone"
+    ],
+    "title": "EvolutionChip",
+    "type": "object"
+   },
+   "EvolutionDisplay": {
+    "description": "How a client labels one evolution step (services/evolution_display.py).",
+    "properties": {
+     "chips": {
+      "items": {
+       "$ref": "#/components/schemas/EvolutionChip"
+      },
+      "title": "Chips",
+      "type": "array"
+     },
+     "description": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Description"
+     }
+    },
+    "required": [
+     "chips",
+     "description"
+    ],
+    "title": "EvolutionDisplay",
+    "type": "object"
+   },
+   "EvolutionMember": {
+    "properties": {
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "variants": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/CosmeticVariantOut"
+      },
+      "title": "Variants",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "types",
+     "sprite_url",
+     "dex_number"
+    ],
+    "title": "EvolutionMember",
+    "type": "object"
+   },
+   "EvolutionStage": {
+    "properties": {
+     "condition": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Condition"
+     },
+     "display": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/EvolutionDisplay"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "from_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "From Id"
+     },
+     "from_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "From Name"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item"
+     },
+     "min_level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Min Level"
+     },
+     "to_id": {
+      "title": "To Id",
+      "type": "integer"
+     },
+     "to_name": {
+      "title": "To Name",
+      "type": "string"
+     },
+     "trigger": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Trigger"
+     }
+    },
+    "required": [
+     "to_id",
+     "to_name"
+    ],
+    "title": "EvolutionStage",
+    "type": "object"
+   },
+   "FlavorEntry": {
+    "description": "A dex entry plus the game(s) and generation(s) it comes from.",
+    "properties": {
+     "generation": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Generation"
+     },
+     "generation_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Generation Label"
+     },
+     "generations": {
+      "default": [],
+      "items": {
+       "type": "integer"
+      },
+      "title": "Generations",
+      "type": "array"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "version": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Version"
+     },
+     "version_generations": {
+      "default": [],
+      "items": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Version Generations",
+      "type": "array"
+     },
+     "versions": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Versions",
+      "type": "array"
+     }
+    },
+    "required": [
+     "text"
+    ],
+    "title": "FlavorEntry",
+    "type": "object"
+   },
+   "FormAbilityOut": {
+    "properties": {
+     "effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effect"
+     },
+     "id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Id"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "is_hidden": {
+      "default": false,
+      "title": "Is Hidden",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "identifier"
+    ],
+    "title": "FormAbilityOut",
+    "type": "object"
+   },
+   "FormOut": {
+    "description": "An alternate form of a species. Carries everything the detail page's form\nswitcher swaps in (sprite/name/types/stats/abilities/matchups); species-level\nmoveset stays on the base species, but evolution and dex-entry flavor are now\nper-form (a form may have its own evolution chain and/or flavor text).",
+    "properties": {
+     "abilities": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/FormAbilityOut"
+      },
+      "title": "Abilities",
+      "type": "array"
+     },
+     "category": {
+      "title": "Category",
+      "type": "string"
+     },
+     "evolution_members": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/EvolutionMember"
+      },
+      "title": "Evolution Members",
+      "type": "array"
+     },
+     "evolution_stages": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/EvolutionStage"
+      },
+      "title": "Evolution Stages",
+      "type": "array"
+     },
+     "flavor_entries": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/FlavorEntry"
+      },
+      "title": "Flavor Entries",
+      "type": "array"
+     },
+     "flavor_texts": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Flavor Texts",
+      "type": "array"
+     },
+     "form_identifier": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Identifier"
+     },
+     "height_m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Height M"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_battle_only": {
+      "default": false,
+      "title": "Is Battle Only",
+      "type": "boolean"
+     },
+     "is_gigantamax": {
+      "default": false,
+      "title": "Is Gigantamax",
+      "type": "boolean"
+     },
+     "is_mega": {
+      "default": false,
+      "title": "Is Mega",
+      "type": "boolean"
+     },
+     "matchups": {
+      "$ref": "#/components/schemas/MatchupsOut",
+      "default": {
+       "immune": [],
+       "resist_half": [],
+       "resist_quarter": [],
+       "weak_2x": [],
+       "weak_4x": []
+      }
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "spin_guide": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SpinGuide"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "stats": {
+      "$ref": "#/components/schemas/StatsOut"
+     },
+     "types": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "weight_kg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Weight Kg"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "category",
+     "stats",
+     "sprite_url"
+    ],
+    "title": "FormOut",
+    "type": "object"
+   },
+   "GenerationOut": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name"
+    ],
+    "title": "GenerationOut",
+    "type": "object"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "HealthResponse": {
+    "properties": {
+     "status": {
+      "const": "ok",
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "status"
+    ],
+    "title": "HealthResponse",
+    "type": "object"
+   },
+   "MatchupsOut": {
+    "properties": {
+     "immune": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Immune",
+      "type": "array"
+     },
+     "resist_half": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Resist Half",
+      "type": "array"
+     },
+     "resist_quarter": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Resist Quarter",
+      "type": "array"
+     },
+     "weak_2x": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Weak 2X",
+      "type": "array"
+     },
+     "weak_4x": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Weak 4X",
+      "type": "array"
+     }
+    },
+    "title": "MatchupsOut",
+    "type": "object"
+   },
+   "PokemonDetail": {
+    "properties": {
+     "abilities": {
+      "items": {
+       "$ref": "#/components/schemas/AbilityOut"
+      },
+      "title": "Abilities",
+      "type": "array"
+     },
+     "base_experience": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Base Experience"
+     },
+     "base_happiness": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Base Happiness"
+     },
+     "capture_rate": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Capture Rate"
+     },
+     "color": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Color"
+     },
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "egg_groups": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Egg Groups",
+      "type": "array"
+     },
+     "ev_yield": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "default": {},
+      "title": "Ev Yield",
+      "type": "object"
+     },
+     "evolution_chain_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Evolution Chain Id"
+     },
+     "evolution_members": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/EvolutionMember"
+      },
+      "title": "Evolution Members",
+      "type": "array"
+     },
+     "evolution_stages": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/EvolutionStage"
+      },
+      "title": "Evolution Stages",
+      "type": "array"
+     },
+     "female_sprite_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Female Sprite Url"
+     },
+     "flavor_entries": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/FlavorEntry"
+      },
+      "title": "Flavor Entries",
+      "type": "array"
+     },
+     "flavor_text": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flavor Text"
+     },
+     "flavor_texts": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Flavor Texts",
+      "type": "array"
+     },
+     "forms": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/FormOut"
+      },
+      "title": "Forms",
+      "type": "array"
+     },
+     "gender_rate": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gender Rate"
+     },
+     "generation": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenerationOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "genus": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Genus"
+     },
+     "growth_rate": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth Rate"
+     },
+     "habitat": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Habitat"
+     },
+     "hatch_counter": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hatch Counter"
+     },
+     "height_m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Height M"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_baby": {
+      "default": false,
+      "title": "Is Baby",
+      "type": "boolean"
+     },
+     "is_legendary": {
+      "default": false,
+      "title": "Is Legendary",
+      "type": "boolean"
+     },
+     "is_mythical": {
+      "default": false,
+      "title": "Is Mythical",
+      "type": "boolean"
+     },
+     "matchups": {
+      "$ref": "#/components/schemas/MatchupsOut",
+      "default": {
+       "immune": [],
+       "resist_half": [],
+       "resist_quarter": [],
+       "weak_2x": [],
+       "weak_4x": []
+      }
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "shape": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Shape"
+     },
+     "spin_guide": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SpinGuide"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "stats": {
+      "$ref": "#/components/schemas/StatsOut"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "weight_kg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Weight Kg"
+     }
+    },
+    "required": [
+     "id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url",
+     "stats",
+     "abilities"
+    ],
+    "title": "PokemonDetail",
+    "type": "object"
+   },
+   "PokemonListResponse": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/PokemonSummary"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "limit": {
+      "title": "Limit",
+      "type": "integer"
+     },
+     "offset": {
+      "title": "Offset",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "items",
+     "total",
+     "limit",
+     "offset"
+    ],
+    "title": "PokemonListResponse",
+    "type": "object"
+   },
+   "PokemonSummary": {
+    "description": "Compact representation for grid/list views.",
+    "properties": {
+     "base_stat_total": {
+      "title": "Base Stat Total",
+      "type": "integer"
+     },
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "generation_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Generation Id"
+     },
+     "genus": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Genus"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_legendary": {
+      "default": false,
+      "title": "Is Legendary",
+      "type": "boolean"
+     },
+     "is_mythical": {
+      "default": false,
+      "title": "Is Mythical",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "stats": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/StatsOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url",
+     "base_stat_total"
+    ],
+    "title": "PokemonSummary",
+    "type": "object"
+   },
+   "SpinGuide": {
+    "description": "How a spin evolution (Milcery → Alcremie) picks its look; creams in display order.",
+    "properties": {
+     "creams": {
+      "items": {
+       "$ref": "#/components/schemas/CreamRule"
+      },
+      "title": "Creams",
+      "type": "array"
+     },
+     "steps": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Steps",
+      "type": "array"
+     },
+     "toppings": {
+      "items": {
+       "$ref": "#/components/schemas/SweetTopping"
+      },
+      "title": "Toppings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "steps",
+     "toppings",
+     "creams"
+    ],
+    "title": "SpinGuide",
+    "type": "object"
+   },
+   "StatsOut": {
+    "properties": {
+     "attack": {
+      "title": "Attack",
+      "type": "integer"
+     },
+     "defense": {
+      "title": "Defense",
+      "type": "integer"
+     },
+     "hp": {
+      "title": "Hp",
+      "type": "integer"
+     },
+     "sp_attack": {
+      "title": "Sp Attack",
+      "type": "integer"
+     },
+     "sp_defense": {
+      "title": "Sp Defense",
+      "type": "integer"
+     },
+     "speed": {
+      "title": "Speed",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "hp",
+     "attack",
+     "defense",
+     "sp_attack",
+     "sp_defense",
+     "speed",
+     "total"
+    ],
+    "title": "StatsOut",
+    "type": "object"
+   },
+   "SweetTopping": {
+    "properties": {
+     "sweet": {
+      "title": "Sweet",
+      "type": "string"
+     },
+     "topping": {
+      "title": "Topping",
+      "type": "string"
+     }
+    },
+    "required": [
+     "sweet",
+     "topping"
+    ],
+    "title": "SweetTopping",
+    "type": "object"
+   },
+   "TypeChartOut": {
+    "description": "The 18 battle types in display order and every attacking → defending multiplier.",
+    "properties": {
+     "chart": {
+      "additionalProperties": {
+       "additionalProperties": {
+        "type": "number"
+       },
+       "type": "object"
+      },
+      "title": "Chart",
+      "type": "object"
+     },
+     "order": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Order",
+      "type": "array"
+     }
+    },
+    "required": [
+     "order",
+     "chart"
+    ],
+    "title": "TypeChartOut",
+    "type": "object"
+   },
+   "TypeOut": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name"
+    ],
+    "title": "TypeOut",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   }
+  }
+ },
+ "info": {
+  "description": "Backend for the premium Pokédex + personalized RAG project.",
+  "title": "pokérag API",
+  "version": "0.1.0"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/api/generations": {
+   "get": {
+    "operationId": "list_generations_api_generations_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/GenerationOut"
+         },
+         "title": "Response List Generations Api Generations Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "List Generations",
+    "tags": [
+     "pokedex"
+    ]
+   }
+  },
+  "/api/pokemon": {
+   "get": {
+    "operationId": "list_pokemon_api_pokemon_get",
+    "parameters": [
+     {
+      "description": "Search by name or dex number",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Search by name or dex number",
+       "title": "Q"
+      }
+     },
+     {
+      "description": "Filter by type id(s); all must match",
+      "in": "query",
+      "name": "type",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter by type id(s); all must match",
+       "title": "Type"
+      }
+     },
+     {
+      "description": "Filter by generation(s) 1-9; any may match",
+      "in": "query",
+      "name": "generation",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "integer"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter by generation(s) 1-9; any may match",
+       "title": "Generation"
+      }
+     },
+     {
+      "in": "query",
+      "name": "legendary",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Legendary"
+      }
+     },
+     {
+      "in": "query",
+      "name": "mythical",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Mythical"
+      }
+     },
+     {
+      "in": "query",
+      "name": "sort",
+      "required": false,
+      "schema": {
+       "default": "dex",
+       "title": "Sort",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "order",
+      "required": false,
+      "schema": {
+       "default": "asc",
+       "pattern": "^(asc|desc)$",
+       "title": "Order",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 40,
+       "maximum": 200,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "offset",
+      "required": false,
+      "schema": {
+       "default": 0,
+       "minimum": 0,
+       "title": "Offset",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PokemonListResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Pokemon",
+    "tags": [
+     "pokedex"
+    ]
+   }
+  },
+  "/api/pokemon/{id_or_name}": {
+   "get": {
+    "operationId": "get_pokemon_api_pokemon__id_or_name__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id_or_name",
+      "required": true,
+      "schema": {
+       "title": "Id Or Name",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PokemonDetail"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Pokemon",
+    "tags": [
+     "pokedex"
+    ]
+   }
+  },
+  "/api/types": {
+   "get": {
+    "operationId": "list_types_api_types_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/TypeOut"
+         },
+         "title": "Response List Types Api Types Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "List Types",
+    "tags": [
+     "pokedex"
+    ]
+   }
+  },
+  "/api/types/chart": {
+   "get": {
+    "description": "The type-effectiveness chart, from the ingested data. Static: clients fetch it once.",
+    "operationId": "type_chart_api_types_chart_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TypeChartOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Type Chart",
+    "tags": [
+     "pokedex"
+    ]
+   }
+  },
+  "/health": {
+   "get": {
+    "description": "Liveness probe — the process is running.",
+    "operationId": "health_health_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HealthResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Health",
+    "tags": [
+     "health"
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,30 @@
+name: mobile
+description: The Flutter app (iOS/Android) — Pokédex list and detail read from the backend on the home network.
+
+code:
+  - mobile/lib/
+  - mobile/test/
+  - mobile/openapi.json            # the backend schema slice the app is generated from
+  - mobile/swagger_parser.yaml
+  - mobile/ios/Runner/Info.plist   # local-network HTTP + permission reason
+  - mobile/android/app/src/main/res/xml/network_security_config.xml
+  - tools/mobile/openapi_snapshot.py
+  - tools/mobile/gen_tokens.py
+  - backend/tests/test_mobile_openapi.py
+
+documentation:
+  - docs/product/mobile.md
+  - docs/guides/mobile.md
+
+specs:
+  - openspec/specs/mobile/
+
+decisions:
+  - docs/decisions/ADR-009.md
+  - docs/decisions/ADR-010.md
+
+depends_on:
+  - pokedex
+
+interfaces:
+  - uses GET /api/pokemon, GET /api/pokemon/{id_or_name}, GET /api/types, GET /api/types/chart, GET /api/generations, GET /health

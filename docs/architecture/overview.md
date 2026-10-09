@@ -5,7 +5,7 @@ A single-user, local-only app with no auth. Three Compose services:
 ```
 browser ──► frontend  (Next.js 16 · React 19 · TS · Tailwind v4)     :3000
                │  fetch / SSE
-               ▼
+               ▼   ◄── phone: mobile app (Flutter, mobile/) over the home network
             backend   (FastAPI · SQLAlchemy async · Pydantic)        :8000 (8001 here)
                │                     │
                │                     └──► LLM: Anthropic (preferred) or Groq — optional
@@ -46,6 +46,14 @@ The OpenAPI docs are at `http://localhost:<backend port>/docs`.
 Motion: entrance and scroll reveals use IntersectionObserver + CSS; GSAP is reserved
 for high-impact moments (stat bars, artwork); Lenis for smooth scroll. All of it
 respects `prefers-reduced-motion`.
+
+## Mobile app (`mobile/`)
+
+A Flutter client (iOS and Android) for the Pokédex, on the home network. It renders
+values the backend computes and generates its API types and design tokens instead of
+copying them ([ADR-010](../decisions/ADR-010.md)). What it does:
+[product/mobile.md](../product/mobile.md). How to run and regenerate it:
+[guides/mobile.md](../guides/mobile.md).
 
 ## Where the rules live
 

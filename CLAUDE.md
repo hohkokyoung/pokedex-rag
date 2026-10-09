@@ -34,6 +34,8 @@ backend/   FastAPI · SQLAlchemy (async) · Alembic · Pydantic
   eval/          labelled eval set + harness
 data/raw/pokeapi/  CSV dataset (git-ignored)   data/sprites/  artwork (git-ignored)
 tools/video/  README promo + screen tour, rendered from the running app → docs/media/
+mobile/       Flutter app (iOS/Android, fvm 3.44.1) — Pokédex over the home network
+tools/mobile/ app codegen: OpenAPI slice → Dart client, DESIGN.md → Dart tokens
 ```
 
 ## Commands
@@ -48,6 +50,8 @@ make lint      # ruff + eslint
 make damage-fixtures  # regenerate the calc's TS→Python reference cases (Node ≥ 22.18)
 make traces    # how recent questions were planned (ARGS="--fallback" / "--id N")
 make video-promo  # re-render the README promo + preview from the running app (also video-tour)
+make mobile-ios   # run the app on a booted iOS Simulator (also mobile-android, mobile-test)
+make mobile-api   # after a backend change the app uses: regenerate its API snapshot + Dart client
 ```
 
 Backend runs in Docker; the data pipeline scripts run on the **host** against the

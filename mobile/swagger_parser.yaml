@@ -1,0 +1,16 @@
+# Generates lib/api/ (models + retrofit client) from openapi.json, the backend schema
+# slice the app uses (tools/mobile/openapi_snapshot.py). Don't edit lib/api/ by hand:
+# run `make mobile-api` from the repo root.
+swagger_parser:
+  schema_path: openapi.json
+  output_directory: lib/api
+  name: pokerag
+  language: dart
+  json_serializer: json_serializable
+  root_client: true
+  root_client_name: PokeragApi
+  export_file: true
+  put_clients_in_folder: true
+  merge_clients: true
+  unknown_enum_value: true
+  mark_files_as_generated: true

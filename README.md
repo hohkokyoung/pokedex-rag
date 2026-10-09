@@ -33,6 +33,8 @@ Both are rendered from the running app: `make video-promo` and `make video-tour`
 - **Teams** — build teams of six with legal sets, get graded, compare against another
   team, and ask a coach that can propose set changes and drafts (nothing saved until
   you apply). → [docs/product/teams.md](docs/product/teams.md)
+- **Mobile app** — the Pokédex on iOS and Android (Flutter), read from your own
+  pokérag server on the home network. → [docs/product/mobile.md](docs/product/mobile.md)
 
 ## Quick start
 
