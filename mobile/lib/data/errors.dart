@@ -22,3 +22,11 @@ class ServerError extends ApiFailure {
   const ServerError(this.status);
   final int? status;
 }
+
+/// The server refused a write (422) and said why, e.g. an illegal move for the species.
+class Rejected extends ApiFailure {
+  const Rejected(this.reason);
+  final String reason;
+  @override
+  String toString() => reason;
+}

@@ -80,6 +80,35 @@ abstract final class AppTheme {
         ),
         iconTheme: const IconThemeData(color: Palette.pokeballRed, size: 16),
       ),
+      // The tab bar: white with an inset-grey pill, ink when selected (no Material tint).
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Palette.panelWhite,
+        indicatorColor: Palette.insetGray,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 64,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (s) => IconThemeData(color: s.contains(WidgetState.selected) ? Palette.instrumentInk : Palette.mutedSlate),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (s) => AppText.label.copyWith(color: s.contains(WidgetState.selected) ? Palette.instrumentInk : Palette.mutedSlate),
+        ),
+      ),
+      // Dialogs, menus and sheets on white (no Material surface tint).
+      dialogTheme: DialogThemeData(
+        backgroundColor: Palette.panelWhite,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.card)),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: Palette.panelWhite,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.control),
+          side: const BorderSide(color: Palette.hairline),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(backgroundColor: Palette.panelWhite, surfaceTintColor: Colors.transparent),
       dividerColor: Palette.hairline,
     );
   }

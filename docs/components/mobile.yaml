@@ -25,8 +25,10 @@ decisions:
 
 depends_on:
   - pokedex
+  - team-coach
 
 interfaces:
   - uses GET /api/pokemon, GET /api/pokemon/{id_or_name}, GET /api/types, GET /api/types/chart, GET /api/generations, GET /health
   - uses GET /api/pokemon/{pokemon_id}/moves/by-game, GET /api/moves/{move_id}/learners/by-game, GET /api/pokemon/{pokemon_id}/encounters
   - uses GET /api/profile, POST|DELETE /api/profile/favorites/{pokemon_id}
+  - uses the teams API (CRUD, slots, build, analysis, strategy, summary/refresh) and the builder lookups (moves, abilities, items, natures)

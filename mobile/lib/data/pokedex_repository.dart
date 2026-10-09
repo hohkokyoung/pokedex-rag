@@ -45,8 +45,8 @@ class ListQuery {
   static bool _same<T>(List<T> a, List<T> b) => a.length == b.length && Iterable.generate(a.length).every((i) => a[i] == b[i]);
 }
 
-class Page {
-  const Page(this.items, this.total);
+class ResultPage {
+  const ResultPage(this.items, this.total);
   final List<PokemonSummary> items;
   final int total;
 }
@@ -64,7 +64,7 @@ class PokedexRepository {
 
   String get address => _dio.options.baseUrl;
 
-  Future<Page> page(ListQuery query, {int offset = 0}) => _guard(() async {
+  Future<ResultPage> page(ListQuery query, {int offset = 0}) => _guard(() async {
         final r = await _api.listPokemonApiPokemonGet(
           q: query.q.isEmpty ? null : query.q,
           type: query.types.isEmpty ? null : query.types,
@@ -74,7 +74,7 @@ class PokedexRepository {
           limit: pageSize,
           offset: offset,
         );
-        return Page(r.items, r.total);
+        return ResultPage(r.items, r.total);
       });
 
   /// How many species the dex has (bounds previous / next).

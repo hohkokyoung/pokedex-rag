@@ -1,8 +1,9 @@
 # Mobile app (`mobile/`)
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
-home network. It covers the Pokédex (and your favourites); Ask, Teams and the
-calculators stay on the website for now.
+home network. It covers the Pokédex (and your favourites) and Teams; Ask, the coaches
+and the calculators stay on the website for now. Tabs at the bottom switch between
+Pokédex and Teams; each keeps its place.
 
 ## List
 
@@ -38,6 +39,26 @@ picks use) and **previous / next** through the dex. The list's ♡ button opens
 Everything shown is computed by the server, so it always matches the website. The
 only thing the app works out itself is the Hits ×2 list, looked up in the server's
 type chart (fetched once per launch).
+
+## Teams
+
+The same saved teams as the website's `/teams`, rated by the server:
+
+- **Team list:** each card shows grade and score, play style, the AI summary,
+  weak to / resists / hits hard, the six letter grades and the top three fixes. **+**
+  makes a new team; **⋯ → Delete** removes one (after you confirm; it's gone from the
+  website too).
+- **Team page:**
+  - six slots (types, role, BST); ✎ renames the team;
+  - an empty slot opens a Pokémon search (forms included);
+  - a filled slot opens the **set editor**, which offers only legal choices:
+    ability, held item, nature, EVs (≤ 252 each, ≤ 510 total), IVs and up to 4
+    moves from its learnset. **Save** or **Remove**;
+  - **Compare with…** another team shows the verdict, the scorecard, their threats,
+    our pressure and advice;
+  - the report: rating and AI summary (↻ Regenerate), the six grades with fixes, How it
+    plays (strategy axes, now and with learnable moves), type profile, Sets with **Use
+    suggested** (fills only the empty parts), and Defence per attacking type.
 
 ## Server
 

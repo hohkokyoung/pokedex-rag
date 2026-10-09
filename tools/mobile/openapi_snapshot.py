@@ -27,6 +27,20 @@ PATHS = [
     "/api/pokemon/{pokemon_id}/encounters",
     "/api/profile",
     "/api/profile/favorites/{pokemon_id}",
+    # Teams (phase 3)
+    "/api/teams",
+    "/api/teams/{team_id}",
+    "/api/teams/{team_id}/slots/{slot}",
+    "/api/teams/{team_id}/slots/{slot}/build",
+    "/api/teams/{team_id}/analysis",
+    "/api/teams/{team_id}/strategy",
+    "/api/teams/{team_id}/summary",
+    "/api/teams/{team_id}/summary/refresh",
+    "/api/pokemon/{pokemon_id}/moves",
+    "/api/pokemon/forms/{form_id}/moves",
+    "/api/pokemon/{pokemon_id}/abilities",
+    "/api/items",
+    "/api/natures",
 ]
 
 

@@ -77,10 +77,13 @@ Dio _dio(String address, HttpClientAdapter? adapter, {Duration timeout = const D
   return dio;
 }
 
-/// The repository for the current server. A new address gets a new repository, so the
-/// type chart is fetched again for it.
-final repositoryProvider = Provider<PokedexRepository>((ref) {
+/// The HTTP client for the current server (shared by the repositories).
+final dioProvider = Provider<Dio>((ref) {
   final dio = _dio(ref.watch(serverAddressProvider), ref.watch(httpAdapterProvider));
   ref.onDispose(dio.close);
-  return PokedexRepository(dio);
+  return dio;
 });
+
+/// The repository for the current server. A new address gets a new repository, so the
+/// type chart is fetched again for it.
+final repositoryProvider = Provider<PokedexRepository>((ref) => PokedexRepository(ref.watch(dioProvider)));

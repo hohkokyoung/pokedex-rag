@@ -21,6 +21,7 @@ const sorts = {
 
 Future<void> showFiltersSheet(BuildContext context) => showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true, // over the tab bar
       isScrollControlled: true,
       showDragHandle: true,
       backgroundColor: Palette.panelWhite,

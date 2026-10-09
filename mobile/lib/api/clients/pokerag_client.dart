@@ -5,15 +5,28 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/ability_out.dart';
 import '../models/generation_out.dart';
 import '../models/health_response.dart';
+import '../models/item_out.dart';
+import '../models/learnset_move_out.dart';
 import '../models/move_game_learners_out.dart';
+import '../models/nature_out.dart';
 import '../models/pokemon_detail.dart';
 import '../models/pokemon_encounters_out.dart';
 import '../models/pokemon_game_moves_out.dart';
 import '../models/pokemon_list_response.dart';
 import '../models/profile_out.dart';
 import '../models/profile_update.dart';
+import '../models/slot_build.dart';
+import '../models/slot_update.dart';
+import '../models/team_analysis.dart';
+import '../models/team_create.dart';
+import '../models/team_list_response.dart';
+import '../models/team_out.dart';
+import '../models/team_strategy.dart';
+import '../models/team_summary_out.dart';
+import '../models/team_update.dart';
 import '../models/type_chart_out.dart';
 import '../models/type_out.dart';
 
@@ -27,6 +40,18 @@ abstract class PokeragClient {
   @GET('/api/generations')
   Future<List<GenerationOut>> listGenerationsApiGenerationsGet();
 
+  /// Search Items.
+  ///
+  /// [q] - Filter items by name substring.
+  ///
+  /// [held] - Only items a Pokémon can hold in battle.
+  @GET('/api/items')
+  Future<List<ItemOut>> searchItemsApiItemsGet({
+    @Query('limit') int? limit = 8,
+    @Query('held') bool? held = false,
+    @Query('q') String? q,
+  });
+
   /// Move Learners By Game.
   ///
   /// [versionGroup] - Game id; omit for every game.
@@ -35,6 +60,10 @@ abstract class PokeragClient {
     @Path('move_id') required int moveId,
     @Query('version_group') int? versionGroup,
   });
+
+  /// List Natures
+  @GET('/api/natures')
+  Future<List<NatureOut>> listNaturesApiNaturesGet();
 
   /// List Pokemon.
   ///
@@ -56,10 +85,25 @@ abstract class PokeragClient {
     @Query('mythical') bool? mythical,
   });
 
+  /// Pokemon Form Moves.
+  ///
+  /// [q] - Filter moves by name substring.
+  @GET('/api/pokemon/forms/{form_id}/moves')
+  Future<List<LearnsetMoveOut>> pokemonFormMovesApiPokemonFormsFormIdMovesGet({
+    @Path('form_id') required int formId,
+    @Query('q') String? q,
+  });
+
   /// Get Pokemon
   @GET('/api/pokemon/{id_or_name}')
   Future<PokemonDetail> getPokemonApiPokemonIdOrNameGet({
     @Path('id_or_name') required String idOrName,
+  });
+
+  /// Pokemon Abilities
+  @GET('/api/pokemon/{pokemon_id}/abilities')
+  Future<List<AbilityOut>> pokemonAbilitiesApiPokemonPokemonIdAbilitiesGet({
+    @Path('pokemon_id') required int pokemonId,
   });
 
   /// Pokemon Encounters.
@@ -71,6 +115,15 @@ abstract class PokeragClient {
   Future<PokemonEncountersOut> pokemonEncountersApiPokemonPokemonIdEncountersGet({
     @Path('pokemon_id') required int pokemonId,
     @Query('version') int? version,
+  });
+
+  /// Pokemon Moves.
+  ///
+  /// [q] - Filter moves by name substring.
+  @GET('/api/pokemon/{pokemon_id}/moves')
+  Future<List<LearnsetMoveOut>> pokemonMovesApiPokemonPokemonIdMovesGet({
+    @Path('pokemon_id') required int pokemonId,
+    @Query('q') String? q,
   });
 
   /// Pokemon Moves By Game.
@@ -104,6 +157,95 @@ abstract class PokeragClient {
   @POST('/api/profile/favorites/{pokemon_id}')
   Future<ProfileOut> addFavoriteApiProfileFavoritesPokemonIdPost({
     @Path('pokemon_id') required int pokemonId,
+  });
+
+  /// List Teams
+  @GET('/api/teams')
+  Future<TeamListResponse> listTeamsApiTeamsGet({
+    @Query('kind') String? kind,
+  });
+
+  /// Create Team
+  @POST('/api/teams')
+  Future<TeamOut> createTeamApiTeamsPost({
+    @Body() required TeamCreate body,
+  });
+
+  /// Delete Team
+  @DELETE('/api/teams/{team_id}')
+  Future<void> deleteTeamApiTeamsTeamIdDelete({
+    @Path('team_id') required int teamId,
+  });
+
+  /// Get Team
+  @GET('/api/teams/{team_id}')
+  Future<TeamOut> getTeamApiTeamsTeamIdGet({
+    @Path('team_id') required int teamId,
+  });
+
+  /// Update Team
+  @PUT('/api/teams/{team_id}')
+  Future<TeamOut> updateTeamApiTeamsTeamIdPut({
+    @Path('team_id') required int teamId,
+    @Body() required TeamUpdate body,
+  });
+
+  /// Analyze Team.
+  ///
+  /// [opponentId] - Compare against a saved opponent team.
+  @GET('/api/teams/{team_id}/analysis')
+  Future<TeamAnalysis> analyzeTeamApiTeamsTeamIdAnalysisGet({
+    @Path('team_id') required int teamId,
+    @Query('opponent_id') int? opponentId,
+  });
+
+  /// Clear Slot
+  @DELETE('/api/teams/{team_id}/slots/{slot}')
+  Future<TeamOut> clearSlotApiTeamsTeamIdSlotsSlotDelete({
+    @Path('team_id') required int teamId,
+    @Path('slot') required int slot,
+  });
+
+  /// Set Slot
+  @PUT('/api/teams/{team_id}/slots/{slot}')
+  Future<TeamOut> setSlotApiTeamsTeamIdSlotsSlotPut({
+    @Path('team_id') required int teamId,
+    @Path('slot') required int slot,
+    @Body() required SlotUpdate body,
+  });
+
+  /// Apply Slot Build.
+  ///
+  /// Apply a set given by name (the coach's or the engine's suggestion) to a slot.
+  @POST('/api/teams/{team_id}/slots/{slot}/build')
+  Future<TeamOut> applySlotBuildApiTeamsTeamIdSlotsSlotBuildPost({
+    @Path('team_id') required int teamId,
+    @Path('slot') required int slot,
+    @Body() required SlotBuild body,
+  });
+
+  /// Team Strategy Profile.
+  ///
+  /// How the team wants to win: offense/bulk/speed/setup/stall/support, each traceable.
+  @GET('/api/teams/{team_id}/strategy')
+  Future<TeamStrategy> teamStrategyProfileApiTeamsTeamIdStrategyGet({
+    @Path('team_id') required int teamId,
+  });
+
+  /// Team Summary Text.
+  ///
+  /// Stored summary; never waits on the LLM. ``pending`` = a rewrite is underway.
+  @GET('/api/teams/{team_id}/summary')
+  Future<TeamSummaryOut> teamSummaryTextApiTeamsTeamIdSummaryGet({
+    @Path('team_id') required int teamId,
+  });
+
+  /// Team Summary Refresh.
+  ///
+  /// Force a fresh summary now (the detail page's Regenerate button).
+  @POST('/api/teams/{team_id}/summary/refresh')
+  Future<TeamSummaryOut> teamSummaryRefreshApiTeamsTeamIdSummaryRefreshPost({
+    @Path('team_id') required int teamId,
   });
 
   /// List Types

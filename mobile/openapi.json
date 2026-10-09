@@ -101,6 +101,30 @@
     "title": "CreamRule",
     "type": "object"
    },
+   "DefensiveProfile": {
+    "properties": {
+     "matrix": {
+      "items": {
+       "$ref": "#/components/schemas/MemberDefense"
+      },
+      "title": "Matrix",
+      "type": "array"
+     },
+     "shared_weaknesses": {
+      "items": {
+       "$ref": "#/components/schemas/SharedWeakness"
+      },
+      "title": "Shared Weaknesses",
+      "type": "array"
+     }
+    },
+    "required": [
+     "matrix",
+     "shared_weaknesses"
+    ],
+    "title": "DefensiveProfile",
+    "type": "object"
+   },
    "EncounterGameOut": {
     "properties": {
      "generation": {
@@ -1003,6 +1027,84 @@
     "title": "HealthResponse",
     "type": "object"
    },
+   "ItemOut": {
+    "properties": {
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "cost": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cost"
+     },
+     "flavor_text": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flavor Text"
+     },
+     "fling_power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fling Power"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "short_effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Short Effect"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name"
+    ],
+    "title": "ItemOut",
+    "type": "object"
+   },
    "LearnMethodOut": {
     "properties": {
      "level": {
@@ -1036,6 +1138,291 @@
      "method"
     ],
     "title": "LearnMethodOut",
+    "type": "object"
+   },
+   "LearnsetMoveOut": {
+    "properties": {
+     "accuracy": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accuracy"
+     },
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "learn_method": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Learn Method"
+     },
+     "level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Level"
+     },
+     "move_id": {
+      "title": "Move Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "pp": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pp"
+     },
+     "priority": {
+      "default": 0,
+      "title": "Priority",
+      "type": "integer"
+     },
+     "short_effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Short Effect"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     }
+    },
+    "required": [
+     "move_id",
+     "identifier",
+     "name"
+    ],
+    "title": "LearnsetMoveOut",
+    "type": "object"
+   },
+   "MatchupCell": {
+    "description": "One-on-one read of our member vs an opponent member, from each side's best move.",
+    "properties": {
+     "faster": {
+      "enum": [
+       "ours",
+       "theirs",
+       "tie"
+      ],
+      "title": "Faster",
+      "type": "string"
+     },
+     "notes": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+     },
+     "our_hit": {
+      "title": "Our Hit",
+      "type": "number"
+     },
+     "our_hit_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Our Hit Type"
+     },
+     "our_hko": {
+      "default": 99,
+      "title": "Our Hko",
+      "type": "integer"
+     },
+     "our_move": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Our Move"
+     },
+     "our_move_learned": {
+      "default": false,
+      "title": "Our Move Learned",
+      "type": "boolean"
+     },
+     "our_pct": {
+      "default": 0,
+      "title": "Our Pct",
+      "type": "number"
+     },
+     "our_setup": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Our Setup"
+     },
+     "our_slot": {
+      "title": "Our Slot",
+      "type": "integer"
+     },
+     "outcome": {
+      "enum": [
+       "win",
+       "lose",
+       "even"
+      ],
+      "title": "Outcome",
+      "type": "string"
+     },
+     "score": {
+      "title": "Score",
+      "type": "number"
+     },
+     "their_hit": {
+      "title": "Their Hit",
+      "type": "number"
+     },
+     "their_hit_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Their Hit Type"
+     },
+     "their_hko": {
+      "default": 99,
+      "title": "Their Hko",
+      "type": "integer"
+     },
+     "their_move": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Their Move"
+     },
+     "their_move_learned": {
+      "default": false,
+      "title": "Their Move Learned",
+      "type": "boolean"
+     },
+     "their_pct": {
+      "default": 0,
+      "title": "Their Pct",
+      "type": "number"
+     },
+     "their_setup": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Their Setup"
+     },
+     "their_slot": {
+      "title": "Their Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "our_slot",
+     "their_slot",
+     "our_hit",
+     "their_hit",
+     "faster",
+     "score",
+     "outcome"
+    ],
+    "title": "MatchupCell",
     "type": "object"
    },
    "MatchupsOut": {
@@ -1082,6 +1469,113 @@
      }
     },
     "title": "MatchupsOut",
+    "type": "object"
+   },
+   "MemberDefense": {
+    "properties": {
+     "multipliers": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Multipliers",
+      "type": "object"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     },
+     "weak_to": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Weak To",
+      "type": "array"
+     }
+    },
+    "required": [
+     "slot",
+     "name",
+     "types",
+     "multipliers",
+     "weak_to"
+    ],
+    "title": "MemberDefense",
+    "type": "object"
+   },
+   "MemberRole": {
+    "properties": {
+     "bst": {
+      "title": "Bst",
+      "type": "integer"
+     },
+     "bulk": {
+      "title": "Bulk",
+      "type": "integer"
+     },
+     "eff_speed": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Eff Speed"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "offense": {
+      "title": "Offense",
+      "type": "integer"
+     },
+     "role": {
+      "title": "Role",
+      "type": "string"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "speed": {
+      "title": "Speed",
+      "type": "integer"
+     },
+     "speed_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Speed Note"
+     }
+    },
+    "required": [
+     "slot",
+     "name",
+     "role",
+     "speed",
+     "offense",
+     "bulk",
+     "bst"
+    ],
+    "title": "MemberRole",
     "type": "object"
    },
    "MoveGameLearnersOut": {
@@ -1162,6 +1656,141 @@
      "learners"
     ],
     "title": "MoveGameLearnersOut",
+    "type": "object"
+   },
+   "NatureOut": {
+    "properties": {
+     "decreased_stat": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decreased Stat"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "increased_stat": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Increased Stat"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name"
+    ],
+    "title": "NatureOut",
+    "type": "object"
+   },
+   "OffensiveProfile": {
+    "properties": {
+     "coverage_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Coverage Types",
+      "type": "array"
+     },
+     "from_learnset": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "From Learnset",
+      "type": "array"
+     },
+     "not_super_effective": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Not Super Effective",
+      "type": "array"
+     },
+     "tips": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Tips",
+      "type": "array"
+     },
+     "uncovered_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Uncovered Types",
+      "type": "array"
+     },
+     "used_move_coverage": {
+      "title": "Used Move Coverage",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "coverage_types",
+     "used_move_coverage",
+     "uncovered_types",
+     "not_super_effective"
+    ],
+    "title": "OffensiveProfile",
+    "type": "object"
+   },
+   "OpponentThreat": {
+    "properties": {
+     "opponent_name": {
+      "title": "Opponent Name",
+      "type": "string"
+     },
+     "opponent_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Opponent Types",
+      "type": "array"
+     },
+     "threatens": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Threatens",
+      "type": "array"
+     },
+     "via": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Via",
+      "type": "array"
+     }
+    },
+    "required": [
+     "opponent_name",
+     "opponent_types",
+     "threatens",
+     "via"
+    ],
+    "title": "OpponentThreat",
     "type": "object"
    },
    "PokemonDetail": {
@@ -1711,6 +2340,44 @@
     "title": "PokemonSummary",
     "type": "object"
    },
+   "PressurePoint": {
+    "description": "One of *our* members and the opponents it hits super-effectively.",
+    "properties": {
+     "attacker": {
+      "title": "Attacker",
+      "type": "string"
+     },
+     "attacker_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Attacker Types",
+      "type": "array"
+     },
+     "targets": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Targets",
+      "type": "array"
+     },
+     "via": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Via",
+      "type": "array"
+     }
+    },
+    "required": [
+     "attacker",
+     "attacker_types",
+     "targets",
+     "via"
+    ],
+    "title": "PressurePoint",
+    "type": "object"
+   },
    "ProfileOut": {
     "properties": {
      "favorites": {
@@ -1749,6 +2416,747 @@
      "preferred_types"
     ],
     "title": "ProfileUpdate",
+    "type": "object"
+   },
+   "RatingArea": {
+    "properties": {
+     "fix": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fix"
+     },
+     "grade": {
+      "enum": [
+       "A",
+       "B",
+       "C",
+       "D",
+       "F"
+      ],
+      "title": "Grade",
+      "type": "string"
+     },
+     "headline": {
+      "title": "Headline",
+      "type": "string"
+     },
+     "key": {
+      "enum": [
+       "coverage",
+       "defence",
+       "speed",
+       "roles",
+       "sets",
+       "roster"
+      ],
+      "title": "Key",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "score": {
+      "title": "Score",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "key",
+     "label",
+     "score",
+     "grade",
+     "headline",
+     "fix"
+    ],
+    "title": "RatingArea",
+    "type": "object"
+   },
+   "RoleProfile": {
+    "properties": {
+     "members": {
+      "items": {
+       "$ref": "#/components/schemas/MemberRole"
+      },
+      "title": "Members",
+      "type": "array"
+     },
+     "missing_roles": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Missing Roles",
+      "type": "array"
+     },
+     "notes": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+     }
+    },
+    "required": [
+     "members",
+     "missing_roles",
+     "notes"
+    ],
+    "title": "RoleProfile",
+    "type": "object"
+   },
+   "ScoreRow": {
+    "properties": {
+     "edge": {
+      "enum": [
+       "ours",
+       "theirs",
+       "even"
+      ],
+      "title": "Edge",
+      "type": "string"
+     },
+     "key": {
+      "title": "Key",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "ours": {
+      "title": "Ours",
+      "type": "number"
+     },
+     "ours_label": {
+      "title": "Ours Label",
+      "type": "string"
+     },
+     "share": {
+      "title": "Share",
+      "type": "number"
+     },
+     "theirs": {
+      "title": "Theirs",
+      "type": "number"
+     },
+     "theirs_label": {
+      "title": "Theirs Label",
+      "type": "string"
+     },
+     "weight": {
+      "title": "Weight",
+      "type": "number"
+     }
+    },
+    "required": [
+     "key",
+     "label",
+     "ours",
+     "theirs",
+     "ours_label",
+     "theirs_label",
+     "share",
+     "weight",
+     "edge"
+    ],
+    "title": "ScoreRow",
+    "type": "object"
+   },
+   "SetMember": {
+    "description": "What a member's set adds beyond species + typing.",
+    "properties": {
+     "ability": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability"
+     },
+     "ability_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability Note"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item"
+     },
+     "item_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item Note"
+     },
+     "moves_set": {
+      "default": 0,
+      "title": "Moves Set",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "priority": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Priority",
+      "type": "array"
+     },
+     "recovery": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Recovery",
+      "type": "array"
+     },
+     "score": {
+      "default": 0,
+      "title": "Score",
+      "type": "integer"
+     },
+     "setup": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Setup",
+      "type": "array"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "support": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Support",
+      "type": "array"
+     }
+    },
+    "required": [
+     "slot",
+     "name"
+    ],
+    "title": "SetMember",
+    "type": "object"
+   },
+   "SetProfile": {
+    "properties": {
+     "members": {
+      "items": {
+       "$ref": "#/components/schemas/SetMember"
+      },
+      "title": "Members",
+      "type": "array"
+     }
+    },
+    "required": [
+     "members"
+    ],
+    "title": "SetProfile",
+    "type": "object"
+   },
+   "SharedWeakness": {
+    "properties": {
+     "count": {
+      "title": "Count",
+      "type": "integer"
+     },
+     "members": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Members",
+      "type": "array"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "type",
+     "count",
+     "members"
+    ],
+    "title": "SharedWeakness",
+    "type": "object"
+   },
+   "SlotAbility": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_hidden": {
+      "default": false,
+      "title": "Is Hidden",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name"
+    ],
+    "title": "SlotAbility",
+    "type": "object"
+   },
+   "SlotBuild": {
+    "description": "A set by name (moves, ability, nature, item, EVs) to apply to an existing slot.",
+    "properties": {
+     "ability": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability"
+     },
+     "evs": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "integer"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Evs"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item"
+     },
+     "moves": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Moves"
+     },
+     "nature": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nature"
+     }
+    },
+    "title": "SlotBuild",
+    "type": "object"
+   },
+   "SlotItem": {
+    "properties": {
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "short_effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Short Effect"
+     }
+    },
+    "required": [
+     "id",
+     "name"
+    ],
+    "title": "SlotItem",
+    "type": "object"
+   },
+   "SlotMove": {
+    "properties": {
+     "accuracy": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accuracy"
+     },
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "move_id": {
+      "title": "Move Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "priority": {
+      "default": 0,
+      "title": "Priority",
+      "type": "integer"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     }
+    },
+    "required": [
+     "move_id",
+     "name"
+    ],
+    "title": "SlotMove",
+    "type": "object"
+   },
+   "SlotNature": {
+    "properties": {
+     "decreased_stat": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decreased Stat"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "increased_stat": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Increased Stat"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name"
+    ],
+    "title": "SlotNature",
+    "type": "object"
+   },
+   "SlotSuggestion": {
+    "properties": {
+     "ability_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability Reason"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "rationale": {
+      "title": "Rationale",
+      "type": "string"
+     },
+     "recommended_ability": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recommended Ability"
+     },
+     "recommended_evs": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Recommended Evs",
+      "type": "object"
+     },
+     "recommended_item": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recommended Item"
+     },
+     "recommended_moves": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/SuggestedMove"
+      },
+      "title": "Recommended Moves",
+      "type": "array"
+     },
+     "recommended_nature": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recommended Nature"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "name",
+     "recommended_evs",
+     "rationale"
+    ],
+    "title": "SlotSuggestion",
+    "type": "object"
+   },
+   "SlotUpdate": {
+    "description": "Set (upsert) one slot's configuration.",
+    "properties": {
+     "ability_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ability Id"
+     },
+     "ev_spread": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "integer"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ev Spread"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "item_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Item Id"
+     },
+     "iv_spread": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "integer"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Iv Spread"
+     },
+     "move_ids": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "integer"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Move Ids"
+     },
+     "nature_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nature Id"
+     },
+     "pokemon_id": {
+      "title": "Pokemon Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "pokemon_id"
+    ],
+    "title": "SlotUpdate",
+    "type": "object"
+   },
+   "SpeedEntry": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "speed": {
+      "title": "Speed",
+      "type": "integer"
+     },
+     "sprite": {
+      "title": "Sprite",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "speed",
+     "sprite"
+    ],
+    "title": "SpeedEntry",
     "type": "object"
    },
    "SpinGuide": {
@@ -1827,6 +3235,129 @@
     "title": "StatsOut",
     "type": "object"
    },
+   "StrategyAxis": {
+    "properties": {
+     "contributors": {
+      "items": {
+       "$ref": "#/components/schemas/StrategyContributor"
+      },
+      "title": "Contributors",
+      "type": "array"
+     },
+     "detail": {
+      "title": "Detail",
+      "type": "string"
+     },
+     "key": {
+      "title": "Key",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "now": {
+      "title": "Now",
+      "type": "integer"
+     },
+     "potential": {
+      "title": "Potential",
+      "type": "integer"
+     },
+     "score": {
+      "title": "Score",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "key",
+     "label",
+     "score",
+     "now",
+     "potential",
+     "detail",
+     "contributors"
+    ],
+    "title": "StrategyAxis",
+    "type": "object"
+   },
+   "StrategyContributor": {
+    "properties": {
+     "moves": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "set": {
+      "title": "Set",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "name",
+     "moves",
+     "set"
+    ],
+    "title": "StrategyContributor",
+    "type": "object"
+   },
+   "SuggestedMove": {
+    "properties": {
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "is_set": {
+      "title": "Is Set",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     }
+    },
+    "required": [
+     "name",
+     "is_set"
+    ],
+    "title": "SuggestedMove",
+    "type": "object"
+   },
    "SweetTopping": {
     "properties": {
      "sweet": {
@@ -1843,6 +3374,636 @@
      "topping"
     ],
     "title": "SweetTopping",
+    "type": "object"
+   },
+   "TeamAnalysis": {
+    "properties": {
+     "defensive": {
+      "$ref": "#/components/schemas/DefensiveProfile"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "offensive": {
+      "$ref": "#/components/schemas/OffensiveProfile"
+     },
+     "profile": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TeamProfile"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "rating": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TeamRating"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "roles": {
+      "$ref": "#/components/schemas/RoleProfile"
+     },
+     "sets": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SetProfile"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "size": {
+      "title": "Size",
+      "type": "integer"
+     },
+     "suggestions": {
+      "items": {
+       "$ref": "#/components/schemas/SlotSuggestion"
+      },
+      "title": "Suggestions",
+      "type": "array"
+     },
+     "summary": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Summary",
+      "type": "array"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     },
+     "vs_opponent": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/VsOpponent"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "team_id",
+     "name",
+     "size",
+     "defensive",
+     "offensive",
+     "roles",
+     "suggestions",
+     "summary"
+    ],
+    "title": "TeamAnalysis",
+    "type": "object"
+   },
+   "TeamCreate": {
+    "properties": {
+     "kind": {
+      "default": "player",
+      "title": "Kind",
+      "type": "string"
+     },
+     "name": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 2000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "TeamCreate",
+    "type": "object"
+   },
+   "TeamListResponse": {
+    "properties": {
+     "teams": {
+      "items": {
+       "$ref": "#/components/schemas/TeamSummary"
+      },
+      "title": "Teams",
+      "type": "array"
+     }
+    },
+    "required": [
+     "teams"
+    ],
+    "title": "TeamListResponse",
+    "type": "object"
+   },
+   "TeamMemberOut": {
+    "properties": {
+     "ability": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SlotAbility"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "base_stats": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Base Stats",
+      "type": "object"
+     },
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "ev_spread": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Ev Spread",
+      "type": "object"
+     },
+     "final_stats": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Final Stats",
+      "type": "object"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "item": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SlotItem"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "iv_spread": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Iv Spread",
+      "type": "object"
+     },
+     "moves": {
+      "items": {
+       "$ref": "#/components/schemas/SlotMove"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "nature": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SlotNature"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "pokemon_id": {
+      "title": "Pokemon Id",
+      "type": "integer"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "slot",
+     "pokemon_id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url",
+     "base_stats",
+     "final_stats",
+     "ev_spread",
+     "iv_spread",
+     "moves"
+    ],
+    "title": "TeamMemberOut",
+    "type": "object"
+   },
+   "TeamOut": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "members": {
+      "items": {
+       "$ref": "#/components/schemas/TeamMemberOut"
+      },
+      "title": "Members",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "kind",
+     "members"
+    ],
+    "title": "TeamOut",
+    "type": "object"
+   },
+   "TeamProfile": {
+    "description": "\"What kind of team is this?\" at a glance, from stats as built.",
+    "properties": {
+     "avg": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Avg",
+      "type": "object"
+     },
+     "avg_bst": {
+      "title": "Avg Bst",
+      "type": "integer"
+     },
+     "avg_speed": {
+      "title": "Avg Speed",
+      "type": "integer"
+     },
+     "core_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Core Types",
+      "type": "array"
+     },
+     "fast_count": {
+      "title": "Fast Count",
+      "type": "integer"
+     },
+     "gist": {
+      "title": "Gist",
+      "type": "string"
+     },
+     "items": {
+      "title": "Items",
+      "type": "integer"
+     },
+     "lean": {
+      "enum": [
+       "Physical",
+       "Special",
+       "Mixed"
+      ],
+      "title": "Lean",
+      "type": "string"
+     },
+     "moves_set": {
+      "title": "Moves Set",
+      "type": "integer"
+     },
+     "physical": {
+      "title": "Physical",
+      "type": "integer"
+     },
+     "priority": {
+      "title": "Priority",
+      "type": "integer"
+     },
+     "resists": {
+      "items": {
+       "$ref": "#/components/schemas/TypeNet"
+      },
+      "title": "Resists",
+      "type": "array"
+     },
+     "special": {
+      "title": "Special",
+      "type": "integer"
+     },
+     "speeds": {
+      "items": {
+       "$ref": "#/components/schemas/SpeedEntry"
+      },
+      "title": "Speeds",
+      "type": "array"
+     },
+     "strong_vs": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Strong Vs",
+      "type": "array"
+     },
+     "style": {
+      "title": "Style",
+      "type": "string"
+     },
+     "style_why": {
+      "title": "Style Why",
+      "type": "string"
+     },
+     "weak_to": {
+      "items": {
+       "$ref": "#/components/schemas/TypeNet"
+      },
+      "title": "Weak To",
+      "type": "array"
+     }
+    },
+    "required": [
+     "style",
+     "style_why",
+     "lean",
+     "physical",
+     "special",
+     "avg",
+     "avg_bst",
+     "avg_speed",
+     "fast_count",
+     "speeds",
+     "core_types",
+     "weak_to",
+     "strong_vs",
+     "resists",
+     "moves_set",
+     "items",
+     "priority",
+     "gist"
+    ],
+    "title": "TeamProfile",
+    "type": "object"
+   },
+   "TeamRating": {
+    "properties": {
+     "areas": {
+      "items": {
+       "$ref": "#/components/schemas/RatingArea"
+      },
+      "title": "Areas",
+      "type": "array"
+     },
+     "capped": {
+      "title": "Capped",
+      "type": "boolean"
+     },
+     "ceiling": {
+      "title": "Ceiling",
+      "type": "integer"
+     },
+     "cover": {
+      "items": {
+       "$ref": "#/components/schemas/TypeCover"
+      },
+      "title": "Cover",
+      "type": "array"
+     },
+     "fast_speed": {
+      "title": "Fast Speed",
+      "type": "integer"
+     },
+     "grade": {
+      "enum": [
+       "A",
+       "B",
+       "C",
+       "D",
+       "F"
+      ],
+      "title": "Grade",
+      "type": "string"
+     },
+     "overall": {
+      "title": "Overall",
+      "type": "integer"
+     },
+     "threats": {
+      "items": {
+       "$ref": "#/components/schemas/TypeThreat"
+      },
+      "title": "Threats",
+      "type": "array"
+     }
+    },
+    "required": [
+     "overall",
+     "grade",
+     "capped",
+     "ceiling",
+     "areas",
+     "cover",
+     "threats",
+     "fast_speed"
+    ],
+    "title": "TeamRating",
+    "type": "object"
+   },
+   "TeamStrategy": {
+    "properties": {
+     "axes": {
+      "items": {
+       "$ref": "#/components/schemas/StrategyAxis"
+      },
+      "title": "Axes",
+      "type": "array"
+     },
+     "style": {
+      "title": "Style",
+      "type": "string"
+     },
+     "style_reason": {
+      "title": "Style Reason",
+      "type": "string"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "team_id",
+     "style",
+     "style_reason",
+     "axes"
+    ],
+    "title": "TeamStrategy",
+    "type": "object"
+   },
+   "TeamSummary": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "size": {
+      "title": "Size",
+      "type": "integer"
+     },
+     "sprites": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Sprites",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "kind",
+     "size",
+     "sprites"
+    ],
+    "title": "TeamSummary",
+    "type": "object"
+   },
+   "TeamSummaryOut": {
+    "properties": {
+     "pending": {
+      "default": false,
+      "title": "Pending",
+      "type": "boolean"
+     },
+     "source": {
+      "enum": [
+       "ai",
+       "rules"
+      ],
+      "title": "Source",
+      "type": "string"
+     },
+     "team_id": {
+      "title": "Team Id",
+      "type": "integer"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     }
+    },
+    "required": [
+     "team_id",
+     "text",
+     "source"
+    ],
+    "title": "TeamSummaryOut",
+    "type": "object"
+   },
+   "TeamUpdate": {
+    "properties": {
+     "kind": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kind"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 2000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     }
+    },
+    "title": "TeamUpdate",
     "type": "object"
    },
    "TypeChartOut": {
@@ -1873,6 +4034,47 @@
     "title": "TypeChartOut",
     "type": "object"
    },
+   "TypeCover": {
+    "properties": {
+     "learnable": {
+      "title": "Learnable",
+      "type": "boolean"
+     },
+     "now": {
+      "title": "Now",
+      "type": "boolean"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "type",
+     "now",
+     "learnable"
+    ],
+    "title": "TypeCover",
+    "type": "object"
+   },
+   "TypeNet": {
+    "properties": {
+     "net": {
+      "title": "Net",
+      "type": "integer"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "type",
+     "net"
+    ],
+    "title": "TypeNet",
+    "type": "object"
+   },
    "TypeOut": {
     "properties": {
      "id": {
@@ -1894,6 +4096,45 @@
      "name"
     ],
     "title": "TypeOut",
+    "type": "object"
+   },
+   "TypeThreat": {
+    "description": "Per attacking type: ``weak`` is weighted (a 4× weakness counts 2);\n``members``/``quad`` are plain counts.",
+    "properties": {
+     "members": {
+      "title": "Members",
+      "type": "integer"
+     },
+     "problem": {
+      "title": "Problem",
+      "type": "boolean"
+     },
+     "quad": {
+      "title": "Quad",
+      "type": "integer"
+     },
+     "resist": {
+      "title": "Resist",
+      "type": "integer"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     },
+     "weak": {
+      "title": "Weak",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "type",
+     "weak",
+     "resist",
+     "members",
+     "quad",
+     "problem"
+    ],
+    "title": "TypeThreat",
     "type": "object"
    },
    "ValidationError": {
@@ -1935,6 +4176,174 @@
     ],
     "title": "ValidationError",
     "type": "object"
+   },
+   "Verdict": {
+    "properties": {
+     "edge": {
+      "enum": [
+       "ours",
+       "theirs",
+       "even"
+      ],
+      "title": "Edge",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     },
+     "score": {
+      "title": "Score",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "score",
+     "label",
+     "edge",
+     "reason"
+    ],
+    "title": "Verdict",
+    "type": "object"
+   },
+   "VsMember": {
+    "properties": {
+     "bst": {
+      "title": "Bst",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "pokemon_id": {
+      "title": "Pokemon Id",
+      "type": "integer"
+     },
+     "role": {
+      "title": "Role",
+      "type": "string"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "speed": {
+      "title": "Speed",
+      "type": "integer"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "slot",
+     "pokemon_id",
+     "name",
+     "types",
+     "sprite_url",
+     "speed",
+     "bst",
+     "role"
+    ],
+    "title": "VsMember",
+    "type": "object"
+   },
+   "VsOpponent": {
+    "properties": {
+     "advice": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Advice",
+      "type": "array"
+     },
+     "cells": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/MatchupCell"
+      },
+      "title": "Cells",
+      "type": "array"
+     },
+     "opponent_id": {
+      "title": "Opponent Id",
+      "type": "integer"
+     },
+     "opponent_name": {
+      "title": "Opponent Name",
+      "type": "string"
+     },
+     "our_members": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/VsMember"
+      },
+      "title": "Our Members",
+      "type": "array"
+     },
+     "our_pressure": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/PressurePoint"
+      },
+      "title": "Our Pressure",
+      "type": "array"
+     },
+     "scorecard": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/ScoreRow"
+      },
+      "title": "Scorecard",
+      "type": "array"
+     },
+     "their_members": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/VsMember"
+      },
+      "title": "Their Members",
+      "type": "array"
+     },
+     "threats": {
+      "items": {
+       "$ref": "#/components/schemas/OpponentThreat"
+      },
+      "title": "Threats",
+      "type": "array"
+     },
+     "verdict": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Verdict"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "opponent_id",
+     "opponent_name",
+     "threats",
+     "advice"
+    ],
+    "title": "VsOpponent",
+    "type": "object"
    }
   }
  },
@@ -1967,6 +4376,85 @@
     "summary": "List Generations",
     "tags": [
      "pokedex"
+    ]
+   }
+  },
+  "/api/items": {
+   "get": {
+    "operationId": "search_items_api_items_get",
+    "parameters": [
+     {
+      "description": "Filter items by name substring",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter items by name substring",
+       "title": "Q"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 8,
+       "maximum": 5000,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Only items a Pokémon can hold in battle",
+      "in": "query",
+      "name": "held",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Only items a Pokémon can hold in battle",
+       "title": "Held",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ItemOut"
+         },
+         "title": "Response Search Items Api Items Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Search Items",
+    "tags": [
+     "builder"
     ]
    }
   },
@@ -2025,6 +4513,31 @@
      }
     },
     "summary": "Move Learners By Game",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
+  "/api/natures": {
+   "get": {
+    "operationId": "list_natures_api_natures_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/NatureOut"
+         },
+         "title": "Response List Natures Api Natures Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "List Natures",
     "tags": [
      "builder"
     ]
@@ -2199,6 +4712,70 @@
     ]
    }
   },
+  "/api/pokemon/forms/{form_id}/moves": {
+   "get": {
+    "operationId": "pokemon_form_moves_api_pokemon_forms__form_id__moves_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "form_id",
+      "required": true,
+      "schema": {
+       "title": "Form Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Filter moves by name substring",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter moves by name substring",
+       "title": "Q"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/LearnsetMoveOut"
+         },
+         "title": "Response Pokemon Form Moves Api Pokemon Forms  Form Id  Moves Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Pokemon Form Moves",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
   "/api/pokemon/{id_or_name}": {
    "get": {
     "operationId": "get_pokemon_api_pokemon__id_or_name__get",
@@ -2238,6 +4815,52 @@
     "summary": "Get Pokemon",
     "tags": [
      "pokedex"
+    ]
+   }
+  },
+  "/api/pokemon/{pokemon_id}/abilities": {
+   "get": {
+    "operationId": "pokemon_abilities_api_pokemon__pokemon_id__abilities_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/AbilityOut"
+         },
+         "title": "Response Pokemon Abilities Api Pokemon  Pokemon Id  Abilities Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Pokemon Abilities",
+    "tags": [
+     "builder"
     ]
    }
   },
@@ -2299,6 +4922,70 @@
     "summary": "Pokemon Encounters",
     "tags": [
      "pokedex"
+    ]
+   }
+  },
+  "/api/pokemon/{pokemon_id}/moves": {
+   "get": {
+    "operationId": "pokemon_moves_api_pokemon__pokemon_id__moves_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Filter moves by name substring",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter moves by name substring",
+       "title": "Q"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/LearnsetMoveOut"
+         },
+         "title": "Response Pokemon Moves Api Pokemon  Pokemon Id  Moves Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Pokemon Moves",
+    "tags": [
+     "builder"
     ]
    }
   },
@@ -2502,6 +5189,581 @@
     "summary": "Add Favorite",
     "tags": [
      "profile"
+    ]
+   }
+  },
+  "/api/teams": {
+   "get": {
+    "operationId": "list_teams_api_teams_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "kind",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "pattern": "^(player|opponent)$",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Kind"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamListResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Teams",
+    "tags": [
+     "teams"
+    ]
+   },
+   "post": {
+    "operationId": "create_team_api_teams_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TeamCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Team",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}": {
+   "delete": {
+    "operationId": "delete_team_api_teams__team_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Delete Team",
+    "tags": [
+     "teams"
+    ]
+   },
+   "get": {
+    "operationId": "get_team_api_teams__team_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Team",
+    "tags": [
+     "teams"
+    ]
+   },
+   "put": {
+    "operationId": "update_team_api_teams__team_id__put",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TeamUpdate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Team",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/analysis": {
+   "get": {
+    "operationId": "analyze_team_api_teams__team_id__analysis_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Compare against a saved opponent team",
+      "in": "query",
+      "name": "opponent_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Compare against a saved opponent team",
+       "title": "Opponent Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamAnalysis"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Analyze Team",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/slots/{slot}": {
+   "delete": {
+    "operationId": "clear_slot_api_teams__team_id__slots__slot__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "path",
+      "name": "slot",
+      "required": true,
+      "schema": {
+       "title": "Slot",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Clear Slot",
+    "tags": [
+     "teams"
+    ]
+   },
+   "put": {
+    "operationId": "set_slot_api_teams__team_id__slots__slot__put",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "path",
+      "name": "slot",
+      "required": true,
+      "schema": {
+       "title": "Slot",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SlotUpdate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Set Slot",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/slots/{slot}/build": {
+   "post": {
+    "description": "Apply a set given by name (the coach's or the engine's suggestion) to a slot.",
+    "operationId": "apply_slot_build_api_teams__team_id__slots__slot__build_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "path",
+      "name": "slot",
+      "required": true,
+      "schema": {
+       "title": "Slot",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SlotBuild"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Apply Slot Build",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/strategy": {
+   "get": {
+    "description": "How the team wants to win: offense/bulk/speed/setup/stall/support, each traceable.",
+    "operationId": "team_strategy_profile_api_teams__team_id__strategy_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamStrategy"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Team Strategy Profile",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/summary": {
+   "get": {
+    "description": "Stored summary; never waits on the LLM. ``pending`` = a rewrite is underway.",
+    "operationId": "team_summary_text_api_teams__team_id__summary_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamSummaryOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Team Summary Text",
+    "tags": [
+     "teams"
+    ]
+   }
+  },
+  "/api/teams/{team_id}/summary/refresh": {
+   "post": {
+    "description": "Force a fresh summary now (the detail page's Regenerate button).",
+    "operationId": "team_summary_refresh_api_teams__team_id__summary_refresh_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "team_id",
+      "required": true,
+      "schema": {
+       "title": "Team Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamSummaryOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Team Summary Refresh",
+    "tags": [
+     "teams"
     ]
    }
   },
