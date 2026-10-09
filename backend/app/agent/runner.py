@@ -18,7 +18,7 @@ import logging
 import math
 import time
 from collections.abc import AsyncIterator, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from app.agent import cache, executor, llm_planner, render
 from app.agent import trace as plan_trace
@@ -30,6 +30,7 @@ from app.agent.tools import REGISTRY, AgentContext
 from app.core.config import get_settings
 from app.core.database import async_session_factory
 from app.rag import answer as answer_service
+from app.rag import matchup
 from app.rag.retrieval import RetrievedChunk
 
 log = logging.getLogger(__name__)
@@ -105,6 +106,7 @@ class PlanChoice:
     skip_llm: str | None = None  # "fast-path" | "no-llm" — why the LLM wasn't asked
     # rate-limited | timeout | provider-error:<Type> | no-valid-steps
     fallback_reason: str | None = None
+    corrected: list[str] = field(default_factory=list)  # LLM args code overrode
 
 
 def _failure(exc: BaseException) -> str:
@@ -150,9 +152,30 @@ async def _choose_plan(
         log.info("LLM plan had no valid steps; using the keyword plan")
         return PlanChoice(kp.plan, fell_back=True, keyword=kp, llm_plan=plan,
                           fallback_reason="no-valid-steps")
+    run_plan, corrected = _pin_coverage_want(plan, question, scope)
     if _cacheable(scope):
-        cache.plans.put(scope, question, plan)
-    return PlanChoice(plan, keyword=kp, llm_plan=plan)
+        cache.plans.put(scope, question, run_plan)
+    return PlanChoice(run_plan, keyword=kp, llm_plan=plan, corrected=corrected)
+
+
+def _pin_coverage_want(plan: Plan, question: str, plan_scope: str) -> tuple[Plan, list[str]]:
+    """Whether coverage lists Pokémon or moves is the question's call, not the LLM's.
+
+    The planner LLM drifts on it ("which special attacker has coverage…" came back as
+    moves once, and the plan cache then kept it), so the keyword rule decides. Returns
+    a corrected copy, leaving ``plan`` (the LLM's own, kept for the trace) untouched.
+    """
+    want = "moves" if matchup.wants_moves(question) else "pokemon"
+    steps, notes = [], []
+    for s in plan.steps:
+        if s.tool == "coverage_vs_types" and s.parsed is not None and s.parsed.want != want:
+            notes.append(f"{s.id}.want {s.parsed.want}->{want}")
+            s = make_step(s.id, s.tool, {**s.args, "want": want}, s.why, s.after,
+                          scope=plan_scope, known=set(s.after))
+        steps.append(s)
+    if not notes:
+        return plan, []
+    return replace(plan, steps=steps), notes
 
 
 def _with_context(plan: Plan, scope: str) -> Plan:

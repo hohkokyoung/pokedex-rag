@@ -13,6 +13,7 @@ never goes to the client.
 | `fallback` | why the keyword plan stood in for the LLM: `rate-limited`, `timeout`, `provider-error:<Type>`, `no-valid-steps` |
 | `keyword` | the keyword plan and whether it was confident |
 | `llm` | the LLM's plan (tool, args, why), also when rejected, plus `unhandled` and `needs_followup` |
+| `corrected` | LLM args code overrode before running/caching (e.g. `s1.want moves->pokemon`: whether `coverage_vs_types` lists Pokémon or moves follows `matchup.wants_moves`, not the LLM), else `null` |
 | `replan` | steps a re-plan added, or why it failed |
 | `steps` | each executed step's state, summary and time (incl. the coach context step) |
 | `answer` | `tier` (`code`, `llm`, `no-llm`, `abstain`, `cached`) and an answer `fallback` reason |

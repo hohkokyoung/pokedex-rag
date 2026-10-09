@@ -101,6 +101,7 @@ def build(choice: PlanChoice, run: _Run, ms: float) -> dict:
             {"confident": kp.confident, **(_plan(kp.plan) or {})} if kp is not None else None
         ),
         "llm": _plan(choice.llm_plan, llm=True),
+        "corrected": choice.corrected or None,
         "replan": (
             {"steps": _steps(run.replan_steps), "error": run.replan_error}
             if run.replan_steps or run.replan_error else None

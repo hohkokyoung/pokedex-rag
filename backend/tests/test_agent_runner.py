@@ -309,3 +309,22 @@ def test_every_scope_fits_the_prompt_budget():
 
     for scope in ("ask", "team", "calc"):
         assert llm_planner.prompt_size(scope) <= llm_planner.PROMPT_BUDGET, scope
+
+
+# ---- coverage "want" is decided by the question, not the LLM ---------------------------
+
+
+@pytest.mark.parametrize("q, llm_want, want", [
+    ("Which special attacker has coverage against Dark?", "moves", "pokemon"),
+    ("What moves beat Dark types?", "pokemon", "moves"),
+])
+async def test_coverage_want_follows_the_question(monkeypatch, session_factory,
+                                                  q, llm_want, want):
+    _settings(monkeypatch)
+    LLM(monkeypatch, plans=[_plan(("coverage_vs_types", {
+        "targets": ["dark"], "want": llm_want, "attacker_class": "special"}))])
+    events, _ = await _run(q, session_factory)
+    step = _first(events, "plan")["steps"][0]
+    assert step["args"]["want"] == want
+    # The cached plan is the corrected one, so a repeat can't replay the drift.
+    assert cache.plans.get("ask", q).steps[0].parsed.want == want
