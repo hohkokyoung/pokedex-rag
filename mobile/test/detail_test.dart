@@ -13,6 +13,13 @@ FakeBackend detailBackend({Completer<void>? chartGate}) => FakeBackend((o) => sw
       '/api/pokemon/133' => fixture('eevee'),
       '/api/pokemon/869' => fixture('alcremie'),
       '/api/types/chart' => fixture('type_chart'),
+      '/api/pokemon/445/moves/by-game' => fixture(o.queryParameters['version_group'] == 20 ? 'garchomp_moves_swsh' : 'garchomp_moves_sv'),
+      '/api/moves/89/learners/by-game' => fixture('earthquake_learners_sv'),
+      '/api/pokemon/445/encounters' => fixture('garchomp_encounters'),
+      '/api/profile' => fixture('profile'),
+      '/api/pokemon' => listPage(o, total: 1025),
+      _ when o.path.endsWith('/moves/by-game') => {'version_group_id': null, 'games': <Object>[], 'moves': <Object>[]},
+      _ when o.path.endsWith('/encounters') => {'version_id': null, 'games': <Object>[], 'encounters': <Object>[]},
       _ => 404,
     });
 
@@ -33,6 +40,7 @@ void main() {
     final hits = chipsIn(tester, find.byKey(const Key('hits-row')));
     expect(hits, containsAllInOrder(['Hits', '×2', 'Fire', 'Electric', 'Poison', 'Rock', 'Dragon', 'Steel']));
     expect(chipsIn(tester, find.ancestor(of: find.text('×4'), matching: find.byType(Row)).first), contains('Ice'));
+    await tester.pumpAndSettle(); // let sections that scrolled into view finish loading
   });
 
   testWidgets('switching to Mega Garchomp swaps stats, abilities and artwork', (tester) async {

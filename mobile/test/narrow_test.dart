@@ -14,11 +14,16 @@ FakeBackend be() => FakeBackend((o) => switch (o.path) {
       '/api/pokemon/869' => fixture('alcremie'),
       '/api/types/chart' => fixture('type_chart'),
       '/api/generations' => <Object>[],
+      '/api/pokemon/445/moves/by-game' => fixture('garchomp_moves_sv'),
+      '/api/pokemon/445/encounters' => fixture('garchomp_encounters'),
+      '/api/profile' => fixture('profile'),
+      _ when o.path.endsWith('/moves/by-game') => {'version_group_id': null, 'games': <Object>[], 'moves': <Object>[]},
+      _ when o.path.endsWith('/encounters') => {'version_id': null, 'games': <Object>[], 'encounters': <Object>[]},
       _ => 404,
     });
 
 Future<void> scrollToEnd(WidgetTester tester) async {
-  for (var i = 0; i < 12; i++) {
+  for (var i = 0; i < 40; i++) {
     await tester.drag(find.byType(Scrollable).last, const Offset(0, -500));
     await tester.pumpAndSettle();
   }
@@ -34,7 +39,7 @@ void main() {
   testWidgets('Garchomp at 375pt, every section', (tester) async {
     await pumpApp(tester, be(), size: se, location: '/pokemon/445');
     await scrollToEnd(tester);
-    expect(find.text('Evolution'), findsOneWidget);
+    expect(find.text('Where to find'), findsOneWidget);
   });
 
   testWidgets('Alcremie and its spin guide at 375pt', (tester) async {

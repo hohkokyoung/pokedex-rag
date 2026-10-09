@@ -77,11 +77,36 @@ class PokedexRepository {
         return Page(r.items, r.total);
       });
 
+  /// How many species the dex has (bounds previous / next).
+  Future<int> dexTotal() => _guard(() async => (await _api.listPokemonApiPokemonGet(limit: 1)).total);
+
   Future<PokemonDetail> detail(String idOrName) => _guard(() => _api.getPokemonApiPokemonIdOrNameGet(idOrName: idOrName));
 
   Future<List<TypeOut>> types() => _guard(_api.listTypesApiTypesGet);
 
   Future<List<GenerationOut>> generations() => _guard(_api.listGenerationsApiGenerationsGet);
+
+  /// A species' or form's (id > 10000) moves in one game; null game = the newest.
+  Future<PokemonGameMovesOut> moves(int pokemonId, {int? game}) => _guard(
+        () => _api.pokemonMovesByGameApiPokemonPokemonIdMovesByGameGet(pokemonId: pokemonId, versionGroup: game),
+      );
+
+  /// Who learns a move in one game; null game = every game.
+  Future<MoveGameLearnersOut> learners(int moveId, {int? game}) => _guard(
+        () => _api.moveLearnersByGameApiMovesMoveIdLearnersByGameGet(moveId: moveId, versionGroup: game),
+      );
+
+  /// Where to find a Pokémon in one game (version); null = the newest it appears in.
+  Future<PokemonEncountersOut> encounters(int pokemonId, {int? version}) => _guard(
+        () => _api.pokemonEncountersApiPokemonPokemonIdEncountersGet(pokemonId: pokemonId, version: version),
+      );
+
+  /// The server profile (favourites), shared with the website and Ask.
+  Future<ProfileOut> profile() => _guard(_api.getProfileApiProfileGet);
+  Future<ProfileOut> addFavourite(int pokemonId) =>
+      _guard(() => _api.addFavoriteApiProfileFavoritesPokemonIdPost(pokemonId: pokemonId));
+  Future<ProfileOut> removeFavourite(int pokemonId) =>
+      _guard(() => _api.removeFavoriteApiProfileFavoritesPokemonIdDelete(pokemonId: pokemonId));
 
   /// The served type chart, requested at most once; a failed request is retried next time.
   Future<TypeChartOut> typeChart() => _chart ??= _guard(_api.typeChartApiTypesChartGet).catchError((Object e) {

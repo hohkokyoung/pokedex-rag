@@ -59,6 +59,12 @@ class _ListScreenState extends ConsumerState<ListScreen> {
         title: Text('pokérag', style: AppText.display.copyWith(fontSize: 26)),
         actions: [
           IconButton(
+            key: const Key('open-favourites'),
+            tooltip: 'Favourites',
+            icon: const Icon(Icons.favorite_border),
+            onPressed: () => context.push('/favourites'),
+          ),
+          IconButton(
             tooltip: 'Server',
             icon: const Icon(Icons.dns_outlined),
             onPressed: () => context.push('/settings'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/pokedex/detail_screen.dart';
+import 'features/pokedex/favourites.dart';
 import 'features/pokedex/list_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'theme/theme.dart';
@@ -16,6 +17,7 @@ GoRouter buildRouter() => GoRouter(routes: [
         ),
       ),
       GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/favourites', builder: (_, _) => const FavouritesScreen()),
     ]);
 
 class PokeragApp extends StatefulWidget {

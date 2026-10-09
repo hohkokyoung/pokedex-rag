@@ -22,6 +22,11 @@ PATHS = [
     "/api/types",
     "/api/types/chart",
     "/api/generations",
+    "/api/pokemon/{pokemon_id}/moves/by-game",
+    "/api/moves/{move_id}/learners/by-game",
+    "/api/pokemon/{pokemon_id}/encounters",
+    "/api/profile",
+    "/api/profile/favorites/{pokemon_id}",
 ]
 
 

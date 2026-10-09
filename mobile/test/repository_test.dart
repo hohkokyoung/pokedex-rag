@@ -5,6 +5,7 @@ import 'package:pokerag/data/pokedex_repository.dart';
 import 'support/fake_backend.dart';
 
 void main() {
+  phase2Repo();
   test('pages append without repeats and stop at the end', () async {
     final be = FakeBackend((o) => listPage(o, total: 95));
     final pager = Pager(PokedexRepository(be.dio()), const ListQuery());
@@ -58,5 +59,31 @@ void main() {
     await expectLater(repo.detail('nope'), throwsA(isA<NotFound>()));
     be.handler = (o) => 500;
     await expectLater(repo.detail('445'), throwsA(isA<ServerError>()));
+  });
+}
+
+void phase2Repo() {
+  test('moves, learners, encounters and favourites call the right endpoints', () async {
+    final be = FakeBackend((o) => switch (o.path) {
+          '/api/pokemon/445/moves/by-game' => fixture('garchomp_moves_swsh'),
+          '/api/moves/89/learners/by-game' => fixture('earthquake_learners_sv'),
+          '/api/pokemon/445/encounters' => fixture('garchomp_encounters'),
+          '/api/profile' || '/api/profile/favorites/445' => fixture('profile'),
+          _ => 404,
+        });
+    final repo = PokedexRepository(be.dio());
+    await repo.moves(445, game: 20);
+    expect(be.requests.last.queryParameters['version_group'], 20);
+    await repo.moves(445);
+    expect(be.requests.last.queryParameters.containsKey('version_group'), isFalse);
+    await repo.learners(89, game: 25);
+    expect(be.requests.last.queryParameters['version_group'], 25);
+    await repo.encounters(445, version: 51);
+    expect(be.requests.last.queryParameters['version'], 51);
+    await repo.addFavourite(445);
+    expect(be.requests.last.method, 'POST');
+    await repo.removeFavourite(445);
+    expect(be.requests.last.method, 'DELETE');
+    expect((await repo.profile()).favorites, isNotEmpty);
   });
 }

@@ -11,7 +11,9 @@ import '../../theme/tokens.g.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
+import 'detail_more.dart';
 import 'detail_sections.dart';
+import 'favourites.dart';
 import 'detail_state.dart';
 
 class DetailScreen extends ConsumerWidget {
@@ -23,8 +25,26 @@ class DetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(detailProvider(id));
+    final d = detail.value;
+    final total = ref.watch(dexTotalProvider).value;
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(actions: [
+        if (d != null) FavouriteButton(pokemon: d),
+        if (d != null && d.dexNumber > 1)
+          IconButton(
+            key: const Key('prev'),
+            tooltip: 'Previous',
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () => context.replace('/pokemon/${d.dexNumber - 1}'),
+          ),
+        if (d != null && total != null && d.dexNumber < total)
+          IconButton(
+            key: const Key('next'),
+            tooltip: 'Next',
+            icon: const Icon(Icons.chevron_right),
+            onPressed: () => context.replace('/pokemon/${d.dexNumber + 1}'),
+          ),
+      ]),
       body: switch (detail) {
         AsyncData(:final value) => DetailBody(detail: value, formId: formId),
         AsyncError(:final error) => switch (error) {
@@ -95,6 +115,10 @@ class DetailBody extends ConsumerWidget {
         AbilitiesCard(abilities: view.abilities),
         const SizedBox(height: Space.md),
         MatchupsCard(matchups: view.matchups, types: view.types),
+        const SizedBox(height: Space.md),
+        FactsCard(d: detail, form: form),
+        const SizedBox(height: Space.md),
+        MovesetCard(key: ValueKey(('moves', view.currentId)), pokemonId: view.currentId),
         if (view.evoMembers.length > 1) ...[
           const SizedBox(height: Space.md),
           EvolutionCard(members: view.evoMembers, stages: view.evoStages, currentId: view.currentId, base: base),
@@ -103,6 +127,12 @@ class DetailBody extends ConsumerWidget {
           const SizedBox(height: Space.md),
           SpinGuideCard(guide: view.spinGuide!),
         ],
+        if ((form?.flavorEntries ?? detail.flavorEntries).isNotEmpty) ...[
+          const SizedBox(height: Space.md),
+          DexEntriesCard(entries: form?.flavorEntries.isNotEmpty == true ? form!.flavorEntries : detail.flavorEntries),
+        ],
+        const SizedBox(height: Space.md),
+        EncountersCard(key: ValueKey(('enc', view.currentId)), pokemonId: view.currentId),
       ],
     );
   }

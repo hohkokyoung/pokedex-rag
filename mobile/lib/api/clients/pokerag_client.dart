@@ -7,8 +7,13 @@ import 'package:retrofit/retrofit.dart';
 
 import '../models/generation_out.dart';
 import '../models/health_response.dart';
+import '../models/move_game_learners_out.dart';
 import '../models/pokemon_detail.dart';
+import '../models/pokemon_encounters_out.dart';
+import '../models/pokemon_game_moves_out.dart';
 import '../models/pokemon_list_response.dart';
+import '../models/profile_out.dart';
+import '../models/profile_update.dart';
 import '../models/type_chart_out.dart';
 import '../models/type_out.dart';
 
@@ -21,6 +26,15 @@ abstract class PokeragClient {
   /// List Generations
   @GET('/api/generations')
   Future<List<GenerationOut>> listGenerationsApiGenerationsGet();
+
+  /// Move Learners By Game.
+  ///
+  /// [versionGroup] - Game id; omit for every game.
+  @GET('/api/moves/{move_id}/learners/by-game')
+  Future<MoveGameLearnersOut> moveLearnersByGameApiMovesMoveIdLearnersByGameGet({
+    @Path('move_id') required int moveId,
+    @Query('version_group') int? versionGroup,
+  });
 
   /// List Pokemon.
   ///
@@ -46,6 +60,50 @@ abstract class PokeragClient {
   @GET('/api/pokemon/{id_or_name}')
   Future<PokemonDetail> getPokemonApiPokemonIdOrNameGet({
     @Path('id_or_name') required String idOrName,
+  });
+
+  /// Pokemon Encounters.
+  ///
+  /// Where a species or form (id > 10000) is found in the wild, one game at a time.
+  ///
+  /// [version] - Game (version) id; omit for the newest.
+  @GET('/api/pokemon/{pokemon_id}/encounters')
+  Future<PokemonEncountersOut> pokemonEncountersApiPokemonPokemonIdEncountersGet({
+    @Path('pokemon_id') required int pokemonId,
+    @Query('version') int? version,
+  });
+
+  /// Pokemon Moves By Game.
+  ///
+  /// A species' or form's (id > 10000) learnset in one game, with TM labels.
+  ///
+  /// [versionGroup] - Game id; omit for the newest game.
+  @GET('/api/pokemon/{pokemon_id}/moves/by-game')
+  Future<PokemonGameMovesOut> pokemonMovesByGameApiPokemonPokemonIdMovesByGameGet({
+    @Path('pokemon_id') required int pokemonId,
+    @Query('version_group') int? versionGroup,
+  });
+
+  /// Get Profile
+  @GET('/api/profile')
+  Future<ProfileOut> getProfileApiProfileGet();
+
+  /// Update Profile
+  @PUT('/api/profile')
+  Future<ProfileOut> updateProfileApiProfilePut({
+    @Body() required ProfileUpdate body,
+  });
+
+  /// Remove Favorite
+  @DELETE('/api/profile/favorites/{pokemon_id}')
+  Future<ProfileOut> removeFavoriteApiProfileFavoritesPokemonIdDelete({
+    @Path('pokemon_id') required int pokemonId,
+  });
+
+  /// Add Favorite
+  @POST('/api/profile/favorites/{pokemon_id}')
+  Future<ProfileOut> addFavoriteApiProfileFavoritesPokemonIdPost({
+    @Path('pokemon_id') required int pokemonId,
   });
 
   /// List Types

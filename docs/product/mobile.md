@@ -1,8 +1,8 @@
 # Mobile app (`mobile/`)
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
-home network. Phase 1 is read-only browsing; Ask, Teams and the calculators stay on
-the website for now.
+home network. It covers the Pokédex (and your favourites); Ask, Teams and the
+calculators stay on the website for now.
 
 ## List
 
@@ -26,6 +26,14 @@ to clear the search and filters.
 | Type matchups | takes more from (×4, ×2), resists (×½, ×¼), immune to (×0), and **Hits ×2** |
 | Evolution | each step with the server's chips (e.g. "Friendship" + "Day"); tap **?** for the full requirement |
 | Spin guide | for Milcery and Alcremie: the steps, the topping per Sweet and the spin per cream |
+| Facts & training | height, weight, habitat, capture rate, base experience, colour; gender ratio, egg groups, egg cycles (~steps), growth rate, EV yield, base friendship |
+| Moveset | per game (newest by default): Level-up ("Evo" = learned on evolving), Egg, TM / HM with the TM number, Tutor, Other; filter by category and type. Tap a move for its details and who else learns it in that game |
+| Dex entries | every game's entry, grouped by generation |
+| Where to find | per game: location, method, levels, rate and conditions, raid dens included (data ends at Sword / Shield) |
+
+The app bar has **♡ favourite** (the same server profile the website and Ask's "for you"
+picks use) and **previous / next** through the dex. The list's ♡ button opens
+**Favourites**.
 
 Everything shown is computed by the server, so it always matches the website. The
 only thing the app works out itself is the Hits ×2 list, looked up in the server's

@@ -9,6 +9,7 @@ Map<String, Object?> fixture(String name) =>
     jsonDecode(File('test/fixtures/$name.json').readAsStringSync()) as Map<String, Object?>;
 
 void main() {
+  phase2Models();
   test('Garchomp detail decodes', () {
     final d = PokemonDetail.fromJson(fixture('garchomp'));
     expect(d.name, 'Garchomp');
@@ -39,5 +40,18 @@ void main() {
     final c = TypeChartOut.fromJson(fixture('type_chart'));
     expect(c.order, hasLength(18));
     expect(c.chart['ground']!['flying'], 0);
+  });
+}
+
+void phase2Models() {
+  test('moveset, learners, encounters and profile decode', () {
+    final moves = PokemonGameMovesOut.fromJson(fixture('garchomp_moves_sv'));
+    expect(moves.moves.any((m) => m.name == 'Crunch' && m.level == 0), isTrue);
+    final learners = MoveGameLearnersOut.fromJson(fixture('earthquake_learners_sv'));
+    expect(learners.learners.map((l) => l.name), contains('Torterra'));
+    final enc = PokemonEncountersOut.fromJson(fixture('garchomp_encounters'));
+    expect(enc.encounters.first.methodName, 'Max Raid');
+    final profile = ProfileOut.fromJson(fixture('profile'));
+    expect(profile.favorites, isNotEmpty);
   });
 }

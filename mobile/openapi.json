@@ -101,6 +101,115 @@
     "title": "CreamRule",
     "type": "object"
    },
+   "EncounterGameOut": {
+    "properties": {
+     "generation": {
+      "title": "Generation",
+      "type": "integer"
+     },
+     "places": {
+      "title": "Places",
+      "type": "integer"
+     },
+     "version": {
+      "title": "Version",
+      "type": "string"
+     },
+     "version_id": {
+      "title": "Version Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "version_id",
+     "version",
+     "generation",
+     "places"
+    ],
+    "title": "EncounterGameOut",
+    "type": "object"
+   },
+   "EncounterOut": {
+    "properties": {
+     "area": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Area"
+     },
+     "chance": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chance"
+     },
+     "conditions": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conditions"
+     },
+     "location": {
+      "title": "Location",
+      "type": "string"
+     },
+     "max_level": {
+      "title": "Max Level",
+      "type": "integer"
+     },
+     "method": {
+      "title": "Method",
+      "type": "string"
+     },
+     "method_name": {
+      "title": "Method Name",
+      "type": "string"
+     },
+     "min_level": {
+      "title": "Min Level",
+      "type": "integer"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     }
+    },
+    "required": [
+     "location",
+     "area",
+     "region",
+     "method",
+     "method_name",
+     "min_level",
+     "max_level",
+     "chance",
+     "conditions"
+    ],
+    "title": "EncounterOut",
+    "type": "object"
+   },
    "EvolutionChip": {
     "properties": {
      "label": {
@@ -299,6 +408,42 @@
      "to_name"
     ],
     "title": "EvolutionStage",
+    "type": "object"
+   },
+   "FavoriteOut": {
+    "properties": {
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url"
+    ],
+    "title": "FavoriteOut",
     "type": "object"
    },
    "FlavorEntry": {
@@ -573,6 +718,241 @@
     "title": "FormOut",
     "type": "object"
    },
+   "GameLearnerOut": {
+    "description": "A Pokémon (or alternate form) that learns a move in one game, and how.",
+    "properties": {
+     "also": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Also",
+      "type": "array"
+     },
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "methods": {
+      "items": {
+       "$ref": "#/components/schemas/LearnMethodOut"
+      },
+      "title": "Methods",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url",
+     "methods"
+    ],
+    "title": "GameLearnerOut",
+    "type": "object"
+   },
+   "GameMoveOut": {
+    "properties": {
+     "accuracy": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accuracy"
+     },
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "learn_method": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Learn Method"
+     },
+     "level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Level"
+     },
+     "machine": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Machine"
+     },
+     "move_id": {
+      "title": "Move Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "pp": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pp"
+     },
+     "priority": {
+      "default": 0,
+      "title": "Priority",
+      "type": "integer"
+     },
+     "short_effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Short Effect"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target"
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     }
+    },
+    "required": [
+     "move_id",
+     "identifier",
+     "name"
+    ],
+    "title": "GameMoveOut",
+    "type": "object"
+   },
+   "GameOut": {
+    "properties": {
+     "generation": {
+      "title": "Generation",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "learners": {
+      "title": "Learners",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name",
+     "generation",
+     "learners"
+    ],
+    "title": "GameOut",
+    "type": "object"
+   },
    "GenerationOut": {
     "properties": {
      "id": {
@@ -623,6 +1003,41 @@
     "title": "HealthResponse",
     "type": "object"
    },
+   "LearnMethodOut": {
+    "properties": {
+     "level": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Level"
+     },
+     "level_max": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Level Max"
+     },
+     "method": {
+      "title": "Method",
+      "type": "string"
+     }
+    },
+    "required": [
+     "method"
+    ],
+    "title": "LearnMethodOut",
+    "type": "object"
+   },
    "MatchupsOut": {
     "properties": {
      "immune": {
@@ -667,6 +1082,86 @@
      }
     },
     "title": "MatchupsOut",
+    "type": "object"
+   },
+   "MoveGameLearnersOut": {
+    "description": "Who learns a move in one game, or in any game (``version_group_id`` None,\nthe default), plus every game it's in.",
+    "properties": {
+     "games": {
+      "items": {
+       "$ref": "#/components/schemas/GameOut"
+      },
+      "title": "Games",
+      "type": "array"
+     },
+     "last_machine": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Machine"
+     },
+     "last_machine_game": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Machine Game"
+     },
+     "learners": {
+      "items": {
+       "$ref": "#/components/schemas/GameLearnerOut"
+      },
+      "title": "Learners",
+      "type": "array"
+     },
+     "machine": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Machine"
+     },
+     "move_id": {
+      "title": "Move Id",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     },
+     "version_group_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Version Group Id"
+     }
+    },
+    "required": [
+     "move_id",
+     "version_group_id",
+     "games",
+     "total",
+     "learners"
+    ],
+    "title": "MoveGameLearnersOut",
     "type": "object"
    },
    "PokemonDetail": {
@@ -983,6 +1478,113 @@
     "title": "PokemonDetail",
     "type": "object"
    },
+   "PokemonEncountersOut": {
+    "description": "Where a Pokémon is found in one game, plus every game it can be found in.",
+    "properties": {
+     "encounters": {
+      "items": {
+       "$ref": "#/components/schemas/EncounterOut"
+      },
+      "title": "Encounters",
+      "type": "array"
+     },
+     "games": {
+      "items": {
+       "$ref": "#/components/schemas/EncounterGameOut"
+      },
+      "title": "Games",
+      "type": "array"
+     },
+     "version_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Version Id"
+     }
+    },
+    "required": [
+     "version_id",
+     "games",
+     "encounters"
+    ],
+    "title": "PokemonEncountersOut",
+    "type": "object"
+   },
+   "PokemonGameMovesOut": {
+    "description": "A Pokémon's learnset in one game, plus every game it has a learnset in.",
+    "properties": {
+     "games": {
+      "items": {
+       "$ref": "#/components/schemas/PokemonGameOut"
+      },
+      "title": "Games",
+      "type": "array"
+     },
+     "moves": {
+      "items": {
+       "$ref": "#/components/schemas/GameMoveOut"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "version_group_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Version Group Id"
+     }
+    },
+    "required": [
+     "version_group_id",
+     "games",
+     "moves"
+    ],
+    "title": "PokemonGameMovesOut",
+    "type": "object"
+   },
+   "PokemonGameOut": {
+    "properties": {
+     "generation": {
+      "title": "Generation",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "moves": {
+      "title": "Moves",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name",
+     "generation",
+     "moves"
+    ],
+    "title": "PokemonGameOut",
+    "type": "object"
+   },
    "PokemonListResponse": {
     "properties": {
      "items": {
@@ -1107,6 +1709,46 @@
      "base_stat_total"
     ],
     "title": "PokemonSummary",
+    "type": "object"
+   },
+   "ProfileOut": {
+    "properties": {
+     "favorites": {
+      "items": {
+       "$ref": "#/components/schemas/FavoriteOut"
+      },
+      "title": "Favorites",
+      "type": "array"
+     },
+     "preferred_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Preferred Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "preferred_types",
+     "favorites"
+    ],
+    "title": "ProfileOut",
+    "type": "object"
+   },
+   "ProfileUpdate": {
+    "properties": {
+     "preferred_types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Preferred Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "preferred_types"
+    ],
+    "title": "ProfileUpdate",
     "type": "object"
    },
    "SpinGuide": {
@@ -1328,6 +1970,66 @@
     ]
    }
   },
+  "/api/moves/{move_id}/learners/by-game": {
+   "get": {
+    "operationId": "move_learners_by_game_api_moves__move_id__learners_by_game_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "move_id",
+      "required": true,
+      "schema": {
+       "title": "Move Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Game id; omit for every game",
+      "in": "query",
+      "name": "version_group",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Game id; omit for every game",
+       "title": "Version Group"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MoveGameLearnersOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Move Learners By Game",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
   "/api/pokemon": {
    "get": {
     "operationId": "list_pokemon_api_pokemon_get",
@@ -1536,6 +2238,270 @@
     "summary": "Get Pokemon",
     "tags": [
      "pokedex"
+    ]
+   }
+  },
+  "/api/pokemon/{pokemon_id}/encounters": {
+   "get": {
+    "description": "Where a species or form (id > 10000) is found in the wild, one game at a time.",
+    "operationId": "pokemon_encounters_api_pokemon__pokemon_id__encounters_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Game (version) id; omit for the newest",
+      "in": "query",
+      "name": "version",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Game (version) id; omit for the newest",
+       "title": "Version"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PokemonEncountersOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Pokemon Encounters",
+    "tags": [
+     "pokedex"
+    ]
+   }
+  },
+  "/api/pokemon/{pokemon_id}/moves/by-game": {
+   "get": {
+    "description": "A species' or form's (id > 10000) learnset in one game, with TM labels.",
+    "operationId": "pokemon_moves_by_game_api_pokemon__pokemon_id__moves_by_game_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Game id; omit for the newest game",
+      "in": "query",
+      "name": "version_group",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Game id; omit for the newest game",
+       "title": "Version Group"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PokemonGameMovesOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Pokemon Moves By Game",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
+  "/api/profile": {
+   "get": {
+    "operationId": "get_profile_api_profile_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Get Profile",
+    "tags": [
+     "profile"
+    ]
+   },
+   "put": {
+    "operationId": "update_profile_api_profile_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProfileUpdate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Profile",
+    "tags": [
+     "profile"
+    ]
+   }
+  },
+  "/api/profile/favorites/{pokemon_id}": {
+   "delete": {
+    "operationId": "remove_favorite_api_profile_favorites__pokemon_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Remove Favorite",
+    "tags": [
+     "profile"
+    ]
+   },
+   "post": {
+    "operationId": "add_favorite_api_profile_favorites__pokemon_id__post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Add Favorite",
+    "tags": [
+     "profile"
     ]
    }
   },
