@@ -76,13 +76,8 @@ class _CalcCoachSectionState extends ConsumerState<CalcCoachSection> {
             TextSpan(text: s.mon!.name, style: const TextStyle(fontWeight: FontWeight.w700)),
             const TextSpan(text: '. Damage and bulk questions are answered by the calculator itself.'),
           ])),
-        for (final (j, t) in (c?.turns ?? const <AskState>[]).indexed) _Turn(key: Key('calc-turn-$j'), turn: t, cardKey: '${c!.slot}:$j'),
         const SizedBox(height: Space.sm),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final q in [...(c?.build != null ? coachQuick : coachStart), ...calcChips])
-            ActionChip(key: Key('calc-q-$q'), label: Text(q, overflow: TextOverflow.ellipsis), onPressed: busy ? null : () => _ask(q)),
-        ]),
-        const SizedBox(height: Space.sm),
+        // Ask's order: the question box, the quick questions, then the conversation.
         TextField(
           key: const Key('calc-coach-field'),
           controller: _field,
@@ -103,6 +98,12 @@ class _CalcCoachSectionState extends ConsumerState<CalcCoachSection> {
             ),
           ),
         ),
+        const SizedBox(height: Space.sm),
+        SuggestionRows(
+          rows: [for (final q in [...(c?.build != null ? coachQuick : coachStart), ...calcChips]) (Key('calc-q-$q'), null, q)],
+          onTap: busy ? null : _ask,
+        ),
+        for (final (j, t) in (c?.turns ?? const <AskState>[]).indexed) _Turn(key: Key('calc-turn-$j'), turn: t, cardKey: '${c!.slot}:$j'),
       ]),
     );
   }
@@ -126,16 +127,11 @@ class _Turn extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(top: Space.md),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: Space.sm, vertical: 6),
-          decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.inset)),
-          child: Text(t.question, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-        ),
-        const SizedBox(height: Space.xs),
+        QuestionBubble(t.question),
         if (answer.isEmpty && t.status == AskStatus.streaming)
           Text('Coach is thinking…', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
         else if (answer.isNotEmpty)
-          AnswerText(answer, onCite: (_) {}, verdict: false),
+          AnswerText(answer, onCite: (_) {}),
         if (t.status == AskStatus.error && t.answer.isEmpty)
           Text(
             t.error is Unreachable ? "Can't reach the server at ${(t.error! as Unreachable).address}." : t.errorMessage ?? "The coach couldn't answer.",

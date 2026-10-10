@@ -72,17 +72,8 @@ class _CoachSectionState extends ConsumerState<CoachSection> {
           'saved until you press Apply.',
           style: AppText.bodySmall.copyWith(color: Palette.inkDim),
         ),
-        for (final (i, t) in turns.indexed) _Turn(key: Key('coach-turn-$i'), turn: t),
         const SizedBox(height: Space.sm),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final q in coachQuestions(team, opponent))
-            ActionChip(
-              key: Key('coach-q-$q'),
-              label: Text(q, overflow: TextOverflow.ellipsis),
-              onPressed: disabled || busy ? null : () => _ask(q),
-            ),
-        ]),
-        const SizedBox(height: Space.sm),
+        // Ask's order: the question box, the quick questions, then the conversation.
         TextField(
           key: const Key('coach-field'),
           controller: _field,
@@ -101,6 +92,12 @@ class _CoachSectionState extends ConsumerState<CoachSection> {
             ),
           ),
         ),
+        const SizedBox(height: Space.sm),
+        SuggestionRows(
+          rows: [for (final q in coachQuestions(team, opponent)) (Key('coach-q-$q'), null, q)],
+          onTap: disabled || busy ? null : _ask,
+        ),
+        for (final (i, t) in turns.indexed) _Turn(key: Key('coach-turn-$i'), turn: t),
       ]),
     );
   }
@@ -123,16 +120,11 @@ class _Turn extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: Space.md),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: Space.sm, vertical: 6),
-          decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.inset)),
-          child: Text(t.question, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-        ),
-        const SizedBox(height: Space.xs),
+        QuestionBubble(t.question),
         if (t.answer.isEmpty && t.status == AskStatus.streaming)
           Text(runningLine(t), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
         else if (t.answer.isNotEmpty)
-          AnswerText(t.answer, onCite: cite, verdict: false),
+          AnswerText(t.answer, onCite: cite, sources: t.sources),
         if (t.status == AskStatus.error && t.answer.isEmpty)
           Text(
             t.error is Unreachable

@@ -14,14 +14,13 @@ import '../../widgets/artwork.dart';
 /// bullets become rows that lead with the Pokémon's artwork when a source names it.
 /// [n] / 【n】 citations are small red chips that call [onCite]. A leading "*Note: …*"
 /// (what the plan couldn't filter by) is an amber notice, never the verdict.
-/// Coaches pass [verdict] false: their answers are conversation, not a ruling.
+/// Ask and both coaches share it, so every answer reads the same.
 class AnswerText extends ConsumerStatefulWidget {
-  const AnswerText(this.text, {super.key, required this.onCite, this.sources = const [], this.verdict = true, this.muted = false});
+  const AnswerText(this.text, {super.key, required this.onCite, this.sources = const [], this.muted = false});
 
   final String text;
   final void Function(int n) onCite;
   final List<Source> sources;
-  final bool verdict;
 
   /// The answer abstained: the verdict reads muted.
   final bool muted;
@@ -70,7 +69,7 @@ class _AnswerTextState extends ConsumerState<AnswerText> {
     final byName = {for (final s in widget.sources) if (s.pokemonName != null) s.pokemonName!.toLowerCase(): s};
     final lines = widget.text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
     final hasNote = lines.isNotEmpty && _note.hasMatch(lines.first);
-    final verdictAt = !widget.verdict ? -1 : (hasNote ? 1 : 0);
+    final verdictAt = hasNote ? 1 : 0;
     final out = <Widget>[];
     for (final (i, l) in lines.indexed) {
       if (i == 0 && hasNote) {

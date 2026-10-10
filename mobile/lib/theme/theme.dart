@@ -124,7 +124,30 @@ abstract final class AppTheme {
           side: const BorderSide(color: Palette.hairline),
         ),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(backgroundColor: Palette.panelWhite, surfaceTintColor: Colors.transparent),
+      // Every shape on the scale: 10 controls, 14 panels and sheets (no Material stadiums).
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Palette.panelWhite,
+        surfaceTintColor: Colors.transparent,
+        dragHandleColor: Palette.hairline,
+        dragHandleSize: Size(36, 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.card + 4))),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Palette.instrumentInk,
+          backgroundColor: Palette.panelWhite,
+          side: const BorderSide(color: Palette.hairline),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),
+          textStyle: AppText.label.copyWith(fontSize: 13.5),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: Palette.pokeballRedText,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),
+          textStyle: AppText.label.copyWith(fontSize: 13.5),
+        ),
+      ),
       dividerColor: Palette.hairline,
       // iOS feel on every platform: no ink ripples (a pressed thing dims instead),
       // iOS page slides with swipe-back, and each page opaque so pages never show through.

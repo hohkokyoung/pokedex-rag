@@ -166,7 +166,7 @@ class NavBar extends StatelessWidget {
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
           color: Palette.panelWhite,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(Radii.card + 4),
           border: Border.all(color: Palette.hairline),
         ),
         child: LayoutBuilder(
@@ -185,7 +185,7 @@ class NavBar extends StatelessWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: red ? const Color(0x14D8310C) : const Color(0x0F14171D),
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(Radii.card),
                       ),
                     ),
                   ),
@@ -344,7 +344,8 @@ class ChoiceRow extends StatelessWidget {
 }
 
 /// A sheet of choices with checks. With [many], rows toggle and the sheet stays open
-/// ([onChanged] gets the whole set each time); otherwise picking a row closes it.
+/// ([onChanged] gets the whole set each time); otherwise picking a row closes it. Long
+/// lists (moves, items, natures…) get a search box that matches the label and its note.
 Future<void> showChoices<T>(
   BuildContext context, {
   required String title,
@@ -360,46 +361,81 @@ Future<void> showChoices<T>(
   isScrollControlled: true,
   builder: (sheet) {
     var picked = {...selected};
+    var q = '';
+    final searchable = options.length > 12;
     return StatefulBuilder(
-      builder: (context, setSheet) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .75),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xs),
-                child: Text(title, style: AppText.headline),
-              ),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final (v, label, hint) in options)
-                      ChoiceRow(
-                        key: Key(keyOf?.call(label) ?? 'pick-$label'),
-                        label: label,
-                        hint: hint,
-                        selected: picked.contains(v),
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          if (many) {
-                            setSheet(() => picked = picked.contains(v) ? ({...picked}..remove(v)) : {...picked, v});
-                            onChanged(picked);
-                          } else {
-                            onChanged({v});
-                            Navigator.of(sheet).pop();
-                          }
-                        },
+      builder: (context, setSheet) {
+        final needle = q.trim().toLowerCase();
+        final shown = needle.isEmpty
+            ? options
+            : [
+                for (final o in options)
+                  if (o.$2.toLowerCase().contains(needle) || (o.$3?.toLowerCase().contains(needle) ?? false)) o,
+              ];
+        return Padding(
+          // Above the keyboard while searching.
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * (searchable ? .85 : .75)),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xs),
+                    child: Text(title, style: AppText.headline),
+                  ),
+                  if (searchable)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(Space.gutter, 4, Space.gutter, Space.xs),
+                      child: TextField(
+                        key: const Key('choices-search'),
+                        autocorrect: false,
+                        onChanged: (v) => setSheet(() => q = v),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          prefixIcon: const Icon(Icons.search, size: 18, color: Palette.mutedSlate),
+                          hintText: 'Search ${title.toLowerCase()}',
+                        ),
                       ),
-                  ],
-                ),
+                    ),
+                  Flexible(
+                    child: shown.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.all(Space.gutter),
+                            child: Text('Nothing matches.', style: AppText.body.copyWith(color: Palette.mutedSlate)),
+                          )
+                        : ListView(
+                            shrinkWrap: true,
+                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                            children: [
+                              for (final (v, label, hint) in shown)
+                                ChoiceRow(
+                                  key: Key(keyOf?.call(label) ?? 'pick-$label'),
+                                  label: label,
+                                  hint: hint,
+                                  selected: picked.contains(v),
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    if (many) {
+                                      setSheet(() => picked = picked.contains(v) ? ({...picked}..remove(v)) : {...picked, v});
+                                      onChanged(picked);
+                                    } else {
+                                      onChanged({v});
+                                      Navigator.of(sheet).pop();
+                                    }
+                                  },
+                                ),
+                            ],
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   },
 );
@@ -586,7 +622,7 @@ class SendButton extends StatelessWidget {
           height: 34,
           decoration: BoxDecoration(
             color: busy ? Palette.pokeballRed.withValues(alpha: .5) : Palette.pokeballRed,
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(Radii.control),
           ),
           child: Center(
             child: busy
@@ -620,7 +656,7 @@ class FilterPill extends StatelessWidget {
         padding: const EdgeInsets.only(left: 12, right: 8),
         decoration: BoxDecoration(
           color: on ? Palette.instrumentInk : Palette.panelWhite,
-          borderRadius: BorderRadius.circular(17),
+          borderRadius: BorderRadius.circular(Radii.control),
           border: Border.all(color: on ? Palette.instrumentInk : Palette.hairline),
         ),
         child: Row(
@@ -940,4 +976,78 @@ class _FoldRowState extends State<FoldRow> {
       ),
     );
   }
+}
+
+/// Questions to tap (Ask's starters and follow-ups, the coaches' quick questions): rows in
+/// one panel, an optional kind on the left, an arrow on the right. [rows] are
+/// (key, kind, question); a null [onTap] disables them (while an answer streams).
+class SuggestionRows extends StatelessWidget {
+  const SuggestionRows({super.key, required this.rows, required this.onTap, this.title});
+
+  final String? title;
+  final List<(Key, String?, String)> rows;
+  final ValueChanged<String>? onTap;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (title != null)
+        Padding(
+          padding: const EdgeInsets.only(bottom: Space.xs),
+          child: Text(title!, style: AppText.label.copyWith(color: Palette.mutedSlate)),
+        ),
+      Card(
+        child: Column(
+          children: [
+            for (final (i, (key, kind, q)) in rows.indexed)
+              Pressable(
+                key: key,
+                onTap: onTap == null ? null : () => onTap!(q),
+                child: Opacity(
+                  opacity: onTap == null ? .5 : 1,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 46),
+                    padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: 10),
+                    decoration: BoxDecoration(
+                      border: i == 0 ? null : const Border(top: BorderSide(color: Palette.hairlineSoft)),
+                    ),
+                    child: Row(
+                      children: [
+                        if (kind != null)
+                          SizedBox(
+                            width: 60,
+                            child: Text(kind, style: AppText.readout.copyWith(fontSize: 10.5, color: Palette.mutedSlate)),
+                          ),
+                        Expanded(child: Text(q, style: AppText.body.copyWith(color: Palette.instrumentInk))),
+                        const SizedBox(width: Space.xs),
+                        const Icon(Icons.arrow_forward, size: 16, color: Palette.faintSlate),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+/// A question as asked, above its answer in a conversation (the coaches).
+class QuestionBubble extends StatelessWidget {
+  const QuestionBubble(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerRight,
+    child: Container(
+      margin: const EdgeInsets.only(left: 48, bottom: Space.sm),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.control)),
+      child: Text(text, style: AppText.body.copyWith(color: Palette.instrumentInk)),
+    ),
+  );
 }

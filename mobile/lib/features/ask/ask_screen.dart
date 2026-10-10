@@ -145,48 +145,8 @@ class _AskScreenState extends ConsumerState<AskScreen> {
     );
   }
 
-  Widget _suggestions(String? title, List<(Key, String?, String)> rows) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      if (title != null)
-        Padding(
-          padding: const EdgeInsets.only(bottom: Space.xs),
-          child: Text(title, style: AppText.label.copyWith(color: Palette.mutedSlate)),
-        ),
-      Card(
-        child: Column(
-          children: [
-            for (final (i, (key, kind, q)) in rows.indexed)
-              Pressable(
-                key: key,
-                onTap: () => _ask(q),
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 46),
-                  padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: 10),
-                  decoration: BoxDecoration(
-                    border: i == 0 ? null : const Border(top: BorderSide(color: Palette.hairlineSoft)),
-                  ),
-                  child: Row(
-                    children: [
-                      if (kind != null)
-                        SizedBox(
-                          width: 60,
-                          child: Text(kind, style: AppText.readout.copyWith(fontSize: 10.5, color: Palette.mutedSlate)),
-                        ),
-                      Expanded(
-                        child: Text(q, style: AppText.body.copyWith(color: Palette.instrumentInk)),
-                      ),
-                      const SizedBox(width: Space.xs),
-                      const Icon(Icons.arrow_forward, size: 16, color: Palette.faintSlate),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    ],
-  );
+  Widget _suggestions(String? title, List<(Key, String?, String)> rows) =>
+      SuggestionRows(title: title, rows: rows, onTap: _ask);
 
   List<Widget> _result(AskState run) {
     if (run.status == AskStatus.idle) return const [];
