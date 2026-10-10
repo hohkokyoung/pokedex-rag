@@ -11,7 +11,7 @@ import '../../theme/tokens.g.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
 import '../../widgets/ui.dart';
-import '../pokedex/filters_sheet.dart' show TypeToggle;
+import '../pokedex/filters_sheet.dart' show TypeGrid;
 import '../pokedex/list_state.dart' show typeOptionsProvider;
 import 'finder_logic.dart';
 import 'lookup_sheets.dart' show AbilitySheet, ItemSheet, openMove, showLookupSheet;
@@ -193,29 +193,31 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
     final games = ref.watch(moveGamesProvider).value ?? const <MoveGameOut>[];
     final gameName = games.where((g) => g.id == game).firstOrNull?.name;
     return [
-      SizedBox(
-        height: 32,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: typeList.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 6),
-          itemBuilder: (_, i) {
-            final t = typeList[i];
-            return TypeToggle(
-              key: Key('finder-type-$t'),
-              type: t,
-              selected: types.contains(t),
-              onChanged: (_) => setState(() => types = types.contains(t) ? ({...types}..remove(t)) : {...types, t}),
-            );
-          },
-        ),
-      ),
-      const SizedBox(height: 8),
       Wrap(
         spacing: 6,
         runSpacing: 6,
         children: [
-          _FilterButton(
+          FilterPill(
+            key: const Key('filter-type'),
+            label: types.isEmpty ? 'Type' : types.map(_cap).join(', '),
+            on: types.isNotEmpty,
+            onTap: () => showPanelSheet(
+              context,
+              title: 'Type',
+              builder: (_) => StatefulBuilder(
+                builder: (context, setSheet) => TypeGrid(
+                  keyPrefix: 'finder-type',
+                  types: typeList,
+                  selected: types.toList(),
+                  onChanged: (next) {
+                    setState(() => types = next.toSet());
+                    setSheet(() {});
+                  },
+                ),
+              ),
+            ),
+          ),
+          FilterPill(
             key: const Key('filter-category'),
             label: cats.isEmpty ? 'Category' : cats.map(_cap).join(', '),
             on: cats.isNotEmpty,
@@ -226,7 +228,7 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
               (s) => setState(() => cats = s),
             ),
           ),
-          _FilterButton(
+          FilterPill(
             key: const Key('filter-kind'),
             label: kinds.isEmpty
                 ? 'Kind'
@@ -238,7 +240,7 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
             onTap: () =>
                 _pickMany('Kind', [for (final (k, l) in _kinds) (k, l, null)], kinds, (s) => setState(() => kinds = s)),
           ),
-          _FilterButton(
+          FilterPill(
             key: const Key('filter-game'),
             label: gameName ?? 'Any game',
             on: game != null,
@@ -286,7 +288,7 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
         spacing: 6,
         runSpacing: 6,
         children: [
-          _FilterButton(
+          FilterPill(
             key: const Key('filter-item-category'),
             label: itemCats.isEmpty ? 'Category' : itemCats.map(_cap).join(', '),
             on: itemCats.isNotEmpty,
@@ -552,43 +554,3 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
       showChoices<T>(context, title: title, options: options, selected: {current}, onChanged: (s) => apply(s.first));
 }
 
-/// A filter control: white and hairline when off, ink-filled when it holds a choice.
-class _FilterButton extends StatelessWidget {
-  const _FilterButton({super.key, required this.label, required this.on, required this.onTap});
-
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: on ? Palette.instrumentInk : Palette.panelWhite,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(Radii.control),
-      side: BorderSide(color: on ? Palette.instrumentInk : Palette.hairline),
-    ),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(Radii.control),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 200),
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppText.label.copyWith(fontSize: 13.5, color: on ? Palette.panelWhite : Palette.inkDim),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.expand_more, size: 16, color: on ? Palette.panelWhite : Palette.mutedSlate),
-          ],
-        ),
-      ),
-    ),
-  );
-}

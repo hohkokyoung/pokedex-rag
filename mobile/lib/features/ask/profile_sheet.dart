@@ -8,7 +8,7 @@ import '../../data/server.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../pokedex/favourites.dart';
-import '../pokedex/filters_sheet.dart' show TypeToggle;
+import '../pokedex/filters_sheet.dart' show TypeGrid;
 import '../pokedex/list_state.dart' show typeOptionsProvider;
 
 /// The server profile's preferred types (shared with the website), for "for you" answers.
@@ -61,15 +61,17 @@ class ProfileSheet extends ConsumerWidget {
         const SizedBox(height: Space.md),
         Text('Preferred types', style: AppText.label.copyWith(color: Palette.mutedSlate)),
         const SizedBox(height: Space.xs),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final t in types)
-            TypeToggle(
-              key: Key('pref-$t'),
-              type: t,
-              selected: preferred.contains(t),
-              onChanged: (_) => ref.read(preferredTypesProvider.notifier).toggle(t),
-            ),
-        ]),
+        TypeGrid(
+          keyPrefix: 'pref',
+          types: types,
+          selected: preferred,
+          // The grid hands back the new set; the profile toggles the one that changed.
+          onChanged: (next) {
+            for (final t in {...next.where((t) => !preferred.contains(t)), ...preferred.where((t) => !next.contains(t))}) {
+              ref.read(preferredTypesProvider.notifier).toggle(t);
+            }
+          },
+        ),
         const SizedBox(height: Space.lg),
         Text('Favourites (${favs.length})', style: AppText.label.copyWith(color: Palette.mutedSlate)),
         if (favs.isEmpty)

@@ -8,7 +8,6 @@ agree.
 
 ## Requirements
 
-
 ### Requirement: Paged Pokédex list
 The app SHALL list Pokémon from the backend's list endpoint in pages, loading the next page as the user nears the end. Each row SHALL show the dex number, name, type chips with type names, and an artwork thumbnail from the backend's sprites.
 
@@ -132,15 +131,15 @@ Tapping a move SHALL show its type, category, power, accuracy, PP and effect. It
 - **THEN** a sheet shows Earthquake's details and its Scarlet / Violet learners, Torterra among them
 
 ### Requirement: Dex entries and where to find
-The detail page SHALL show dex entries grouped by generation. It SHALL show where to find the Pokémon per game: location, area, method, level range, rate and conditions. When the Pokémon has no encounter data, it SHALL say so.
+The detail page SHALL show dex entries one generation at a time, picked from a segmented control that starts on the newest; each entry SHALL list the games that share it. It SHALL show where to find the Pokémon per game: location, area, method, level range, rate and conditions. When the Pokémon has no encounter data, it SHALL say so.
 
 #### Scenario: Garchomp's encounters
 - **WHEN** the user opens Garchomp's Where to find
 - **THEN** it lists The Crown Tundra's Max Raid dens with levels 45–60
 
 #### Scenario: Dex entries
-- **WHEN** the user opens Garchomp's dex entries
-- **THEN** entries are grouped under their generations, with the games that share each entry
+- **WHEN** the user opens Garchomp's dex entries and picks IV
+- **THEN** the Generation IV entries show, each with the games that share it
 
 ### Requirement: Favourites
 The detail page SHALL let the user add or remove the Pokémon from favourites on the server profile, the one the website and Ask use. A Favourites screen SHALL list them, each opening its detail page.

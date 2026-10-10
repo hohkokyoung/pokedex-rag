@@ -107,7 +107,10 @@ void main() {
   testWidgets('dex entries by generation and where to find', (tester) async {
     await pumpApp(tester, be(), location: '/pokemon/445');
     await openPart(tester, 'where');
-    await see(tester, find.text('Gen IV'));
+    // One generation at a time: pick Gen IV.
+    await see(tester, find.byKey(const Key('dex-Gen IV')));
+    await tester.tap(find.byKey(const Key('dex-Gen IV')));
+    await tester.pumpAndSettle();
     await see(tester, find.text('Ballimere Lake · Max Den Q'));
     expect(find.textContaining('Max Raid · Lv 45–60'), findsWidgets);
   });

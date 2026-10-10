@@ -27,6 +27,8 @@ abstract final class AppTheme {
         displaySmall: AppText.display,
         headlineSmall: AppText.headline,
         titleMedium: AppText.title,
+        // Text fields use bodyLarge: keep them on the app's scale, not Material's 16.
+        bodyLarge: AppText.body.copyWith(fontSize: 15, height: 1.35),
         bodyMedium: AppText.body,
         bodySmall: AppText.bodySmall,
         labelMedium: AppText.label,
@@ -84,7 +86,7 @@ abstract final class AppTheme {
         side: const BorderSide(color: Palette.hairline),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),
         labelStyle: AppText.label.copyWith(
-          fontSize: 14,
+          fontSize: 13,
           color: WidgetStateColor.resolveWith(
             (states) => states.contains(WidgetState.selected) ? Palette.panelWhite : Palette.inkDim,
           ),
@@ -160,13 +162,15 @@ abstract final class AppTheme {
 /// The type scale with the variable-font weight axis set, so Space Grotesk and
 /// JetBrains Mono render at the weight DESIGN.md asks for.
 abstract final class AppText {
+  // DESIGN.md's scale is for the website; Space Grotesk is wide, so on a phone every
+  // step is a little smaller and body text a little tighter.
   static final display = _v(TypeScale.display);
-  static final headline = _v(TypeScale.headline);
-  static final title = _v(TypeScale.title);
-  static final body = _v(TypeScale.body);
-  static final bodySmall = _v(TypeScale.bodySmall);
-  static final label = _v(TypeScale.label);
-  static final readout = _v(TypeScale.readout);
+  static final headline = _v(TypeScale.headline.copyWith(fontSize: 16.5));
+  static final title = _v(TypeScale.title.copyWith(fontSize: 15));
+  static final body = _v(TypeScale.body.copyWith(fontSize: 14, height: 1.45));
+  static final bodySmall = _v(TypeScale.bodySmall.copyWith(fontSize: 12.5, height: 1.4));
+  static final label = _v(TypeScale.label.copyWith(fontSize: 12));
+  static final readout = _v(TypeScale.readout.copyWith(fontSize: 11));
 
   static TextStyle _v(TextStyle s) =>
       s.copyWith(fontVariations: [FontVariation.weight((s.fontWeight ?? FontWeight.w400).value.toDouble())]);

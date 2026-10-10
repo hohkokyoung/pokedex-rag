@@ -54,8 +54,6 @@ class _ListScreenState extends ConsumerState<ListScreen> {
   Widget build(BuildContext context) {
     final query = ref.watch(listQueryProvider);
     final list = ref.watch(pokedexListProvider);
-    final filters = query.types.length + query.generations.length;
-    final sorted = query.sort != 'dex' || query.descending;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -99,23 +97,10 @@ class _ListScreenState extends ConsumerState<ListScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Badge(
-                        isLabelVisible: filters > 0 || sorted,
-                        label: filters > 0 ? Text('$filters') : null,
-                        backgroundColor: Palette.pokeballRed,
-                        child: SquareButton(
-                          key: const Key('filters'),
-                          tooltip: 'Filter and sort',
-                          icon: Icons.tune,
-                          size: 48,
-                          onPressed: () => showFiltersSheet(context),
-                        ),
-                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  const _TypeStrip(),
+                  const SizedBox(height: Space.sm),
+                  const ListFilterBar(),
                 ],
               ),
             ),
@@ -128,39 +113,6 @@ class _ListScreenState extends ConsumerState<ListScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// One tap filters by a type (up to two, as the filter sheet allows); the website's type toggles.
-class _TypeStrip extends ConsumerWidget {
-  const _TypeStrip();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final types = ref.watch(typeOptionsProvider).value ?? const <String>[];
-    final q = ref.watch(listQueryProvider);
-    if (types.isEmpty) return const SizedBox(height: 32);
-    return SizedBox(
-      height: 32,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: types.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
-        itemBuilder: (_, i) {
-          final t = types[i];
-          final on = q.types.contains(t);
-          return TypeToggle(
-            key: Key('strip-$t'),
-            type: t,
-            selected: on,
-            onChanged: (_) {
-              final next = on ? q.types.where((x) => x != t).toList() : [...q.types, t];
-              ref.read(listQueryProvider.notifier).set(q.copyWith(types: next.length > 2 ? next.sublist(next.length - 2) : next));
-            },
-          );
-        },
       ),
     );
   }
@@ -237,7 +189,6 @@ class _Results extends ConsumerWidget {
                       style: AppText.bodySmall.copyWith(color: Palette.mutedSlate),
                     ),
                   ),
-                  Text(_sortLabel(query), style: AppText.readout.copyWith(fontSize: 12, color: Palette.mutedSlate)),
                 ],
               ),
             ),
@@ -284,20 +235,6 @@ class _Results extends ConsumerWidget {
 
   static String _count(int n) => n.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
 
-  static String _sortLabel(ListQuery q) {
-    final name = switch (q.sort) {
-      'name' => 'by name',
-      'total' => 'by total',
-      'hp' => 'by HP',
-      'attack' => 'by Attack',
-      'defense' => 'by Defense',
-      'sp_attack' => 'by Sp. Atk',
-      'sp_defense' => 'by Sp. Def',
-      'speed' => 'by Speed',
-      _ => 'by dex',
-    };
-    return '$name ${q.descending ? '↓' : '↑'}';
-  }
 }
 
 /// The website's catalog card: dex number, the sorted number (labelled), artwork on a

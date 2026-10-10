@@ -10,7 +10,7 @@ import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
 import '../pokedex/detail_sections.dart' show Section;
 import '../pokedex/detail_state.dart' show typeChartProvider;
-import '../pokedex/filters_sheet.dart' show TypeToggle;
+import '../pokedex/filters_sheet.dart' show TypeGrid;
 
 /// What [attacker] does to a typing: the product over its types (the website's typingEff).
 num typingEff(TypeChartOut c, String attacker, List<String> defs) =>
@@ -41,13 +41,6 @@ class TypeCalcScreen extends ConsumerStatefulWidget {
 class _TypeCalcScreenState extends ConsumerState<TypeCalcScreen> {
   List<String> sel = ['fire'];
 
-  // A third pick replaces the older of the two.
-  void toggle(String t) => setState(() => sel = sel.contains(t)
-      ? sel.where((x) => x != t).toList()
-      : sel.length < 2
-          ? [...sel, t]
-          : [sel[1], t]);
-
   @override
   Widget build(BuildContext context) {
     final chart = ref.watch(typeChartProvider);
@@ -59,10 +52,8 @@ class _TypeCalcScreenState extends ConsumerState<TypeCalcScreen> {
             children: [
               Text('Defends as 1–2 types', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
               const SizedBox(height: Space.sm),
-              Wrap(spacing: 6, runSpacing: 6, children: [
-                for (final t in value.order)
-                  TypeToggle(key: Key('calc-$t'), type: t, selected: sel.contains(t), onChanged: (_) => toggle(t)),
-              ]),
+              // A third pick replaces the older of the two.
+              TypeGrid(keyPrefix: 'calc', types: value.order, selected: sel, max: 2, onChanged: (next) => setState(() => sel = next)),
               const SizedBox(height: Space.md),
               if (sel.isNotEmpty) _result(typeCalc(value, sel)),
             ],

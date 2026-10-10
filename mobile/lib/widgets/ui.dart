@@ -27,7 +27,7 @@ class Ground extends StatelessWidget {
 
 /// A screen's title: Chakra Petch, one per screen.
 class PageTitle extends StatelessWidget {
-  const PageTitle(this.text, {super.key, this.size = 34});
+  const PageTitle(this.text, {super.key, this.size = 30});
 
   final String text;
   final double size;
@@ -556,12 +556,13 @@ class SquareButton extends StatelessWidget {
 PreferredSizeWidget pageBar(String title, {bool root = false, List<Widget>? actions}) => AppBar(
       toolbarHeight: root ? 64 : 56,
       titleSpacing: root ? Space.gutter : 0,
-      title: PageTitle(title, size: root ? 30 : 24),
+      title: PageTitle(title, size: root ? 28 : 22),
       actions: [...?actions, if (actions != null) const SizedBox(width: Space.gutter - 4)],
     );
 
-/// The red send button inside a question box (Ask and both coaches): "Ask", or a spinner
-/// while an answer streams.
+/// The send button inside a question box (Ask and both coaches): a small red circle
+/// with an up arrow, as in iOS Messages; a spinner while an answer streams. [label] is
+/// what it says to screen readers.
 class SendButton extends StatelessWidget {
   const SendButton({super.key, required this.busy, required this.onPressed, this.label = 'Ask'});
 
@@ -570,19 +571,99 @@ class SendButton extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(5),
-        child: FilledButton(
-          onPressed: busy ? null : onPressed,
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(64, 40),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            disabledBackgroundColor: Palette.pokeballRed.withValues(alpha: .45),
-            disabledForegroundColor: Palette.panelWhite,
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    child: Padding(
+      padding: const EdgeInsets.all(6),
+      child: Pressable(
+        onTap: busy ? null : onPressed,
+        child: AnimatedContainer(
+          duration: MediaQuery.of(context).disableAnimations ? Duration.zero : const Duration(milliseconds: 160),
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: busy ? Palette.pokeballRed.withValues(alpha: .5) : Palette.pokeballRed,
+            shape: BoxShape.circle,
           ),
-          child: busy
-              ? const Spinner(radius: 8, color: Palette.panelWhite)
-              : Text(label, style: AppText.label.copyWith(fontSize: 14, color: Palette.panelWhite)),
+          child: Center(
+            child: busy
+                ? const Spinner(radius: 7, color: Palette.panelWhite)
+                : const Icon(Icons.arrow_upward_rounded, size: 20, color: Palette.panelWhite),
+          ),
         ),
-      );
+      ),
+    ),
+  );
 }
+
+/// A filter control: white and hairline when off, ink-filled when it holds a choice; a
+/// tap opens that filter's sheet.
+class FilterPill extends StatelessWidget {
+  const FilterPill({super.key, required this.label, required this.on, required this.onTap, this.icon = Icons.expand_more});
+
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: on,
+    child: Pressable(
+      onTap: onTap,
+      child: Container(
+        height: 34,
+        padding: const EdgeInsets.only(left: 12, right: 8),
+        decoration: BoxDecoration(
+          color: on ? Palette.instrumentInk : Palette.panelWhite,
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: on ? Palette.instrumentInk : Palette.hairline),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 180),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.label.copyWith(fontSize: 13, color: on ? Palette.panelWhite : Palette.inkDim),
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(icon, size: 16, color: on ? Palette.panelWhite : Palette.mutedSlate),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// A sheet with a title and free content (a type grid, a sort list), sized to it.
+Future<void> showPanelSheet(BuildContext context, {required String title, required WidgetBuilder builder}) =>
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .8),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(title, style: AppText.headline),
+                const SizedBox(height: Space.sm),
+                builder(context),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );

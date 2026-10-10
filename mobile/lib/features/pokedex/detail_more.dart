@@ -10,7 +10,7 @@ import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/type_chip.dart';
-import '../../widgets/ui.dart' show PickerButton;
+import '../../widgets/ui.dart' show PickerButton, Segmented;
 import 'detail_sections.dart';
 import 'detail_state.dart';
 
@@ -160,7 +160,7 @@ class _MovesetCardState extends ConsumerState<MovesetCard> {
         key: const Key('moveset-game'),
         title: 'Game',
         value: game,
-        options: [for (final g in m.games) (g.id, g.name, '${g.moves} moves')],
+        options: [for (final g in m.games) (g.id, g.name, g.moves == 1 ? '1 move' : '${g.moves} moves')],
         onChanged: (v) => setState(() => _game = v),
       ),
       const SizedBox(height: Space.xs),
@@ -312,33 +312,58 @@ class MoveSheet extends ConsumerWidget {
 
 // ---------------------------------------------------------------- dex entries
 
-class DexEntriesCard extends StatelessWidget {
+/// A species' Pokédex entries, one generation at a time (newest first shown), each entry
+/// with the games that printed it.
+class DexEntriesCard extends StatefulWidget {
   const DexEntriesCard({super.key, required this.entries});
 
   final List<FlavorEntry> entries;
 
   @override
+  State<DexEntriesCard> createState() => _DexEntriesCardState();
+}
+
+class _DexEntriesCardState extends State<DexEntriesCard> {
+  String? _gen;
+
+  @override
   Widget build(BuildContext context) {
     final byGen = <String, List<FlavorEntry>>{};
-    for (final e in entries) {
+    for (final e in widget.entries) {
       byGen.putIfAbsent(e.generationLabel ?? 'Other', () => []).add(e);
     }
+    if (byGen.isEmpty) return const SizedBox.shrink();
+    final gen = byGen.containsKey(_gen) ? _gen! : byGen.keys.last;
+    final list = byGen[gen]!;
     return Section(
       title: 'Dex entries',
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        for (final MapEntry(key: gen, value: list) in byGen.entries) ...[
-          Text(gen, style: AppText.label.copyWith(color: Palette.mutedSlate)),
-          for (final e in list)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(e.text, style: AppText.bodySmall),
-                Text((e.versions.isEmpty ? [e.version ?? ''] : e.versions).join(' · '),
-                    style: AppText.readout.copyWith(fontSize: 10.5, color: Palette.mutedSlate)),
-              ]),
-            ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (byGen.length > 1) ...[
+          Segmented<String>(
+            key: const Key('dex-gen'),
+            compact: true,
+            value: gen,
+            onChanged: (g) => setState(() => _gen = g),
+            // "Gen IV" → "IV": nine fit across a phone.
+            options: [for (final g in byGen.keys) (g, g.replaceFirst('Gen ', ''), Key('dex-$g'))],
+          ),
           const SizedBox(height: Space.sm),
         ],
+        for (final (i, e) in list.indexed)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              border: i == 0 ? null : const Border(top: BorderSide(color: Palette.hairlineSoft)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(e.text, style: AppText.body.copyWith(color: Palette.instrumentInk)),
+              const SizedBox(height: 4),
+              Text(
+                (e.versions.isEmpty ? [e.version ?? ''] : e.versions).join(', '),
+                style: AppText.label.copyWith(fontSize: 11.5, fontWeight: FontWeight.w500, color: Palette.mutedSlate),
+              ),
+            ]),
+          ),
       ]),
     );
   }
@@ -382,7 +407,7 @@ class _EncountersCardState extends ConsumerState<EncountersCard> {
           key: const Key('encounters-game'),
           title: 'Game',
           value: e.versionId ?? e.games.last.versionId,
-          options: [for (final g in e.games) (g.versionId, g.version, '${g.places} places')],
+          options: [for (final g in e.games) (g.versionId, g.version, g.places == 1 ? '1 place' : '${g.places} places')],
           onChanged: (v) => setState(() => _version = v),
         )
       else

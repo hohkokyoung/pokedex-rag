@@ -77,28 +77,32 @@ void main() {
     expect(afterSearch['offset'], 0);
     expect(afterSearch['q'], 'garch');
 
-    await tester.tap(find.byKey(const Key('filters')));
+    await tester.tap(find.byKey(const Key('filter-type')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('type-dragon')));
     await tester.pumpAndSettle();
     final afterType = next();
     expect(afterType['type'], ['dragon']);
     expect(afterType['offset'], 0);
+    await _closeSheet(tester);
 
+    await tester.tap(find.byKey(const Key('filter-gen')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('gen-4')));
     await tester.pumpAndSettle();
     expect(next()['generation'], [4]);
+    await _closeSheet(tester);
 
-    await tester.tap(find.byKey(const Key('sort-speed')));
+    await tester.tap(find.byKey(const Key('filter-sort')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('order')));
+    await tester.tap(find.byKey(const Key('order-desc')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sort-speed'))); // picking a sort closes the sheet
     await tester.pumpAndSettle();
     expect(last()['sort'], 'speed');
     expect(last()['order'], 'desc');
     expect(last()['q'], 'garch'); // filters keep the search
     // Cards lead with the stat being sorted by.
-    await tester.tapAt(const Offset(195, 20)); // close the sheet
-    await tester.pumpAndSettle();
     expect(find.text('Speed'), findsWidgets);
     expect(find.text('Total'), findsNothing);
   });
@@ -106,7 +110,7 @@ void main() {
   testWidgets('a third type replaces the oldest (two at most)', (tester) async {
     final be = backend();
     await pumpApp(tester, be);
-    await tester.tap(find.byKey(const Key('filters')));
+    await tester.tap(find.byKey(const Key('filter-type')));
     await tester.pumpAndSettle();
     for (final t in ['fire', 'water', 'grass']) {
       await tester.tap(find.byKey(Key('type-$t')));
@@ -114,4 +118,9 @@ void main() {
     }
     expect(be.requests.lastWhere((r) => r.path == '/api/pokemon').queryParameters['type'], ['water', 'grass']);
   });
+}
+
+Future<void> _closeSheet(WidgetTester tester) async {
+  await tester.tapAt(const Offset(195, 20));
+  await tester.pumpAndSettle();
 }

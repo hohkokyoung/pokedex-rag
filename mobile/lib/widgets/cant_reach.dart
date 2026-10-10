@@ -13,8 +13,9 @@ class CantReach extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Scrolls when the space is short (a small phone, a tall header), never overflows.
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(Space.gutter * 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,

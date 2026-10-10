@@ -20,6 +20,8 @@ The website's light Instrument language, cleaner:
   - Choices open a sheet of rows with a red check (`PickerButton`, `showChoices`), not
     dropdown menus.
   - Spinners and alerts are iOS's.
+- **Type scale:** one step smaller than the website's (body 14), since Space Grotesk
+  is wide. Question boxes send with a small round red arrow.
 - **Long pages:** split into segments. A Pokémon has Overview, Moves, Evolution and
   Where. A team has Report, Coach and Compare.
 - **Shared parts:** in `mobile/lib/widgets/ui.dart`.
@@ -29,9 +31,12 @@ The website's light Instrument language, cleaner:
 All species as the website's two-column cards, loading more as you scroll.
 
 - **Search** by name or dex number.
-- **Filter** by up to two types (all must match) and by generation (any may match).
-- **Sort** by dex number, name, base stat total or any stat, either way round. Each
-  row leads with the number you sorted by (BST otherwise).
+- **Filter** with a row of pills, each opening its own sheet:
+  - **Type:** up to two (all must match), picked from a three-column grid of type
+    chips. Picked ones show a check; the rest fade.
+  - **Generation:** any may match.
+- **Sort** (the third pill) by dex number, name, base stat total or any stat, either
+  way round. Each row leads with the number you sorted by (BST otherwise).
 
 Rows show the dex number, name, type chips and artwork. No matches says so and offers
 to clear the search and filters.
@@ -48,7 +53,7 @@ to clear the search and filters.
 | Spin guide | for Milcery and Alcremie: the steps, the topping per Sweet and the spin per cream |
 | Facts & training | height, weight, habitat, capture rate, base experience, colour; gender ratio, egg groups, egg cycles (~steps), growth rate, EV yield, base friendship |
 | Moveset | per game (newest by default): Level-up ("Evo" = learned on evolving), Egg, TM / HM with the TM number, Tutor, Other; filter by category and type. Tap a move for its details and who else learns it in that game |
-| Dex entries | every game's entry, grouped by generation |
+| Dex entries | one generation at a time (newest first), each entry with the games that share it |
 | Where to find | per game: location, method, levels, rate and conditions, raid dens included (data ends at Sword / Shield) |
 
 The app bar has **♡ favourite** (the same server profile the website and Ask's "for you"
@@ -149,8 +154,8 @@ The website home page's tool tiles, one page each:
   once and filtered on the phone.
   - One search carries across the three tabs, and while searching each tab counts its
     matches.
-  - Moves filter by type, category, kind (regular, Z-Move, Max Move) and game, and sort
-    by power, PP, accuracy or name.
+  - Moves filter by type, category, kind (regular, Z-Move, Max Move) and game (one pill
+    each), and sort by power, PP, accuracy or name.
   - Abilities also match their effect text, so "rain" finds Drizzle.
   - Items sort by name, cost or Fling power.
   - Kinds and which moves each game had come from the server (`MoveOut.kind`,

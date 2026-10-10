@@ -113,6 +113,7 @@ void main() {
     expect((revert.data as Map)['pokemon_id'], 445);
     expect((revert.data as Map)['move_ids'], isNull); // the recorded Garchomp had no moves set
     expect(find.byKey(const Key('set-apply')), findsOneWidget);
+    await flush(tester);
   });
 
   testWidgets('Dismiss hides a proposal without saving', (tester) async {
