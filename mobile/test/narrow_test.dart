@@ -38,12 +38,16 @@ void main() {
 
   testWidgets('Garchomp at 375pt, every section', (tester) async {
     await pumpApp(tester, be(), size: se, location: '/pokemon/445');
-    await scrollToEnd(tester);
+    for (final part in ['overview', 'moves', 'evolution', 'where']) {
+      await openPart(tester, part);
+      await scrollToEnd(tester);
+    }
     expect(find.text('Where to find'), findsOneWidget);
   });
 
   testWidgets('Alcremie and its spin guide at 375pt', (tester) async {
     await pumpApp(tester, be(), size: se, location: '/pokemon/869');
+    await openPart(tester, 'evolution');
     await scrollToEnd(tester);
     expect(find.textContaining('Rules from Pokémon Sword'), findsOneWidget);
   });

@@ -63,6 +63,7 @@ void main() {
   testWidgets('a plain question streams the server report, with no writes', (tester) async {
     final be = teamsBackend();
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _show(tester, find.byKey(const Key("coach-q-What's my team's biggest weakness?")));
     await _tap(tester, find.byKey(const Key("coach-q-What's my team's biggest weakness?")));
     expect(find.textContaining('overall 19/100'), findsOneWidget);
@@ -75,6 +76,7 @@ void main() {
   testWidgets('with an opponent the request carries it', (tester) async {
     final be = teamsBackend();
     await pumpApp(tester, be, location: '/teams/456?vs=554');
+    await openPart(tester, 'coach');
     await _show(tester, find.byKey(const Key('coach-field'))); // the opponent loads with the section
     await _show(tester, find.byKey(const Key('coach-q-How do I beat Rival (mockup)?')));
     await _tap(tester, find.byKey(const Key('coach-q-How do I beat Rival (mockup)?')));
@@ -84,7 +86,7 @@ void main() {
 
   testWidgets('an empty team disables the coach', (tester) async {
     final be = teamsBackend(size456: 0);
-    await pumpApp(tester, be, location: '/teams/456');
+    await pumpApp(tester, be, location: '/teams/456'); // an empty team has no segments
     await _show(tester, find.byKey(const Key('coach-field')));
     expect(tester.widget<TextField>(find.byKey(const Key('coach-field'))).enabled, isFalse);
     expect(find.text('Add a Pokémon first…'), findsOneWidget);
@@ -93,6 +95,7 @@ void main() {
   testWidgets('a set change saves only on Apply, and Revert restores the member', (tester) async {
     final be = teamsBackend();
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Give Garchomp its best set');
     expect(find.byKey(const Key('set-apply')), findsOneWidget);
     expect(_writes(be), isEmpty, reason: 'nothing saves without a click');
@@ -115,6 +118,7 @@ void main() {
   testWidgets('Dismiss hides a proposal without saving', (tester) async {
     final be = teamsBackend();
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Give Garchomp its best set');
     await _tap(tester, find.byKey(const Key('set-dismiss')));
     expect(find.byKey(const Key('set-apply')), findsNothing);
@@ -124,6 +128,7 @@ void main() {
   testWidgets('a candidate Add fills the first empty slot; Revert clears it', (tester) async {
     final be = teamsBackend(size456: 2);
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Draft the rest of my team: I like sweepers, non-legendary');
     final add = find.byKey(const Key('cand-add')).first;
     await _tap(tester, add);
@@ -140,6 +145,7 @@ void main() {
   testWidgets('on a full team Replace… → member → Confirm swaps; Revert restores', (tester) async {
     final be = teamsBackend();
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Draft the rest of my team: I like sweepers, non-legendary');
     expect(find.byKey(const Key('cand-add')), findsNothing);
     await _tap(tester, find.byKey(const Key('cand-replace')).first);
@@ -161,6 +167,7 @@ void main() {
   testWidgets('an explicit add refreshes the page and Undo clears the slot', (tester) async {
     final be = teamsBackend(size456: 2);
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     final before = be.requests.where((r) => r.path == '/api/teams/456' && r.method == 'GET').length;
     await _coach(tester, 'add Dragonite');
     expect(be.requests.where((r) => r.path == '/api/teams/456' && r.method == 'GET').length, greaterThan(before),
@@ -174,6 +181,7 @@ void main() {
 
   testWidgets('a duel card shows the outcome and the log', (tester) async {
     await pumpApp(tester, teamsBackend(), location: '/teams/456?vs=554');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Duel Garchomp against Blastoise');
     expect(find.byKey(const Key('duel-outcome')), findsOneWidget);
     expect(find.textContaining('Garchomp vs Blastoise'), findsOneWidget);
@@ -182,6 +190,7 @@ void main() {
 
   testWidgets('keyless, a set change says it needs a key', (tester) async {
     await pumpApp(tester, teamsBackend(coach: (b) => sse('coach_set_keyless')), location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Give Garchomp its best set');
     expect(find.textContaining('need an LLM key'), findsOneWidget);
     expect(find.byKey(const Key('set-apply')), findsNothing);
@@ -192,6 +201,7 @@ void main() {
         ? const Raw('event: error\ndata: {"message": "Coaching failed: boom"}\n\n')
         : null);
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'fails');
     expect(find.text('Coaching failed: boom'), findsOneWidget);
     await _coach(tester, "What's my team's biggest weakness?");
@@ -201,6 +211,7 @@ void main() {
   testWidgets('a failed save shows on its card', (tester) async {
     final be = teamsBackend(rejectStatus: 422);
     await pumpApp(tester, be, location: '/teams/456');
+    await openPart(tester, 'coach');
     await _coach(tester, 'Give Garchomp its best set');
     await _tap(tester, find.byKey(const Key('set-apply')));
     expect(find.byKey(const Key('coach-card-error')), findsOneWidget);

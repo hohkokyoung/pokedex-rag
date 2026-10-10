@@ -5,6 +5,7 @@ import '../../api/export.dart';
 import '../../data/errors.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../ask/answer_text.dart';
 import '../ask/ask_cards.dart';
 import '../ask/ask_parts.dart';
@@ -93,12 +94,10 @@ class _CoachSectionState extends ConsumerState<CoachSection> {
           maxLines: 3,
           decoration: InputDecoration(
             hintText: disabled ? 'Add a Pokémon first…' : 'Ask the coach, or tell it what to change…',
-            suffixIcon: IconButton(
+            suffixIcon: SendButton(
               key: const Key('coach-send'),
-              icon: busy
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.arrow_upward),
-              onPressed: disabled || busy ? null : () => _ask(_field.text),
+              busy: busy,
+              onPressed: disabled ? null : () => _ask(_field.text),
             ),
           ),
         ),

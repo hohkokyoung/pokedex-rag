@@ -69,6 +69,7 @@ void main() {
   testWidgets('moveset: Evo, TM labels, game switch and filters', (tester) async {
     final b = be();
     await pumpApp(tester, b, location: '/pokemon/445');
+    await openPart(tester, 'moves');
     await see(tester, find.byKey(const Key('moveset-game')));
     await see(tester, find.byKey(const Key('move-242-level-up')));
     expect(find.descendant(of: find.byKey(const Key('move-242-level-up')), matching: find.text('Evo')), findsOneWidget);
@@ -90,6 +91,7 @@ void main() {
 
   testWidgets('a move opens its learners, and a learner opens its page', (tester) async {
     await pumpApp(tester, be(), location: '/pokemon/445');
+    await openPart(tester, 'moves');
     await see(tester, find.byKey(const Key('move-89-machine')));
     await tester.tap(find.byKey(const Key('move-89-machine')));
     await tester.pumpAndSettle();
@@ -104,6 +106,7 @@ void main() {
 
   testWidgets('dex entries by generation and where to find', (tester) async {
     await pumpApp(tester, be(), location: '/pokemon/445');
+    await openPart(tester, 'where');
     await see(tester, find.text('Gen IV'));
     await see(tester, find.text('Ballimere Lake · Max Den Q'));
     expect(find.textContaining('Max Raid · Lv 45–60'), findsWidgets);

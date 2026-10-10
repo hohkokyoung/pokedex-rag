@@ -11,6 +11,7 @@ import '../../theme/tokens.g.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
+import '../../widgets/ui.dart';
 import 'detail_more.dart';
 import 'detail_sections.dart';
 import 'favourites.dart';
@@ -28,23 +29,27 @@ class DetailScreen extends ConsumerWidget {
     final d = detail.value;
     final total = ref.watch(dexTotalProvider).value;
     return Scaffold(
-      appBar: AppBar(actions: [
-        if (d != null) FavouriteButton(pokemon: d),
-        if (d != null && d.dexNumber > 1)
-          IconButton(
-            key: const Key('prev'),
-            tooltip: 'Previous',
-            icon: const Icon(Icons.chevron_left),
-            onPressed: () => context.replace('/pokemon/${d.dexNumber - 1}'),
-          ),
-        if (d != null && total != null && d.dexNumber < total)
-          IconButton(
-            key: const Key('next'),
-            tooltip: 'Next',
-            icon: const Icon(Icons.chevron_right),
-            onPressed: () => context.replace('/pokemon/${d.dexNumber + 1}'),
-          ),
-      ]),
+      appBar: AppBar(
+        toolbarHeight: 52,
+        actions: [
+          if (d != null && d.dexNumber > 1)
+            _StepButton(
+              key: const Key('prev'),
+              label: '‹ ${(d.dexNumber - 1).toString().padLeft(4, '0')}',
+              tooltip: 'Previous',
+              onPressed: () => context.replace('/pokemon/${d.dexNumber - 1}'),
+            ),
+          const SizedBox(width: 6),
+          if (d != null && total != null && d.dexNumber < total)
+            _StepButton(
+              key: const Key('next'),
+              label: '${(d.dexNumber + 1).toString().padLeft(4, '0')} ›',
+              tooltip: 'Next',
+              onPressed: () => context.replace('/pokemon/${d.dexNumber + 1}'),
+            ),
+          const SizedBox(width: Space.gutter),
+        ],
+      ),
       body: switch (detail) {
         AsyncData(:final value) => DetailBody(detail: value, formId: formId),
         AsyncError(:final error) => switch (error) {
@@ -89,57 +94,116 @@ class AbilityView {
   final String? effect;
 }
 
-class DetailBody extends ConsumerWidget {
+enum DetailPart { overview, moves, evolution, where }
+
+/// The website's hero, then the page in segments (Overview / Moves / Evolution / Where).
+class DetailBody extends ConsumerStatefulWidget {
   const DetailBody({super.key, required this.detail, this.formId});
 
   final PokemonDetail detail;
   final int? formId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final form = formId == null ? null : detail.forms.where((f) => f.id == formId).firstOrNull;
+  ConsumerState<DetailBody> createState() => _DetailBodyState();
+}
+
+class _DetailBodyState extends ConsumerState<DetailBody> {
+  DetailPart part = DetailPart.overview;
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = widget.detail;
+    final form = widget.formId == null ? null : detail.forms.where((f) => f.id == widget.formId).firstOrNull;
     final view = DetailView(detail, form);
     final base = ref.watch(serverAddressProvider);
     final still = MediaQuery.disableAnimationsOf(context);
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 3),
-      children: [
-        _Header(view: view, base: base, still: still),
-        if (detail.forms.isNotEmpty) ...[
-          const SizedBox(height: Space.md),
-          _FormSwitcher(detail: detail, selected: form?.id),
+    final entries = form?.flavorEntries.isNotEmpty == true ? form!.flavorEntries : detail.flavorEntries;
+    const gap = SizedBox(height: Space.sm);
+    final cards = switch (part) {
+      DetailPart.overview => [
+          StatsCard(key: ValueKey(('stats', view.currentId)), stats: view.stats, still: still, tint: TypeColors.fill[view.types.firstOrNull]),
+          gap,
+          AbilitiesCard(abilities: view.abilities),
+          gap,
+          MatchupsCard(matchups: view.matchups, types: view.types),
+          gap,
+          FactsCard(d: detail, form: form),
         ],
-        const SizedBox(height: Space.lg),
-        StatsCard(key: ValueKey(('stats', view.currentId)), stats: view.stats, still: still),
-        const SizedBox(height: Space.md),
-        AbilitiesCard(abilities: view.abilities),
-        const SizedBox(height: Space.md),
-        MatchupsCard(matchups: view.matchups, types: view.types),
-        const SizedBox(height: Space.md),
-        FactsCard(d: detail, form: form),
-        const SizedBox(height: Space.md),
-        MovesetCard(key: ValueKey(('moves', view.currentId)), pokemonId: view.currentId),
-        if (view.evoMembers.length > 1) ...[
-          const SizedBox(height: Space.md),
-          EvolutionCard(members: view.evoMembers, stages: view.evoStages, currentId: view.currentId, base: base),
+      DetailPart.moves => [MovesetCard(key: ValueKey(('moves', view.currentId)), pokemonId: view.currentId)],
+      DetailPart.evolution => [
+          if (view.evoMembers.length > 1)
+            EvolutionCard(members: view.evoMembers, stages: view.evoStages, currentId: view.currentId, base: base)
+          else
+            Section(title: 'Evolution', child: Text('${view.name} doesn’t evolve.', style: AppText.body.copyWith(color: Palette.inkDim))),
+          if (view.spinGuide != null) ...[gap, SpinGuideCard(guide: view.spinGuide!)],
         ],
-        if (view.spinGuide != null) ...[
-          const SizedBox(height: Space.md),
-          SpinGuideCard(guide: view.spinGuide!),
+      DetailPart.where => [
+          if (entries.isNotEmpty) ...[DexEntriesCard(entries: entries), gap],
+          EncountersCard(key: ValueKey(('enc', view.currentId)), pokemonId: view.currentId),
         ],
-        if ((form?.flavorEntries ?? detail.flavorEntries).isNotEmpty) ...[
-          const SizedBox(height: Space.md),
-          DexEntriesCard(entries: form?.flavorEntries.isNotEmpty == true ? form!.flavorEntries : detail.flavorEntries),
-        ],
-        const SizedBox(height: Space.md),
-        EncountersCard(key: ValueKey(('enc', view.currentId)), pokemonId: view.currentId),
-      ],
-    );
+    };
+    return CustomScrollView(slivers: [
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
+        sliver: SliverToBoxAdapter(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (detail.forms.isNotEmpty) _FormSwitcher(detail: detail, selected: form?.id),
+            _Hero(view: view, base: base, still: still),
+            _Identity(view: view),
+          ]),
+        ),
+      ),
+      SliverPersistentHeader(
+        pinned: true,
+        delegate: _PinnedSegments(
+          Segmented<DetailPart>(
+            key: const Key('detail-parts'),
+            value: part,
+            onChanged: (p) => setState(() => part = p),
+            options: const [
+              (DetailPart.overview, 'Overview', Key('part-overview')),
+              (DetailPart.moves, 'Moves', Key('part-moves')),
+              (DetailPart.evolution, 'Evolution', Key('part-evolution')),
+              (DetailPart.where, 'Where', Key('part-where')),
+            ],
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xs, Space.gutter, Space.gutter * 3),
+        sliver: SliverList(delegate: SliverChildListDelegate(cards)),
+      ),
+    ]);
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.view, required this.base, required this.still});
+/// Keeps the segments under the top bar while the page scrolls, on the ground's colour.
+class _PinnedSegments extends SliverPersistentHeaderDelegate {
+  _PinnedSegments(this.child);
+
+  final Widget child;
+  static const _h = 44.0 + Space.sm * 2;
+
+  @override
+  double get minExtent => _h;
+  @override
+  double get maxExtent => _h;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => Container(
+        color: overlapsContent || shrinkOffset > 0 ? const Color(0xF2EBE9F0) : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: Space.gutter, vertical: Space.sm),
+        child: child,
+      );
+
+  @override
+  bool shouldRebuild(covariant _PinnedSegments oldDelegate) => oldDelegate.child != child;
+}
+
+/// The website's detail hero: the artwork on a glow of its first type, over its ghosted
+/// dex number. The artwork arrives from the list card (Hero) and settles once.
+class _Hero extends StatelessWidget {
+  const _Hero({required this.view, required this.base, required this.still});
 
   final DetailView view;
   final String base;
@@ -147,28 +211,93 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final d = view.detail;
-    final art = Artwork(spriteUrl(base, view.spriteUrl), size: 220);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Center(
-        // The artwork settles in once per Pokémon or form; reduced motion shows it at rest.
-        child: TweenAnimationBuilder<double>(
-          key: ValueKey(view.spriteUrl),
-          tween: Tween(begin: still ? 1 : 0.92, end: 1),
-          duration: still ? Duration.zero : const Duration(milliseconds: 600),
-          curve: Curves.easeOutCubic,
-          builder: (_, t, child) => Opacity(opacity: still ? 1 : ((t - 0.92) / 0.08).clamp(0, 1), child: Transform.scale(scale: t, child: child)),
-          child: art,
+    final tint = TypeColors.fill[view.types.firstOrNull] ?? Palette.mutedSlate;
+    final no = '#${view.detail.dexNumber.toString().padLeft(4, '0')}';
+    return SizedBox(
+      height: 280,
+      child: Stack(alignment: Alignment.center, children: [
+        Container(
+          width: 300,
+          height: 300,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(colors: [tint.withValues(alpha: .42), tint.withValues(alpha: 0)], stops: const [0, .68]),
+          ),
         ),
+        ExcludeSemantics(
+          child: Text(no,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.clip,
+              style: AppText.display.copyWith(fontSize: 104, fontWeight: FontWeight.w700, color: tint.withValues(alpha: .16), height: 1)),
+        ),
+        Hero(
+          tag: 'art-${view.form?.id ?? view.detail.dexNumber}',
+          child: TweenAnimationBuilder<double>(
+            key: ValueKey(view.spriteUrl),
+            tween: Tween(begin: still ? 1 : 0.94, end: 1),
+            duration: still ? Duration.zero : const Duration(milliseconds: 500),
+            curve: const Cubic(0.16, 1, 0.3, 1),
+            builder: (_, t, child) => Transform.scale(scale: t, child: child),
+            child: Artwork(spriteUrl(base, view.spriteUrl), size: 240),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Dex number and generation, name with the favourite beside it, genus, types.
+class _Identity extends StatelessWidget {
+  const _Identity({required this.view});
+
+  final DetailView view;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = view.detail;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        ['#${d.dexNumber.toString().padLeft(4, '0')}', ?d.generation?.name].join(' · '),
+        style: AppText.readout.copyWith(fontSize: 12, color: Palette.mutedSlate),
       ),
-      const SizedBox(height: Space.md),
-      Text('#${d.dexNumber.toString().padLeft(3, '0')}', style: AppText.readout.copyWith(color: Palette.mutedSlate)),
-      Text(view.name, style: AppText.display),
-      if (d.genus != null) Text(d.genus!, style: AppText.body.copyWith(color: Palette.inkDim)),
+      const SizedBox(height: 2),
+      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Expanded(child: Text(view.name, style: AppText.display.copyWith(fontSize: 36, fontWeight: FontWeight.w700, height: 1.05))),
+        FavouriteButton(pokemon: d),
+      ]),
+      if (d.genus != null) Text(d.genus!, style: AppText.body.copyWith(color: Palette.mutedSlate, fontStyle: FontStyle.italic)),
       const SizedBox(height: Space.sm),
-      Wrap(spacing: 6, children: [for (final t in view.types) TypeChip(t)]),
+      Wrap(spacing: 6, runSpacing: 6, children: [for (final t in view.types) TypeChip(t)]),
+      const SizedBox(height: Space.xs),
     ]);
   }
+}
+
+/// Previous / next by dex number: the website's mono step buttons.
+class _StepButton extends StatelessWidget {
+  const _StepButton({super.key, required this.label, required this.tooltip, required this.onPressed});
+
+  final String label;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+        message: tooltip,
+        child: Material(
+          color: Palette.panelWhite,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control), side: const BorderSide(color: Palette.hairline)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(Radii.control),
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+              child: Text(label, style: AppText.readout.copyWith(fontSize: 12, color: Palette.inkDim)),
+            ),
+          ),
+        ),
+      );
 }
 
 class _FormSwitcher extends StatelessWidget {

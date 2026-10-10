@@ -69,7 +69,8 @@ void main() {
 
   testWidgets('evolution chips render exactly as the server labels them', (tester) async {
     await pumpApp(tester, detailBackend(), location: '/pokemon/133');
-    await tester.scrollUntilVisible(find.text('Evolution'), 300);
+    await openPart(tester, 'evolution');
+    await tester.scrollUntilVisible(find.text('Water Stone'), 300);
     await tester.pumpAndSettle();
     expect(find.text('Water Stone'), findsOneWidget);
     expect(find.text('Friendship'), findsNWidgets(2)); // Espeon (Day) and Umbreon (Night)
@@ -87,6 +88,7 @@ void main() {
 
   testWidgets('Alcremie shows the spin guide', (tester) async {
     await pumpApp(tester, detailBackend(), location: '/pokemon/869');
+    await openPart(tester, 'evolution');
     await tester.scrollUntilVisible(find.text('Cream · how to spin (9)'), 400);
     expect(find.text('Sweet · the topping (7)'), findsOneWidget);
     expect(find.text('Give Milcery a Sweet to hold.'), findsOneWidget);

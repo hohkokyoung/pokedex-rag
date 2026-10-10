@@ -8,6 +8,7 @@ import '../../data/server.dart';
 import '../../data/sprites.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
@@ -49,10 +50,11 @@ class FavouriteButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(favouritesProvider);
     final on = ref.read(favouritesProvider.notifier).contains(pokemon.id);
-    return IconButton(
+    return SquareButton(
       key: const Key('favourite'),
       tooltip: on ? 'Remove from favourites' : 'Add to favourites',
-      icon: Icon(on ? Icons.favorite : Icons.favorite_border, color: on ? Palette.pokeballRed : null),
+      icon: on ? Icons.favorite : Icons.favorite_border,
+      color: on ? Palette.pokeballRed : null,
       onPressed: () async {
         final ok = await ref.read(favouritesProvider.notifier).toggle(pokemon);
         if (!ok && context.mounted) {
@@ -73,7 +75,7 @@ class FavouritesScreen extends ConsumerWidget {
     final favs = ref.watch(favouritesProvider);
     final base = ref.watch(serverAddressProvider);
     return Scaffold(
-      appBar: AppBar(title: Text('Favourites', style: AppText.headline)),
+      appBar: pageBar('Favourites'),
       body: switch (favs) {
         AsyncData(:final value) when value.isEmpty => Center(
             child: Padding(

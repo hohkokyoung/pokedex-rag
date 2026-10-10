@@ -168,6 +168,7 @@ void main() {
     expect(find.text('17 won'), findsOneWidget);
     expect(find.text('18 won'), findsOneWidget);
     expect(find.textContaining('Tyranitar threatens'), findsOneWidget);
+    await openPart(tester, 'report'); // an opponent opens on Compare
     await see(tester, find.byKey(const Key('rating-line')));
     final line = tester.widget<Text>(find.byKey(const Key('rating-line'))).textSpan!.toPlainText();
     expect(line, startsWith('88/100 · Hyper offense'));

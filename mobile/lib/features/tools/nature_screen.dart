@@ -5,6 +5,7 @@ import '../../api/export.dart';
 import '../../data/errors.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/cant_reach.dart';
 import '../teams/team_state.dart' show naturesProvider;
 
@@ -28,7 +29,7 @@ class _NatureScreenState extends ConsumerState<NatureScreen> {
   Widget build(BuildContext context) {
     final natures = ref.watch(naturesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text('Nature helper', style: AppText.headline)),
+      appBar: pageBar('Nature helper'),
       body: switch (natures) {
         AsyncData(:final value) => _grid(value),
         AsyncError(:final error) when error is Unreachable =>

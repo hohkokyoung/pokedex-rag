@@ -5,6 +5,7 @@ import '../../api/export.dart';
 import '../../data/errors.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/cant_reach.dart';
 import '../pokedex/detail_sections.dart' show Section;
 import 'answer_text.dart';
@@ -79,13 +80,13 @@ class _AskScreenState extends ConsumerState<AskScreen> {
     final abstained = run.status == AskStatus.done && abstain.hasMatch(run.answer) && cited.isEmpty;
     final next = run.status == AskStatus.done && !abstained ? followUps(run.sources.where((s) => cited.contains(s.n)).toList()) : const <String>[];
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Ask', style: AppText.display.copyWith(fontSize: 26)),
+      appBar: pageBar(
+        'Ask', root: true,
         actions: [
-          IconButton(
+          SquareButton(
             key: const Key('open-profile'),
             tooltip: 'Your profile',
-            icon: const Icon(Icons.person_outline),
+            icon: Icons.person_outline,
             onPressed: () => showProfileSheet(context),
           ),
         ],
@@ -103,12 +104,10 @@ class _AskScreenState extends ConsumerState<AskScreen> {
             minLines: 1,
             decoration: InputDecoration(
               hintText: 'Ask about Pokémon, moves, types…',
-              suffixIcon: IconButton(
+              suffixIcon: SendButton(
                 key: const Key('ask-send'),
-                icon: streaming
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.arrow_upward),
-                onPressed: streaming ? null : () => _ask(_field.text),
+                busy: streaming,
+                onPressed: () => _ask(_field.text),
               ),
             ),
           ),
@@ -138,7 +137,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
                   key: Key('starter-$kind'),
                   // The kind sits in the label: the avatar slot is icon-sized and clips text.
                   label: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text(kind, style: AppText.readout.copyWith(fontSize: 10, color: Palette.pokeballRedText)),
+                    Text(kind, style: AppText.readout.copyWith(fontSize: 10, color: Palette.mutedSlate)),
                     const SizedBox(width: Space.sm),
                     Flexible(child: Text(q, overflow: TextOverflow.ellipsis)),
                   ]),

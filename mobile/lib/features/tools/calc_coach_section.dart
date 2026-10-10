@@ -5,6 +5,7 @@ import '../../api/export.dart';
 import '../../data/errors.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../ask/answer_text.dart';
 import '../ask/ask_cards.dart' show ViewCard;
 import '../ask/ask_parts.dart';
@@ -95,12 +96,10 @@ class _CalcCoachSectionState extends ConsumerState<CalcCoachSection> {
             hintText: c?.build != null
                 ? 'Ask a follow-up, e.g. "swap ${c!.build!.moves.lastOrNull ?? 'a move'} for a priority move"'
                 : 'What should ${s.mon!.name} do? e.g. "a bulky set for doubles"',
-            suffixIcon: IconButton(
+            suffixIcon: SendButton(
               key: const Key('calc-coach-send'),
-              icon: busy
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.arrow_upward),
-              onPressed: busy ? null : () => _ask(_field.text),
+              busy: busy,
+              onPressed: () => _ask(_field.text),
             ),
           ),
         ),

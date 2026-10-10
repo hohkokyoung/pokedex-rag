@@ -9,6 +9,7 @@ import '../../data/server.dart';
 import '../../data/sprites.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
@@ -46,7 +47,7 @@ class _CalcScreenState extends ConsumerState<CalcScreen> {
     final shown = turn.value ?? last;
     final focus = m.active.contains(m.focus) ? m.focus : (_sideOf(m.focus) == 0 ? 0 : 2);
     return Scaffold(
-      appBar: AppBar(title: Text('Damage calc', style: AppText.headline)),
+      appBar: pageBar('Damage calc'),
       body: switch (turn) {
         AsyncError(:final error) when error is Unreachable && shown == null =>
           CantReach(address: error.address, onRetry: () => ref.invalidate(calcTurnProvider(req))),
@@ -75,20 +76,25 @@ class _CalcScreenState extends ConsumerState<CalcScreen> {
 
   Widget _modeRow(CalcModel m) {
     final n = ref.read(calcProvider.notifier);
-    return Wrap(spacing: Space.sm, runSpacing: Space.xs, children: [
-      SegmentedButton<bool>(
-        key: const Key('calc-mode'),
-        segments: const [ButtonSegment(value: false, label: Text('Singles')), ButtonSegment(value: true, label: Text('Doubles'))],
-        selected: {m.doubles},
-        showSelectedIcon: false,
-        onSelectionChanged: (v) => n.set((s) => s.copyWith(doubles: v.first)),
+    return Row(children: [
+      Expanded(
+        child: Segmented<bool>(
+          key: const Key('calc-mode'),
+          compact: true,
+          value: m.doubles,
+          onChanged: (v) => n.set((s) => s.copyWith(doubles: v)),
+          options: const [(false, 'Singles', null), (true, 'Doubles', null)],
+        ),
       ),
-      SegmentedButton<int>(
-        key: const Key('calc-level'),
-        segments: const [ButtonSegment(value: 50, label: Text('Lv50')), ButtonSegment(value: 100, label: Text('Lv100'))],
-        selected: {m.level},
-        showSelectedIcon: false,
-        onSelectionChanged: (v) => n.set((s) => s.copyWith(level: v.first)),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Segmented<int>(
+          key: const Key('calc-level'),
+          compact: true,
+          value: m.level,
+          onChanged: (v) => n.set((s) => s.copyWith(level: v)),
+          options: const [(50, 'Lv50', null), (100, 'Lv100', null)],
+        ),
       ),
     ]);
   }
@@ -129,6 +135,9 @@ class _CalcScreenState extends ConsumerState<CalcScreen> {
                         Text('${n > 0 ? '#$n · ' : ''}${s.move ?? 'no move'}',
                             maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.readout.copyWith(fontSize: 10.5, color: Palette.inkDim)),
                         if (best != null) Text(_range(best), style: AppText.readout.copyWith(fontSize: 12)),
+                        // HP left after the turn: solid = worst roll, faded = best roll.
+                        if (t?.hp.where((x) => x.slot == i).firstOrNull case final hp?)
+                          Padding(padding: const EdgeInsets.only(top: 4), child: _HpBar(lo: hp.lo, hi: hp.hi)),
                       ]),
                     ),
                   ]),
@@ -138,13 +147,17 @@ class _CalcScreenState extends ConsumerState<CalcScreen> {
     }
 
     Widget side(String label, List<int> slots) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: AppText.label.copyWith(color: Palette.mutedSlate)),
+          Padding(padding: const EdgeInsets.only(left: 3), child: Text(label, style: AppText.label.copyWith(color: Palette.mutedSlate))),
           Row(children: [for (final i in slots) card(i)]),
         ]);
-    return Column(children: [
-      side('Your team', m.doubles ? [0, 1] : [0]),
-      side('Opponent', m.doubles ? [2, 3] : [2]),
-    ]);
+    // Singles: your Pokémon and the opponent side by side; doubles: a row per side.
+    if (!m.doubles) {
+      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(child: side('Your team', [0])),
+        Expanded(child: side('Opponent', [2])),
+      ]);
+    }
+    return Column(children: [side('Your team', [0, 1]), side('Opponent', [2, 3])]);
   }
 
   Future<void> _pick(int i) async {
@@ -381,16 +394,13 @@ class _SlotEditor extends ConsumerWidget {
         ], (v) => n.update(slot, (x) => x.copyWith(item: v)))),
         row('Nature', drop('calc-nature', s.nature, [for (final nat in opts?.natures ?? const <String>[]) (nat, null)],
             (v) => n.update(slot, (x) => x.copyWith(nature: v, pre: 'Custom')))),
-        row('Preset', SegmentedButton<String>(
+        row('Preset', Segmented<String>(
           key: const Key('calc-preset'),
-          segments: const [
-            ButtonSegment(value: 'Offensive', label: Text('Offensive')),
-            ButtonSegment(value: 'Bulky', label: Text('Bulky')),
-            ButtonSegment(value: 'Custom', label: Text('Custom')),
-          ],
-          selected: {s.pre},
-          showSelectedIcon: false,
-          onSelectionChanged: (v) => v.first == 'Custom' ? null : n.preset(slot, v.first),
+          compact: true,
+          value: s.pre,
+          // Custom is what any edit makes; picking it changes nothing.
+          onChanged: (v) => v == 'Custom' ? null : n.preset(slot, v),
+          options: const [('Offensive', 'Offensive', null), ('Bulky', 'Bulky', null), ('Custom', 'Custom', null)],
         )),
         row('HP', Row(children: [
           Expanded(

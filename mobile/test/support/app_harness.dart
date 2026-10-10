@@ -33,3 +33,12 @@ Future<GoRouter> pumpApp(WidgetTester tester, FakeBackend be, {String? location,
   await tester.pumpAndSettle();
   return router;
 }
+
+/// Opens a segment of a Pokémon's page (overview, moves, evolution, where).
+Future<void> openPart(WidgetTester tester, String part) async {
+  final f = find.byKey(Key('part-$part'));
+  await tester.ensureVisible(f);
+  await tester.pumpAndSettle();
+  await tester.tap(f);
+  await tester.pumpAndSettle();
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'tokens.g.dart';
 
@@ -18,7 +19,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: Palette.ground,
+      scaffoldBackgroundColor: Colors.transparent, // the Ground gradient shows through
       fontFamily: 'Space Grotesk',
       textTheme: TextTheme(
         displaySmall: AppText.display,
@@ -29,7 +30,10 @@ abstract final class AppTheme {
         labelMedium: AppText.label,
       ).apply(bodyColor: Palette.instrumentInk, displayColor: Palette.instrumentInk),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Palette.ground,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        // Dark status-bar icons and time on the light ground.
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         foregroundColor: Palette.instrumentInk,
         elevation: 0,
         scrolledUnderElevation: 0,

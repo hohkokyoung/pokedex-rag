@@ -12,6 +12,7 @@ import '../../data/server.dart';
 import '../../data/sprites.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
@@ -68,7 +69,7 @@ class _LookupScreenState extends ConsumerState<LookupScreen> {
   Widget build(BuildContext context) {
     final results = ref.watch(lookupProvider(q));
     return Scaffold(
-      appBar: AppBar(title: Text('Lookup', style: AppText.headline)),
+      appBar: pageBar('Lookup'),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.sm),

@@ -9,6 +9,7 @@ import '../../data/server.dart';
 import '../../data/sprites.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../teams/pokemon_picker.dart' show pickPokemon;
@@ -134,13 +135,13 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
     final base = ref.watch(serverAddressProvider);
     if (odds case AsyncError(:final error) when error is Unreachable && shown == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Catch rate', style: AppText.headline)),
+        appBar: pageBar('Catch rate'),
         body: CantReach(address: error.address, onRetry: () => ref.invalidate(catchProvider(q))),
       );
     }
     final top = shown?.balls.where((b) => b.id == ball).firstOrNull ?? shown?.balls.firstOrNull;
     return Scaffold(
-      appBar: AppBar(title: Text('Catch rate', style: AppText.headline)),
+      appBar: pageBar('Catch rate'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 3),
         children: [

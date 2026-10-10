@@ -38,10 +38,13 @@ class Section extends StatelessWidget {
 // ---------------------------------------------------------------- stats
 
 class StatsCard extends StatelessWidget {
-  const StatsCard({super.key, required this.stats, required this.still});
+  const StatsCard({super.key, required this.stats, required this.still, this.tint});
 
   final StatsOut stats;
   final bool still;
+
+  /// The Pokémon's first type colour (the website's stat bars); without one, bars show the value's tone.
+  final Color? tint;
 
   static const max = 255;
 
@@ -66,7 +69,7 @@ class StatsCard extends StatelessWidget {
               SizedBox(width: 64, child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.inkDim))),
               SizedBox(width: 36, child: Text('$value', textAlign: TextAlign.right, style: AppText.readout.copyWith(fontSize: 13))),
               const SizedBox(width: Space.sm),
-              Expanded(child: _StatBar(value: value, still: still)),
+              Expanded(child: _StatBar(value: value, still: still, tint: tint)),
             ]),
           ),
       ]),
@@ -76,18 +79,19 @@ class StatsCard extends StatelessWidget {
 
 /// Draws in from zero once; with reduced motion it starts at its value.
 class _StatBar extends StatelessWidget {
-  const _StatBar({required this.value, required this.still});
+  const _StatBar({required this.value, required this.still, this.tint});
 
   final int value;
   final bool still;
+  final Color? tint;
 
-  Color get _tone => value >= 120
+  Color get _tone => tint ?? (value >= 120
       ? Palette.verdictGreen
       : value >= 80
           ? Palette.youBlue
           : value >= 50
               ? Palette.cautionAmber
-              : Palette.pokeballRed;
+              : Palette.pokeballRed);
 
   @override
   Widget build(BuildContext context) => ClipRRect(
@@ -337,7 +341,7 @@ class SpinGuideCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              SizedBox(width: 22, child: Text('${i + 1}', style: AppText.readout.copyWith(color: Palette.pokeballRed))),
+              SizedBox(width: 22, child: Text('${i + 1}', style: AppText.readout.copyWith(color: Palette.mutedSlate))),
               Expanded(child: Text(step, style: AppText.bodySmall)),
             ]),
           ),

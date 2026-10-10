@@ -5,9 +5,21 @@ home network. It covers the Pokédex (and your favourites), Teams with their coa
 and the home page's tools, the damage calculator and its coach included. Tabs at the bottom switch between Pokédex, Teams, Ask and Tools; each
 keeps its place.
 
+## Look and layout
+
+The website's light Instrument language, cleaner:
+- **Surfaces:** the tinted ground, white panels with hairlines (no nested panels),
+  10/14px corners, 6px type chips.
+- **Type:** Chakra Petch for titles and names, mono numbers.
+- **Navigation:** the bottom bar is the website's Tray (Pokédex, Teams, Tools; the
+  current one raised) with Ask as the one red button.
+- **Long pages:** split into segments. A Pokémon has Overview, Moves, Evolution and
+  Where. A team has Report, Coach and Compare.
+- **Shared parts:** in `mobile/lib/widgets/ui.dart`.
+
 ## List
 
-All species, loading more as you scroll.
+All species as the website's two-column cards, loading more as you scroll.
 
 - **Search** by name or dex number.
 - **Filter** by up to two types (all must match) and by generation (any may match).

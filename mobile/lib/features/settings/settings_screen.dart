@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/server.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 
 /// Where the app finds your pokérag server. An address is saved only after its
 /// `/health` answers, so a typo never strands the app.
@@ -47,7 +48,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final current = ref.watch(serverAddressProvider);
     return Scaffold(
-      appBar: AppBar(title: Text('Server', style: AppText.headline)),
+      appBar: pageBar('Server'),
       body: ListView(
         padding: const EdgeInsets.all(Space.gutter),
         children: [

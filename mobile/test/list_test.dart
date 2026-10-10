@@ -17,7 +17,7 @@ void main() {
   testWidgets('the first page shows Bulbasaur with its types', (tester) async {
     await pumpApp(tester, backend());
     expect(find.text('Bulbasaur'), findsOneWidget);
-    expect(find.text('#001'), findsOneWidget);
+    expect(find.text('#0001'), findsOneWidget);
     expect(find.text('Grass'), findsWidgets);
     expect(find.text('Poison'), findsWidgets);
   });
@@ -27,12 +27,12 @@ void main() {
     await pumpApp(tester, be);
     expect(be.hits['/api/pokemon'], 1);
     for (var i = 0; i < 30 && find.text('Mon95').evaluate().isEmpty; i++) {
-      await tester.drag(find.byType(ListView), const Offset(0, -2500));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
       await tester.pumpAndSettle();
     }
     expect(find.text('Mon95'), findsOneWidget);
     expect(be.hits['/api/pokemon'], 3); // 40 + 40 + 15, then no fourth request
-    await tester.drag(find.byType(ListView), const Offset(0, -2500));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
     await tester.pumpAndSettle();
     expect(be.hits['/api/pokemon'], 3);
     final offsets = be.requests.where((r) => r.path == '/api/pokemon').map((r) => r.queryParameters['offset']);
@@ -64,7 +64,7 @@ void main() {
     }
 
     for (var i = 0; i < 10 && (be.hits['/api/pokemon'] ?? 0) < 2; i++) {
-      await tester.drag(find.byType(ListView), const Offset(0, -2500));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
       await tester.pumpAndSettle();
     }
     expect(last()['offset'], greaterThan(0));
@@ -96,11 +96,11 @@ void main() {
     expect(last()['sort'], 'speed');
     expect(last()['order'], 'desc');
     expect(last()['q'], 'garch'); // filters keep the search
-    // Rows lead with the stat being sorted by.
+    // Cards lead with the stat being sorted by.
     await tester.tapAt(const Offset(195, 20)); // close the sheet
     await tester.pumpAndSettle();
-    expect(find.text('SPE'), findsWidgets);
-    expect(find.text('BST'), findsNothing);
+    expect(find.text('Speed'), findsWidgets);
+    expect(find.text('Total'), findsNothing);
   });
 
   testWidgets('a third type replaces the oldest (two at most)', (tester) async {

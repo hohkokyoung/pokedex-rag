@@ -69,8 +69,6 @@ class _RatingCardState extends ConsumerState<_RatingCard> {
   @override
   Widget build(BuildContext context) {
     final r = widget.a.rating!;
-    final p = widget.a.profile!;
-    final strategy = ref.watch(teamStrategyProvider(widget.team.id)).value;
     final summary = ref.watch(teamSummaryProvider(widget.team.id));
     // A rewrite in progress: look again a couple of times, never poll forever.
     final pending = summary.value?.pending ?? false;
@@ -80,33 +78,16 @@ class _RatingCardState extends ConsumerState<_RatingCard> {
         if (mounted) ref.invalidate(teamSummaryProvider(widget.team.id));
       });
     }
-    final gaps = r.areas.where((x) => x.fix != null).toList()..sort((x, y) => x.score.compareTo(y.score));
+    // The grade and rating line are the page header (team_screen's _Header); this is the summary.
     return Section(
-      title: 'Team rating',
+      title: 'Summary',
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          GradeBadge(r.grade.json ?? '?', size: 44),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Text.rich(
-              key: const Key('rating-line'),
-              TextSpan(style: AppText.bodySmall, children: [
-                TextSpan(text: '${r.overall}', style: AppText.readout.copyWith(fontSize: 18)),
-                const TextSpan(text: '/100 · '),
-                TextSpan(text: strategy?.style ?? p.style, style: const TextStyle(fontWeight: FontWeight.w700)),
-                TextSpan(text: ' · ${(p.lean.json ?? '').toLowerCase()} lean'),
-                if (gaps.isNotEmpty) TextSpan(text: ' · biggest gap ${gaps.first.label.toLowerCase()}'),
-              ]),
-            ),
-          ),
-        ]),
         if (r.capped)
           Padding(
-            padding: const EdgeInsets.only(top: Space.xs),
+            padding: const EdgeInsets.only(bottom: Space.xs),
             child: Text('Overall scaled to ${r.ceiling}/100 until the team has six different Pokémon.',
                 style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
           ),
-        const SizedBox(height: Space.sm),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
             margin: const EdgeInsets.only(top: 2, right: 6),
@@ -149,8 +130,9 @@ class _GradesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Section(
         title: 'Grades',
+        trailing: Text('worst first', style: AppText.label.copyWith(color: Palette.mutedSlate)),
         child: Column(children: [
-          for (final a in rating.areas)
+          for (final a in [...rating.areas]..sort((x, y) => x.score.compareTo(y.score)))
             Padding(
               key: Key('area-${a.key.json}'),
               padding: const EdgeInsets.symmetric(vertical: 6),

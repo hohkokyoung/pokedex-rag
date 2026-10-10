@@ -5,6 +5,7 @@ import '../../api/export.dart';
 import '../../data/errors.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
 import '../pokedex/detail_sections.dart' show Section;
@@ -51,7 +52,7 @@ class _TypeCalcScreenState extends ConsumerState<TypeCalcScreen> {
   Widget build(BuildContext context) {
     final chart = ref.watch(typeChartProvider);
     return Scaffold(
-      appBar: AppBar(title: Text('Type calculator', style: AppText.headline)),
+      appBar: pageBar('Type calculator'),
       body: switch (chart) {
         AsyncData(:final value) => ListView(
             padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 2),

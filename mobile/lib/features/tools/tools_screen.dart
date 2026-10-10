@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 
 /// The website home page's reference tools, one row each.
 const tools = [
@@ -18,21 +19,43 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text('Tools', style: AppText.display.copyWith(fontSize: 26))),
+        appBar: pageBar('Tools', root: true),
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 2),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xs, Space.gutter, Space.gutter * 2),
           children: [
-            for (final (path, icon, title, sub) in tools)
-              Card(
-                key: Key('tool-$path'),
-                child: ListTile(
-                  leading: Icon(icon, color: Palette.pokeballRed),
-                  title: Text(title, style: AppText.title),
-                  subtitle: Text(sub, style: AppText.bodySmall.copyWith(color: Palette.inkDim)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.go('/tools/$path'),
-                ),
-              ),
+            // One grouped panel, rows split by hairlines; ink icons (red is only for actions).
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: Column(children: [
+                for (final (i, (path, icon, title, sub)) in tools.indexed) ...[
+                  if (i > 0) const Divider(height: 1, thickness: 1, indent: 64, color: Palette.hairlineSoft),
+                  InkWell(
+                    key: Key('tool-$path'),
+                    onTap: () => context.go('/tools/$path'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: 12),
+                      child: Row(children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.control)),
+                          child: Icon(icon, size: 20, color: Palette.instrumentInk),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(title, style: AppText.title),
+                            const SizedBox(height: 2),
+                            Text(sub, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+                          ]),
+                        ),
+                        const Icon(Icons.chevron_right, color: Palette.faintSlate),
+                      ]),
+                    ),
+                  ),
+                ],
+              ]),
+            ),
           ],
         ),
       );

@@ -8,10 +8,10 @@ import '../../data/server.dart';
 import '../../data/sprites.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
+import '../../widgets/ui.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/cant_reach.dart';
 import '../../widgets/grade.dart';
-import '../../widgets/type_chip.dart';
 import 'team_state.dart';
 
 /// Every saved team, rated as on the website's /teams.
@@ -22,13 +22,13 @@ class TeamsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final teams = ref.watch(teamsListProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Teams', style: AppText.display.copyWith(fontSize: 26)),
+      appBar: pageBar(
+        'Teams', root: true,
         actions: [
-          IconButton(
+          SquareButton(
             key: const Key('new-team'),
             tooltip: 'New team',
-            icon: const Icon(Icons.add),
+            icon: Icons.add,
             onPressed: () => createTeam(context, ref),
           ),
         ],
@@ -178,26 +178,10 @@ class TeamCard extends ConsumerWidget {
               Row(children: [for (final s in team.sprites) Artwork(thumbUrl(base, s), size: 40)]),
               if (summary != null) ...[
                 const SizedBox(height: Space.xs),
-                Text(summary.text, maxLines: 3, overflow: TextOverflow.ellipsis, style: AppText.bodySmall.copyWith(color: Palette.inkDim)),
+                Text(summary.text, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall.copyWith(color: Palette.inkDim)),
               ],
-              if (profile != null) ...[
-                const SizedBox(height: Space.sm),
-                _facts('Weak to', profile.weakTo.take(4).map((w) => w.type).toList(), ok: 'No weaknesses'),
-                _facts('Resists', profile.resists.take(4).map((w) => w.type).toList(), ok: 'Nothing'),
-                Text('Hits ${profile.strongVs.length}/18 types hard', style: AppText.bodySmall),
-              ],
-              if (rating != null) ...[
-                const SizedBox(height: Space.sm),
-                Wrap(spacing: 6, runSpacing: 6, children: [
-                  for (final a in rating.areas)
-                    Row(mainAxisSize: MainAxisSize.min, children: [
-                      Text(a.label, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
-                      const SizedBox(width: 4),
-                      Text(a.grade.json ?? '', style: AppText.readout.copyWith(color: gradeTextColor(a.grade.json ?? ''))),
-                    ]),
-                ]),
-                ..._fixes(rating),
-              ],
+              // The one thing to fix first (the full report is on the team's page).
+              if (rating != null) ..._fixes(rating),
             ],
           ]),
         ),
@@ -205,27 +189,15 @@ class TeamCard extends ConsumerWidget {
     );
   }
 
-  /// The weakest grades' fixes, worst first (up to three, as on the website's cards).
+  /// The weakest grade's fix: the one thing to do first.
   List<Widget> _fixes(TeamRating r) {
     final gaps = r.areas.where((a) => a.fix != null).toList()..sort((x, y) => x.score.compareTo(y.score));
     return [
-      for (final a in gaps.take(3))
+      for (final a in gaps.take(1))
         Padding(
           padding: const EdgeInsets.only(top: Space.xs),
           child: Text('${a.label}: ${a.fix}', style: AppText.bodySmall.copyWith(color: gradeTextColor(a.grade.json ?? ''))),
         ),
     ];
   }
-
-  Widget _facts(String label, List<String> types, {required String ok}) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Row(children: [
-          SizedBox(width: 64, child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))),
-          Expanded(
-            child: types.isEmpty
-                ? Text(ok, style: AppText.bodySmall)
-                : Wrap(spacing: 4, runSpacing: 4, children: [for (final t in types) TypeChip(t, dense: true)]),
-          ),
-        ]),
-      );
 }
