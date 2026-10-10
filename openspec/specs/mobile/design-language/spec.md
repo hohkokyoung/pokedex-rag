@@ -54,8 +54,8 @@ Pages SHALL slide in the iOS way and can be swiped back, each on its own backgro
 - **THEN** it slides in over an opaque background instead of cutting in
 
 ### Requirement: Filters on a phone
-Filters SHALL be a row of pills, each opening a sheet for that one filter; a pill SHALL turn ink and name its choice when set. Types SHALL be picked as solid type chips in a three-column grid: picked ones carry a check, and while any is picked the others fade. No filter row SHALL run off the screen.
+Filters SHALL be a row of pills, each opening a sheet for that one filter; a pill SHALL turn ink and name its choice when set. Types SHALL be picked as on the website: type names in grey that wrap across the width, a picked type filled with its colour and a soft glow of it. No filter row SHALL run off the screen.
 
 #### Scenario: Pick a type
 - **WHEN** the owner opens Type on the Pokédex and picks Fire
-- **THEN** Fire shows a check, the other types fade, the pill reads "Fire", and the list reloads with Fire-types
+- **THEN** Fire fills orange, the pill reads "Fire", and the list reloads with Fire-types

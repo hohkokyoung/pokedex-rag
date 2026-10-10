@@ -83,6 +83,9 @@ abstract final class AppTheme {
         backgroundColor: Palette.panelWhite,
         selectedColor: Palette.instrumentInk,
         showCheckmark: false,
+        // Compact, as filters on a phone should be.
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
         side: const BorderSide(color: Palette.hairline),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),
         labelStyle: AppText.label.copyWith(

@@ -7,7 +7,6 @@ import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/ui.dart';
 import '../../widgets/cant_reach.dart';
-import '../pokedex/detail_sections.dart' show Section;
 import 'answer_text.dart';
 import 'ask_cards.dart';
 import 'ask_parts.dart';
@@ -41,7 +40,12 @@ List<String> followUps(List<Source> cited) {
   ];
 }
 
-Set<int> citedNumbers(String answer) => {for (final m in RegExp(r'[\[【](\d+)[\]】]').allMatches(answer)) int.parse(m[1]!)};
+bool abstained(AskState run) =>
+    run.status == AskStatus.done && abstain.hasMatch(run.answer) && citedNumbers(run.answer).isEmpty;
+
+Set<int> citedNumbers(String answer) => {
+  for (final m in RegExp(r'[\[【](\d+)[\]】]').allMatches(answer)) int.parse(m[1]!),
+};
 
 class AskScreen extends ConsumerStatefulWidget {
   const AskScreen({super.key});
@@ -77,11 +81,13 @@ class _AskScreenState extends ConsumerState<AskScreen> {
     final status = ref.watch(askStatusProvider).value;
     final streaming = run.status == AskStatus.streaming;
     final cited = citedNumbers(run.answer);
-    final abstained = run.status == AskStatus.done && abstain.hasMatch(run.answer) && cited.isEmpty;
-    final next = run.status == AskStatus.done && !abstained ? followUps(run.sources.where((s) => cited.contains(s.n)).toList()) : const <String>[];
+    final next = run.status == AskStatus.done && !abstained(run)
+        ? followUps(run.sources.where((s) => cited.contains(s.n)).toList())
+        : const <String>[];
     return Scaffold(
       appBar: pageBar(
-        'Ask', root: true,
+        'Ask',
+        root: true,
         actions: [
           SquareButton(
             key: const Key('open-profile'),
@@ -104,11 +110,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
             minLines: 1,
             decoration: InputDecoration(
               hintText: 'Ask about Pokémon, moves, types…',
-              suffixIcon: SendButton(
-                key: const Key('ask-send'),
-                busy: streaming,
-                onPressed: () => _ask(_field.text),
-              ),
+              suffixIcon: SendButton(key: const Key('ask-send'), busy: streaming, onPressed: () => _ask(_field.text)),
             ),
           ),
           if (status != null)
@@ -116,67 +118,114 @@ class _AskScreenState extends ConsumerState<AskScreen> {
               padding: const EdgeInsets.only(top: Space.xs),
               child: Text(
                 status.enabled
-                    ? 'Answers from your data, narrated by ${status.provider == 'groq' ? 'Groq' : status.provider == 'anthropic' ? 'Claude' : status.provider}.'
+                    ? 'Answers from your data, narrated by ${status.provider == 'groq'
+                          ? 'Groq'
+                          : status.provider == 'anthropic'
+                          ? 'Claude'
+                          : status.provider}.'
                     : 'Keyless: questions are planned by keywords and answers quote the records.',
                 key: const Key('ask-status'),
                 style: AppText.bodySmall.copyWith(color: Palette.mutedSlate),
               ),
             ),
           const SizedBox(height: Space.sm),
-          if (next.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: Space.xs),
-              child: Text('Ask next', style: AppText.label.copyWith(color: Palette.mutedSlate)),
-            ),
-          Wrap(spacing: 6, runSpacing: 6, children: [
-            if (next.isNotEmpty) ...[
-              for (final f in next) ActionChip(key: Key('next-$f'), label: Text(f), onPressed: () => _ask(f)),
-            ] else if (run.status == AskStatus.idle)
-              for (final (kind, q) in starters)
-                ActionChip(
-                  key: Key('starter-$kind'),
-                  // The kind sits in the label: the avatar slot is icon-sized and clips text.
-                  label: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text(kind, style: AppText.readout.copyWith(fontSize: 10, color: Palette.mutedSlate)),
-                    const SizedBox(width: Space.sm),
-                    Flexible(child: Text(q, overflow: TextOverflow.ellipsis)),
-                  ]),
-                  onPressed: () => _ask(q),
-                ),
-          ]),
+          // Suggestions as one panel of rows (no chip tap-target gaps): the starters
+          // before a question, "Ask next" after an answer.
+          if (run.status == AskStatus.idle)
+            _suggestions(null, [for (final (kind, q) in starters) (Key('starter-$kind'), kind, q)]),
           const SizedBox(height: Space.md),
           ..._result(run),
+          // Follow-ups after the answer, as on the website.
+          if (next.isNotEmpty) ...[
+            const SizedBox(height: Space.md),
+            _suggestions('Ask next', [for (final f in next) (Key('next-$f'), null, f)]),
+          ],
         ],
       ),
     );
   }
 
+  Widget _suggestions(String? title, List<(Key, String?, String)> rows) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (title != null)
+        Padding(
+          padding: const EdgeInsets.only(bottom: Space.xs),
+          child: Text(title, style: AppText.label.copyWith(color: Palette.mutedSlate)),
+        ),
+      Card(
+        child: Column(
+          children: [
+            for (final (i, (key, kind, q)) in rows.indexed)
+              Pressable(
+                key: key,
+                onTap: () => _ask(q),
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 46),
+                  padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: 10),
+                  decoration: BoxDecoration(
+                    border: i == 0 ? null : const Border(top: BorderSide(color: Palette.hairlineSoft)),
+                  ),
+                  child: Row(
+                    children: [
+                      if (kind != null)
+                        SizedBox(
+                          width: 60,
+                          child: Text(kind, style: AppText.readout.copyWith(fontSize: 10.5, color: Palette.mutedSlate)),
+                        ),
+                      Expanded(
+                        child: Text(q, style: AppText.body.copyWith(color: Palette.instrumentInk)),
+                      ),
+                      const SizedBox(width: Space.xs),
+                      const Icon(Icons.arrow_forward, size: 16, color: Palette.faintSlate),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ],
+  );
+
   List<Widget> _result(AskState run) {
     if (run.status == AskStatus.idle) return const [];
     if (run.status == AskStatus.error && run.error is Unreachable) {
-      return [
-        CantReach(address: (run.error! as Unreachable).address, onRetry: () => _ask(run.question)),
-      ];
+      return [CantReach(address: (run.error! as Unreachable).address, onRetry: () => _ask(run.question))];
     }
     return [
       if (run.unhandled.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(bottom: Space.sm),
-          child: Text("Couldn't apply: ${run.unhandled.join(', ')}. The answer below is broader.",
-              key: const Key('ask-notice'), style: AppText.bodySmall.copyWith(color: Palette.cautionAmberText)),
+          child: Text(
+            "Couldn't apply: ${run.unhandled.join(', ')}. The answer below is broader.",
+            key: const Key('ask-notice'),
+            style: AppText.bodySmall.copyWith(color: Palette.cautionAmberText),
+          ),
         ),
-      Section(
-        title: 'Answer',
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (run.answer.isEmpty && run.status == AskStatus.streaming)
-            Text(runningLine(run), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
-          else if (run.answer.isNotEmpty)
-            AnswerText(run.answer, onCite: _cite),
-          if (run.status == AskStatus.error && run.answer.isEmpty)
-            Text(run.errorMessage ?? 'The server had a problem answering.', key: const Key('ask-error'), style: AppText.body.copyWith(color: Palette.pokeballRedText)),
-          const SizedBox(height: Space.sm),
-          HowAnswered(run: run),
-        ]),
+      // Verdict first, as on the website: no "Answer" heading over it.
+      Card(
+        key: const Key('answer'),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(Space.md, Space.md + 2, Space.md, Space.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (run.answer.isEmpty && run.status == AskStatus.streaming)
+                Text(runningLine(run), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
+              else if (run.answer.isNotEmpty)
+                AnswerText(run.answer, onCite: _cite, sources: run.sources, muted: abstained(run)),
+              if (run.status == AskStatus.error && run.answer.isEmpty)
+                Text(
+                  run.errorMessage ?? 'The server had a problem answering.',
+                  key: const Key('ask-error'),
+                  style: AppText.body.copyWith(color: Palette.pokeballRedText),
+                ),
+              const SizedBox(height: Space.md),
+              HowAnswered(run: run),
+            ],
+          ),
+        ),
       ),
       for (final v in run.views)
         Padding(

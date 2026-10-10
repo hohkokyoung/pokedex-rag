@@ -150,6 +150,91 @@ class AbilitiesCard extends StatelessWidget {
 
 // ---------------------------------------------------------------- matchups
 
+/// How a matchup group reads: its multiplier colour (the website's `.mu` tones).
+enum MatchTone { bad, good, immune, hit }
+
+const _toneColor = {
+  MatchTone.bad: Palette.pokeballRedText,
+  MatchTone.good: Palette.verdictGreenText,
+  MatchTone.immune: Color(0xFF4A505C),
+  MatchTone.hit: Palette.youBlueText,
+};
+
+/// One group: its label, then rows of (multiplier, types, row key).
+typedef MatchGroup = (MatchTone, String, List<(String, List<String>, Key?)>);
+
+/// Type matchups as the website shows them on a phone: each group's label on its own
+/// line, then its rows (a coloured multiplier and the type chips); groups split by a
+/// hairline, and only rows with types appear.
+class MatchupGroups extends StatelessWidget {
+  const MatchupGroups({super.key, required this.groups});
+
+  final List<MatchGroup> groups;
+
+  @override
+  Widget build(BuildContext context) {
+    final shown = [
+      for (final (tone, label, rows) in groups)
+        if (rows.any((r) => r.$2.isNotEmpty)) (tone, label, rows.where((r) => r.$2.isNotEmpty).toList()),
+    ];
+    if (shown.isEmpty) {
+      return Text('Perfectly neutral: no notable weaknesses or resistances.', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, (tone, label, rows)) in shown.indexed)
+          Container(
+            margin: EdgeInsets.only(top: i == 0 ? 0 : 10),
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
+            decoration: BoxDecoration(border: i == 0 ? null : const Border(top: BorderSide(color: Palette.hairlineSoft))),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppText.label.copyWith(fontSize: 11.5, fontWeight: FontWeight.w500, color: Palette.mutedSlate)),
+                for (final (mult, types, key) in rows)
+                  Padding(
+                    key: key,
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(mult, style: AppText.readout.copyWith(fontSize: 13, color: _toneColor[tone])),
+                          ),
+                        ),
+                        Expanded(child: Wrap(spacing: 6, runSpacing: 6, children: [for (final t in types) TypeChip(t)])),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// The defensive groups for a matchup result, plus "Hits ×2" when [hits] is given.
+List<MatchGroup> matchGroups({
+  required List<String> x4,
+  required List<String> x2,
+  required List<String> half,
+  required List<String> quarter,
+  required List<String> immune,
+  List<String>? hits,
+  String keyPrefix = 'mu',
+  Key? hitsKey,
+}) => [
+  (MatchTone.bad, 'Takes more from', [('×4', x4, Key('$keyPrefix-x4')), ('×2', x2, Key('$keyPrefix-x2'))]),
+  (MatchTone.good, 'Resists', [('×½', half, Key('$keyPrefix-half')), ('×¼', quarter, Key('$keyPrefix-quarter'))]),
+  (MatchTone.immune, 'Immune to', [('×0', immune, Key('$keyPrefix-immune'))]),
+  if (hits != null) (MatchTone.hit, 'Hits', [('×2', hits, hitsKey ?? Key('$keyPrefix-hits'))]),
+];
+
 class MatchupsCard extends ConsumerWidget {
   const MatchupsCard({super.key, required this.matchups, required this.types});
 
@@ -159,46 +244,33 @@ class MatchupsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chart = ref.watch(typeChartProvider);
-    // Each group's label sits on its first non-empty row (as on the website).
-    final groups = <(String, List<(String, List<String>)>)>[
-      ('Takes more from', [('×4', matchups.weak4x), ('×2', matchups.weak2x)]),
-      ('Resists', [('×½', matchups.resistHalf), ('×¼', matchups.resistQuarter)]),
-      ('Immune to', [('×0', matchups.immune)]),
-    ];
-    final rows = <Widget>[
-      for (final (label, entries) in groups)
-        for (final (i, (mult, list)) in entries.where((e) => e.$2.isNotEmpty).indexed) _row(i == 0 ? label : '', mult, list),
-    ];
     return Section(
       title: 'Type matchups',
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        ...rows,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         // "Hits ×2": what the Pokémon's own types hit super-effectively, from the served chart.
-        switch (chart) {
-          AsyncData(:final value) => _row('Hits', '×2', _hits(value), key: const Key('hits-row')),
-          AsyncError() => const SizedBox.shrink(),
-          _ => const Padding(
-              key: Key('hits-loading'),
-              padding: EdgeInsets.only(top: 6),
-              child: LinearProgressIndicator(minHeight: 2),
-            ),
-        },
+        MatchupGroups(
+          groups: matchGroups(
+            x4: matchups.weak4x,
+            x2: matchups.weak2x,
+            half: matchups.resistHalf,
+            quarter: matchups.resistQuarter,
+            immune: matchups.immune,
+            hits: chart.value == null ? null : _hits(chart.value!),
+            hitsKey: const Key('hits-row'),
+          ),
+        ),
+        if (chart.isLoading)
+          const Padding(
+            key: Key('hits-loading'),
+            padding: EdgeInsets.only(top: 6),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
       ]),
     );
   }
 
   List<String> _hits(TypeChartOut c) =>
       [for (final d in c.order) if (types.any((t) => (c.chart[t]?[d] ?? 1) >= 2)) d];
-
-  Widget _row(String label, String mult, List<String> list, {Key? key}) => Padding(
-        key: key,
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(width: 112, child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))),
-          SizedBox(width: 30, child: Text(mult, style: AppText.readout.copyWith(fontSize: 13))),
-          Expanded(child: Wrap(spacing: 4, runSpacing: 4, children: [for (final t in list) TypeChip(t, dense: true)])),
-        ]),
-      );
 }
 
 // ---------------------------------------------------------------- evolution

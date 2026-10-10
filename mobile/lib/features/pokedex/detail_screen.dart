@@ -309,10 +309,25 @@ class _FormSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void go(int? form) => context.replace(form == null ? '/pokemon/${detail.dexNumber}' : '/pokemon/${detail.dexNumber}?form=$form');
-    return Wrap(spacing: 6, runSpacing: 6, children: [
-      ChoiceChip(key: const Key('form-base'), label: Text(detail.name), selected: selected == null, onSelected: (_) => go(null)),
-      for (final f in detail.forms)
-        ChoiceChip(key: Key('form-${f.id}'), label: Text(f.name), selected: selected == f.id, onSelected: (_) => go(f.id)),
-    ]);
+    // One pill naming the form shown; the forms (Pikachu has 20) open in a sheet.
+    final ids = {detail.name: 'base', for (final f in detail.forms) f.name: '${f.id}'};
+    final current = selected == null ? detail.name : detail.forms.firstWhere((f) => f.id == selected).name;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.xs),
+      child: FilterPill(
+        key: const Key('forms'),
+        label: '$current · ${detail.forms.length + 1} forms',
+        on: false,
+        icon: Icons.unfold_more,
+        onTap: () => showChoices<int?>(
+          context,
+          title: 'Form',
+          options: [(null, detail.name, null), for (final f in detail.forms) (f.id, f.name, null)],
+          selected: {selected},
+          keyOf: (label) => 'form-${ids[label]}',
+          onChanged: (s) => go(s.first),
+        ),
+      ),
+    );
   }
 }

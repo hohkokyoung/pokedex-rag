@@ -576,7 +576,8 @@ class SendButton extends StatelessWidget {
     label: label,
     excludeSemantics: true,
     child: Padding(
-      padding: const EdgeInsets.all(6),
+      // A clear gap from the text before it.
+      padding: const EdgeInsets.fromLTRB(14, 6, 7, 6),
       child: Pressable(
         onTap: busy ? null : onPressed,
         child: AnimatedContainer(
@@ -667,3 +668,276 @@ Future<void> showPanelSheet(BuildContext context, {required String title, requir
         ),
       ),
     );
+
+/// A white panel whose header (title, a muted summary, a chevron) folds its body open
+/// and shut. The body stays out of the tree while shut.
+class FoldPanel extends StatefulWidget {
+  const FoldPanel({super.key, required this.title, required this.child, this.summary, this.open = false});
+
+  final String title;
+  final String? summary;
+  final Widget child;
+  final bool open;
+
+  @override
+  State<FoldPanel> createState() => _FoldPanelState();
+}
+
+class _FoldPanelState extends State<FoldPanel> {
+  late var _open = widget.open;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.of(context).disableAnimations;
+    const curve = Cubic(0.16, 1, 0.3, 1);
+    return Card(
+      child: AnimatedSize(
+        duration: still ? Duration.zero : const Duration(milliseconds: 260),
+        curve: curve,
+        alignment: Alignment.topCenter,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Semantics(
+              button: true,
+              expanded: _open,
+              child: Pressable(
+                onTap: () => setState(() => _open = !_open),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(Space.md, 14, Space.sm + 4, 14),
+                  child: Row(
+                    children: [
+                      Text(widget.title, style: AppText.title),
+                      if (widget.summary != null) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            widget.summary!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.bodySmall.copyWith(color: Palette.mutedSlate),
+                          ),
+                        ),
+                      ] else
+                        const Spacer(),
+                      AnimatedRotation(
+                        turns: _open ? .5 : 0,
+                        duration: still ? Duration.zero : const Duration(milliseconds: 260),
+                        curve: curve,
+                        child: const Icon(Icons.expand_more, size: 20, color: Palette.mutedSlate),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (_open)
+              Padding(padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.md), child: widget.child),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A settings row with an iOS switch: the label (and a note) on the left.
+class SwitchRow extends StatelessWidget {
+  const SwitchRow({super.key, required this.label, required this.value, required this.onChanged, this.note, this.first = false});
+
+  final String label;
+  final String? note;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final bool first;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    constraints: const BoxConstraints(minHeight: 46),
+    decoration: BoxDecoration(border: first ? null : const Border(top: BorderSide(color: Palette.hairlineSoft))),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: AppText.body),
+              if (note != null) Text(note!, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+            ],
+          ),
+        ),
+        CupertinoSwitch(value: value, onChanged: onChanged, activeTrackColor: Palette.instrumentInk),
+      ],
+    ),
+  );
+}
+
+/// A labelled slider: the label and its value on one line, the track full width below.
+class LabeledSlider extends StatelessWidget {
+  const LabeledSlider({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.v,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+    this.onEnd,
+    this.sliderKey,
+  });
+
+  final String label;
+  final String value;
+  final double v;
+  final double min;
+  final double max;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onEnd;
+  final Key? sliderKey;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Row(
+          children: [
+            Expanded(child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.inkDim))),
+            Text(value, style: AppText.readout.copyWith(fontSize: 12, color: Palette.instrumentInk)),
+          ],
+        ),
+      ),
+      SliderTheme(
+        // Flush with the label above: no Material side padding.
+        data: SliderTheme.of(context).copyWith(padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4)),
+        child: Slider(
+          key: sliderKey,
+          value: v.clamp(min, max),
+          min: min,
+          max: max,
+          divisions: (max - min).round(),
+          onChanged: onChanged,
+          onChangeEnd: onEnd,
+        ),
+      ),
+    ],
+  );
+}
+
+/// A one-of-many choice as a settings row (iOS style): the label on the left, the
+/// current value on the right in grey with a chevron; a tap opens the check sheet.
+class PickerRow<T> extends StatelessWidget {
+  const PickerRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+    this.placeholder,
+    this.first = false,
+    this.keyOf,
+  });
+
+  final String label;
+  final T value;
+
+  /// (value, label, note).
+  final List<(T, String, String?)> options;
+  final ValueChanged<T> onChanged;
+  final String? placeholder;
+  final bool first;
+  final String Function(String label)? keyOf;
+
+  @override
+  Widget build(BuildContext context) {
+    final hit = options.where((o) => o.$1 == value).firstOrNull;
+    return Semantics(
+      button: true,
+      label: '$label: ${hit?.$2 ?? placeholder ?? 'none'}',
+      excludeSemantics: true,
+      child: Pressable(
+        onTap: () => showChoices<T>(
+          context,
+          title: label,
+          options: options,
+          selected: {if (hit != null) value},
+          onChanged: (s) => onChanged(s.first),
+          keyOf: keyOf,
+        ),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 46),
+          decoration: BoxDecoration(border: first ? null : const Border(top: BorderSide(color: Palette.hairlineSoft))),
+          child: Row(
+            children: [
+              Text(label, style: AppText.body),
+              const SizedBox(width: Space.md),
+              Expanded(
+                child: Text(
+                  hit?.$2 ?? placeholder ?? 'None',
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.body.copyWith(color: Palette.mutedSlate),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.unfold_more, size: 16, color: Palette.faintSlate),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A row inside a panel that folds content open beneath it (no card of its own).
+class FoldRow extends StatefulWidget {
+  const FoldRow({super.key, required this.title, required this.child, this.first = false});
+
+  final String title;
+  final Widget child;
+  final bool first;
+
+  @override
+  State<FoldRow> createState() => _FoldRowState();
+}
+
+class _FoldRowState extends State<FoldRow> {
+  var _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.of(context).disableAnimations;
+    return AnimatedSize(
+      duration: still ? Duration.zero : const Duration(milliseconds: 240),
+      curve: const Cubic(0.16, 1, 0.3, 1),
+      alignment: Alignment.topCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Pressable(
+            onTap: () => setState(() => _open = !_open),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 46),
+              decoration: BoxDecoration(
+                border: widget.first ? null : const Border(top: BorderSide(color: Palette.hairlineSoft)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Text(widget.title, style: AppText.body)),
+                  AnimatedRotation(
+                    turns: _open ? .5 : 0,
+                    duration: still ? Duration.zero : const Duration(milliseconds: 240),
+                    child: const Icon(Icons.expand_more, size: 18, color: Palette.faintSlate),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_open) widget.child,
+        ],
+      ),
+    );
+  }
+}

@@ -135,7 +135,7 @@ class _Turn extends ConsumerWidget {
         if (answer.isEmpty && t.status == AskStatus.streaming)
           Text('Coach is thinking…', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
         else if (answer.isNotEmpty)
-          AnswerText(answer, onCite: (_) {}),
+          AnswerText(answer, onCite: (_) {}, verdict: false),
         if (t.status == AskStatus.error && t.answer.isEmpty)
           Text(
             t.error is Unreachable ? "Can't reach the server at ${(t.error! as Unreachable).address}." : t.errorMessage ?? "The coach couldn't answer.",

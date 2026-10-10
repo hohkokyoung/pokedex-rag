@@ -30,7 +30,7 @@ SORT_OPTIONS = {
 @router.get("/pokemon", response_model=PokemonListResponse)
 async def list_pokemon(
     q: str | None = Query(None, description="Search by name or dex number"),
-    type: list[str] | None = Query(None, description="Filter by type id(s); all must match"),
+    type: list[str] | None = Query(None, description="Filter by type id(s); any may match"),
     generation: list[int] | None = Query(
         None, description="Filter by generation(s) 1-9; any may match"
     ),

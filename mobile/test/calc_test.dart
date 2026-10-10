@@ -85,6 +85,7 @@ void main() {
     await pumpApp(tester, be, location: '/tools/calc');
     await tester.pumpAndSettle();
     await _tap(tester, find.byKey(const Key('calc-field')));
+    await _tap(tester, find.byKey(const Key('calc-weather')));
     await _tap(tester, find.byKey(const Key('weather-Rain')));
     expect((lastTurnBody(be)['field']! as Map)['weather'], 'Rain');
     await _tap(tester, find.byKey(const Key('calc-math')));

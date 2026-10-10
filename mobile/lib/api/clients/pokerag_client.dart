@@ -152,7 +152,7 @@ abstract class PokeragClient {
   ///
   /// [q] - Search by name or dex number.
   ///
-  /// [type] - Filter by type id(s); all must match.
+  /// [type] - Filter by type id(s); any may match.
   ///
   /// [generation] - Filter by generation(s) 1-9; any may match.
   @GET('/api/pokemon')

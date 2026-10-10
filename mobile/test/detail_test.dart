@@ -38,7 +38,8 @@ void main() {
     expect(find.text('Hidden'), findsOneWidget);
     await tester.scrollUntilVisible(find.byKey(const Key('hits-row')), 200);
     final hits = chipsIn(tester, find.byKey(const Key('hits-row')));
-    expect(hits, containsAllInOrder(['Hits', '×2', 'Fire', 'Electric', 'Poison', 'Rock', 'Dragon', 'Steel']));
+    expect(hits, containsAllInOrder(['×2', 'Fire', 'Electric', 'Poison', 'Rock', 'Dragon', 'Steel']));
+    expect(find.text('Hits'), findsOneWidget); // the group's label, above its row
     expect(chipsIn(tester, find.ancestor(of: find.text('×4'), matching: find.byType(Row)).first), contains('Ice'));
     await tester.pumpAndSettle(); // let sections that scrolled into view finish loading
   });
@@ -46,6 +47,8 @@ void main() {
   testWidgets('switching to Mega Garchomp swaps stats, abilities and artwork', (tester) async {
     await pumpApp(tester, detailBackend(), location: '/pokemon/445');
     final mega = PokemonDetail.fromJson(fixture('garchomp')! as Map<String, Object?>).forms.firstWhere((f) => f.name == 'Mega Garchomp');
+    await tester.tap(find.byKey(const Key('forms')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(Key('form-${mega.id}')));
     await tester.pumpAndSettle();
     expect(find.text('Mega Garchomp'), findsWidgets);
@@ -62,7 +65,8 @@ void main() {
     for (final id in ['133', '869', '445']) {
       router.push('/pokemon/$id');
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.byKey(const Key('hits-row')), 300, scrollable: find.byType(Scrollable).last);
+      // Eevee (Normal) hits nothing ×2, so it has no Hits row; the card is enough.
+      await tester.scrollUntilVisible(find.text('Type matchups'), 300, scrollable: find.byType(Scrollable).last);
     }
     expect(be.hits['/api/types/chart'], 1);
   });

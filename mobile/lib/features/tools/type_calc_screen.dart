@@ -7,8 +7,7 @@ import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/ui.dart';
 import '../../widgets/cant_reach.dart';
-import '../../widgets/type_chip.dart';
-import '../pokedex/detail_sections.dart' show Section;
+import '../pokedex/detail_sections.dart' show MatchupGroups, Section, matchGroups;
 import '../pokedex/detail_state.dart' show typeChartProvider;
 import '../pokedex/filters_sheet.dart' show TypeGrid;
 
@@ -50,11 +49,18 @@ class _TypeCalcScreenState extends ConsumerState<TypeCalcScreen> {
         AsyncData(:final value) => ListView(
             padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 2),
             children: [
-              Text('Defends as 1–2 types', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(Space.md, Space.md, Space.md, Space.md),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Defends as one or two types', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+                    const SizedBox(height: Space.sm),
+                    // A third pick replaces the older of the two.
+                    TypeGrid(keyPrefix: 'calc', types: value.order, selected: sel, max: 2, onChanged: (next) => setState(() => sel = next)),
+                  ]),
+                ),
+              ),
               const SizedBox(height: Space.sm),
-              // A third pick replaces the older of the two.
-              TypeGrid(keyPrefix: 'calc', types: value.order, selected: sel, max: 2, onChanged: (next) => setState(() => sel = next)),
-              const SizedBox(height: Space.md),
               if (sel.isNotEmpty) _result(typeCalc(value, sel)),
             ],
           ),
@@ -66,29 +72,19 @@ class _TypeCalcScreenState extends ConsumerState<TypeCalcScreen> {
     );
   }
 
-  Widget _result(({List<String> x4, List<String> x2, List<String> half, List<String> quarter, List<String> immune, List<String> hits}) r) {
-    Widget row(String key, String label, List<String> types) => Padding(
-          key: Key('calc-row-$key'),
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            SizedBox(width: 96, child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))),
-            Expanded(
-              child: types.isEmpty
-                  ? Text('—', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
-                  : Wrap(spacing: 4, runSpacing: 4, children: [for (final t in types) TypeChip(t, dense: true)]),
-            ),
-          ]),
-        );
-    return Section(
-      title: sel.map((t) => t[0].toUpperCase() + t.substring(1)).join(' / '),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        row('x4', 'Takes ×4', r.x4),
-        row('x2', 'Takes ×2', r.x2),
-        row('half', 'Resists ×½', r.half),
-        row('quarter', 'Resists ×¼', r.quarter),
-        row('immune', 'Immune', r.immune),
-        row('hits', 'Hits ×2', r.hits),
-      ]),
-    );
-  }
+  Widget _result(({List<String> x4, List<String> x2, List<String> half, List<String> quarter, List<String> immune, List<String> hits}) r) =>
+      Section(
+        title: sel.map((t) => t[0].toUpperCase() + t.substring(1)).join(' / '),
+        child: MatchupGroups(
+          groups: matchGroups(
+            x4: r.x4,
+            x2: r.x2,
+            half: r.half,
+            quarter: r.quarter,
+            immune: r.immune,
+            hits: r.hits,
+            keyPrefix: 'calc-row',
+          ),
+        ),
+      );
 }

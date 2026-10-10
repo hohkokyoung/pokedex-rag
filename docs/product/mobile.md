@@ -32,8 +32,9 @@ All species as the website's two-column cards, loading more as you scroll.
 
 - **Search** by name or dex number.
 - **Filter** with a row of pills, each opening its own sheet:
-  - **Type:** up to two (all must match), picked from a three-column grid of type
-    chips. Picked ones show a check; the rest fade.
+  - **Type:** any number; a Pokémon with any of them is listed (the server's rule,
+    the website's too). Types are picked as on the website: grey names, and a picked
+    type in its colour with a soft glow.
   - **Generation:** any may match.
 - **Sort** (the third pill) by dex number, name, base stat total or any stat, either
   way round. Each row leads with the number you sorted by (BST otherwise).
@@ -45,7 +46,7 @@ to clear the search and filters.
 
 | Section | Shows |
 |---|---|
-| Header | artwork, dex number, name, category, types; a form switcher (Base / Mega / regional…) when the species has forms |
+| Header | artwork, dex number, name, category, types; a form pill ("Pikachu · 21 forms") that opens a sheet of the forms |
 | Base stats | the six stats as bars that draw in, plus the total |
 | Abilities | regular and hidden abilities with effects |
 | Type matchups | takes more from (×4, ×2), resists (×½, ×¼), immune to (×0), and **Hits ×2** |
@@ -82,7 +83,8 @@ The same saved teams as the website's `/teams`, rated by the server:
     our pressure and advice;
   - the report: rating and AI summary (↻ Regenerate), the six grades with fixes, How it
     plays (strategy axes, now and with learnable moves), type profile, Sets with **Use
-    suggested** (fills only the empty parts), and Defence per attacking type.
+    suggested** (fills only the empty parts), and Defence per attacking type (the problem
+    types first, the rest one tap away).
 - **Coach** (on the team page, as on the website):
   - quick questions, a question box, and the thread for this visit; with an opponent
     picked, questions include it;
@@ -99,17 +101,22 @@ The same saved teams as the website's `/teams`, rated by the server:
 
 The same assistant as the website's Ask, streamed from the server:
 
-- **Starters** (the website's suggestions) until you ask; a line says whether answers
+- **Starters** (the website's suggestions, as rows in one panel) until you ask; a line says whether answers
   are narrated by the LLM or keyless.
-- The answer streams in with tappable **[n]** citations. Tapping one shows that
-  record's text and, for a Pokémon, **Open** its page. If the plan couldn't apply part
-  of the question, that is said first.
+- The answer streams in, laid out like the website's:
+  - the first sentence is the verdict, large;
+  - list rows lead with the Pokémon's artwork;
+  - **[n]** citations are small red chips. Tapping one shows that record's text and,
+    for a Pokémon, **Open** its page.
+
+  If the plan couldn't apply part of the question, an amber note says so first.
 - **How it was answered:** planner (or cached), time, LLM calls and lookups; tap it for
   each step and what it found.
 - **Cards** for each result: rankings, Pokémon lists, type matchups, moves, learnsets,
   who learns a move, and learn checks (✓ / ✗ with how). Each lists its sources; tap a
   Pokémon to open it.
-- **Ask next:** follow-ups about the Pokémon the answer cited (none when it abstains).
+- **Ask next** (after the answer): follow-ups about the Pokémon the answer cited (none
+  when it abstains).
 - The **profile** button sets your preferred types (shared with the website) for
   "for you" questions and lists your favourites.
 
@@ -123,9 +130,9 @@ The website home page's tool tiles, one page each:
 - **Damage calc:**
   - singles or doubles, Lv50 or Lv100;
   - your side and the opponent's, each with a Pokémon, move (and in doubles its
-    target), ability, item, nature, preset (Offensive / Bulky / Custom), EVs, IVs and
-    current HP;
-  - the field (weather, terrain, screens, crit, burn, Friend Guard).
+    target), ability, item, nature (settings rows: tap one for a check sheet), preset
+    (Offensive / Bulky / Custom), EVs, IVs (folded) and current HP;
+  - the field (weather, terrain, screens, crit, burn, Friend Guard) in a folding panel.
   - **This turn** is the battle log in move order, played by the server
     (`POST /api/calc/turn`, the same turn the website shows): ranges, HP bars, KO
     calls, Focus Sash, who faints.
@@ -139,17 +146,19 @@ The website home page's tool tiles, one page each:
       sets it (with the picked move), **Revert** restores the set and move.
     - Nothing is saved outside the calculator.
 
-- **Type calculator:** pick 1–2 types (a third replaces the older). It shows what the
-  typing takes ×4/×2, resists ×½/×¼, is immune to, and hits ×2, all read from the
-  served type chart.
+- **Type calculator:** pick 1–2 types (a third replaces the older). As on the website,
+  the results are grouped (Takes more from ×4/×2, Resists ×½/×¼, Immune to, Hits ×2),
+  each with a coloured multiplier, all read from the served type chart.
 - **Nature helper:** the 5×5 grid (+stat rows, −stat columns, neutral natures on the
   diagonal); tap one for its ±10%.
 - **Catch rate:**
-  - pick a Pokémon, set its status and HP, and the server ranks every ball with its
-    chance per throw and throws for 90%;
-  - **Situation** holds wild and your level, turn, species caught, night/cave,
-    fishing, caught before, love match and the Catching Charm;
-  - the formula for the picked ball is at the bottom.
+  - the inputs come first: pick a Pokémon, its status (one compact control) and HP;
+  - **Situation** (a folding panel) holds wild and your level, turn, species caught as
+    sliders, and night/cave, fishing, caught before, love match and the Catching Charm
+    as switches;
+  - the server ranks every ball with its chance per throw and throws for 90%. The
+    best six show, and **Show all** reveals the rest;
+  - the formula for the picked ball folds away at the bottom.
 - **Lookup:** the website's finder. It opens on every move, ability and item, loaded
   once and filtered on the phone.
   - One search carries across the three tabs, and while searching each tab counts its

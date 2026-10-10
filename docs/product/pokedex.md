@@ -5,7 +5,8 @@
 All 1,025 species as cards, loading more as you scroll.
 
 - **Search** by name or dex number.
-- **Filter** by type (any number), generation (several at once) and **Legendary**.
+- **Filter** by type (any number; a Pokémon with any of them shows), generation
+  (several at once) and **Legendary**.
 - **Sort** by dex number, name, base stat total, HP, Attack, Defense or Speed,
   ascending or descending.
 

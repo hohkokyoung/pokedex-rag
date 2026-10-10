@@ -95,6 +95,7 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
   );
   int? hpDrag; // the HP slider while dragging (asks the server on release)
   String ball = 'ultra';
+  bool allBalls = false; // the ranking past the best six
   CatchOut? last; // shown while the next ranking loads
 
   CatchQuery _with({
@@ -150,7 +151,10 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
               key: const Key('catch-pick'),
               leading: Artwork(thumbUrl(base, '/sprites/official-artwork/${q.pokemonId}.png'), size: 44),
               title: Text(name, style: AppText.title),
-              subtitle: Text('Base catch rate ${shown?.captureRate ?? '–'}', style: AppText.readout.copyWith(color: Palette.inkDim)),
+              subtitle: Text(
+                'Base catch rate ${shown?.captureRate ?? '–'}',
+                style: AppText.readout.copyWith(color: Palette.inkDim),
+              ),
               trailing: const Icon(Icons.swap_horiz),
               onTap: () async {
                 final p = await pickPokemon(context);
@@ -164,21 +168,19 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
           ),
           const SizedBox(height: Space.sm),
           Text('Status', style: AppText.label.copyWith(color: Palette.mutedSlate)),
-          const SizedBox(height: 4),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final (s, code, label) in _statuses)
-                ChoiceChip(
-                  key: Key('status-${s.json}'),
-                  label: Text(code),
-                  tooltip: label,
-                  selected: q.status == s,
-                  onSelected: (_) => _set(_with(status: q.status == s ? Status.none : s)),
-                ),
+          const SizedBox(height: 6),
+          // One compact control, not a row of big buttons.
+          Segmented<Status>(
+            key: const Key('status'),
+            compact: true,
+            value: q.status,
+            onChanged: (s) => _set(_with(status: s)),
+            options: [
+              (Status.none, 'None', const Key('status-none')),
+              for (final (s, code, _) in _statuses) (s, code, Key('status-${s.json}')),
             ],
           ),
+          const SizedBox(height: Space.xs),
           _slider(
             'HP left',
             '${hpDrag ?? q.hpPct}%${top != null && hpDrag == null ? ' · ${top.terms.hp}/${top.terms.maxHp}' : ''}',
@@ -192,102 +194,169 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
             },
             key: 'hp',
           ),
-          const SizedBox(height: Space.md),
-          Row(
-            children: [
-              Expanded(
-                child: Text('Best balls here', style: AppText.label.copyWith(color: Palette.mutedSlate)),
-              ),
-              if (odds.isLoading) const Spinner(radius: 7),
-              const SizedBox(width: Space.xs),
-              Text('per throw', style: AppText.label.copyWith(color: Palette.mutedSlate)),
-            ],
-          ),
-          if (odds case AsyncError(:final error) when error is! Unreachable)
-            Text('The server had a problem: $error', style: AppText.bodySmall.copyWith(color: Palette.pokeballRedText)),
-          for (final b in shown?.balls ?? const <BallOddsOut>[])
-            InkWell(
-              key: Key('ball-${b.id}'),
-              onTap: () => setState(() => ball = b.id),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                decoration: BoxDecoration(
-                  color: b.id == top?.id ? Palette.insetGray : null,
-                  borderRadius: BorderRadius.circular(Radii.inset),
+          const SizedBox(height: Space.xs),
+          // The rest of the situation, folded away as on the website's tile.
+          FoldPanel(
+            key: const Key('situation'),
+            title: 'Situation',
+            summary: [
+              'Lv ${q.level}',
+              'turn ${q.turn}',
+              if (q.night) 'night',
+              if (q.water) 'water',
+              if (q.caught) 'caught',
+            ].join(' · '),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _slider(
+                  'Wild level',
+                  'Lv ${q.level}',
+                  q.level.toDouble(),
+                  1,
+                  100,
+                  (v) => _set(_with(level: v.round())),
+                  null,
+                  key: 'level',
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(b.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-                          Text(b.why, style: AppText.bodySmall.copyWith(color: Palette.inkDim, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                _slider(
+                  'Your level',
+                  'Lv ${q.myLevel}',
+                  q.myLevel.toDouble(),
+                  1,
+                  100,
+                  (v) => _set(_with(myLevel: v.round())),
+                  null,
+                  key: 'my-level',
+                ),
+                _slider(
+                  'Turn',
+                  '${q.turn}',
+                  q.turn.toDouble(),
+                  1,
+                  30,
+                  (v) => _set(_with(turn: v.round())),
+                  null,
+                  key: 'turn',
+                ),
+                _slider(
+                  'Species caught',
+                  '${q.dexCaught}',
+                  q.dexCaught.toDouble(),
+                  0,
+                  1025,
+                  (v) => _set(_with(dexCaught: v.round())),
+                  null,
+                  key: 'dex',
+                ),
+                const SizedBox(height: Space.xs),
+                SwitchRow(
+                  key: const Key('flag-night'),
+                  label: 'Night or in a cave',
+                  value: q.night,
+                  onChanged: (v) => _set(_with(night: v)),
+                ),
+                SwitchRow(
+                  key: const Key('flag-water'),
+                  label: 'Fishing or surfing',
+                  value: q.water,
+                  onChanged: (v) => _set(_with(water: v)),
+                ),
+                SwitchRow(
+                  key: const Key('flag-caught'),
+                  label: 'Caught before',
+                  value: q.caught,
+                  onChanged: (v) => _set(_with(caught: v)),
+                ),
+                SwitchRow(
+                  key: const Key('flag-love'),
+                  label: 'Love match',
+                  note: 'Your lead is the same species, other gender',
+                  value: q.loveMatch,
+                  onChanged: (v) => _set(_with(loveMatch: v)),
+                ),
+                SwitchRow(
+                  key: const Key('flag-charm'),
+                  label: 'Catching Charm',
+                  value: q.charm,
+                  onChanged: (v) => _set(_with(charm: v)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Space.sm),
+          // The ranking on one panel: the best six, the rest one tap away.
+          Card(
+            key: const Key('balls'),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Space.sm, Space.sm, Space.sm, Space.xs),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(6, 2, 6, 4),
+                    child: Row(
                       children: [
-                        Text('${pctText(b.p)}%', style: AppText.readout.copyWith(fontSize: 15, color: _tone(b.p))),
-                        if (!b.sure && b.throws != null)
-                          Text('${b.throws} for 90%', style: AppText.readout.copyWith(fontSize: 10, color: Palette.mutedSlate)),
+                        Expanded(child: Text('Best balls here', style: AppText.title)),
+                        if (odds.isLoading) ...[const Spinner(radius: 7), const SizedBox(width: Space.xs)],
+                        Text('per throw', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: Space.sm),
-          // The rest of the situation, folded away as on the website's tile.
-          ExpansionTile(
-            key: const Key('situation'),
-            tilePadding: EdgeInsets.zero,
-            title: Text(
-              'Situation: ${['Lv ${q.level}', 'turn ${q.turn}', if (q.night) 'night', if (q.water) 'water', if (q.caught) 'caught'].join(' · ')}',
-              style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w600),
-            ),
-            children: [
-              _slider('Wild level', 'Lv ${q.level}', q.level.toDouble(), 1, 100, (v) => _set(_with(level: v.round())), null, key: 'level'),
-              _slider(
-                'Your level',
-                'Lv ${q.myLevel}',
-                q.myLevel.toDouble(),
-                1,
-                100,
-                (v) => _set(_with(myLevel: v.round())),
-                null,
-                key: 'my-level',
-              ),
-              _slider('Turn', '${q.turn}', q.turn.toDouble(), 1, 30, (v) => _set(_with(turn: v.round())), null, key: 'turn'),
-              _slider(
-                'Species caught',
-                '${q.dexCaught}',
-                q.dexCaught.toDouble(),
-                0,
-                1025,
-                (v) => _set(_with(dexCaught: v.round())),
-                null,
-                key: 'dex',
-              ),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  _flag('night', 'Night / cave', q.night, (v) => _set(_with(night: v))),
-                  _flag('water', 'Fishing / surfing', q.water, (v) => _set(_with(water: v))),
-                  _flag('caught', 'Caught before', q.caught, (v) => _set(_with(caught: v))),
-                  _flag('love', 'Lead: same species, other gender', q.loveMatch, (v) => _set(_with(loveMatch: v))),
-                  _flag('charm', 'Catching Charm', q.charm, (v) => _set(_with(charm: v))),
+                  ),
+                  if (odds case AsyncError(:final error) when error is! Unreachable)
+                    Text(
+                      'The server had a problem: $error',
+                      style: AppText.bodySmall.copyWith(color: Palette.pokeballRedText),
+                    ),
+                  for (final b in (shown?.balls ?? const <BallOddsOut>[]).take(allBalls ? 999 : 6)) _ballRow(b, top),
+                  if (!allBalls && (shown?.balls.length ?? 0) > 6)
+                    TextButton(
+                      key: const Key('all-balls'),
+                      onPressed: () => setState(() => allBalls = true),
+                      child: Text('Show all ${shown!.balls.length} balls'),
+                    ),
                 ],
               ),
-            ],
+            ),
           ),
-          if (top != null) ...[const SizedBox(height: Space.md), _math(top)],
+          if (top != null) ...[const SizedBox(height: Space.sm), _math(top)],
         ],
       ),
     );
   }
+
+  Widget _ballRow(BallOddsOut b, BallOddsOut? top) => InkWell(
+    key: Key('ball-${b.id}'),
+    onTap: () => setState(() => ball = b.id),
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      decoration: BoxDecoration(
+        color: b.id == top?.id ? Palette.insetGray : null,
+        borderRadius: BorderRadius.circular(Radii.inset),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(b.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                Text(b.why, style: AppText.bodySmall.copyWith(color: Palette.inkDim, fontSize: 12)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('${pctText(b.p)}%', style: AppText.readout.copyWith(fontSize: 15, color: _tone(b.p))),
+              if (!b.sure && b.throws != null)
+                Text('${b.throws} for 90%', style: AppText.readout.copyWith(fontSize: 10, color: Palette.mutedSlate)),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 
   Color _tone(num p) => p > 0.5
       ? Palette.verdictGreenText
@@ -304,33 +373,18 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
     ValueChanged<double> onChanged,
     ValueChanged<double>? onEnd, {
     required String key,
-  }) => Row(
-    children: [
-      SizedBox(
-        width: 92,
-        child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
-      ),
-      Expanded(
-        child: Slider(
-          key: Key('slider-$key'),
-          value: v.clamp(min, max),
-          min: min,
-          max: max,
-          divisions: (max - min).round(),
-          // Without onEnd every step asks the server (cheap on the home network).
-          onChanged: onChanged,
-          onChangeEnd: onEnd,
-        ),
-      ),
-      SizedBox(
-        width: 104,
-        child: Text(value, textAlign: TextAlign.right, style: AppText.readout.copyWith(fontSize: 12)),
-      ),
-    ],
-  );
-
-  Widget _flag(String key, String label, bool on, ValueChanged<bool> set) =>
-      FilterChip(key: Key('flag-$key'), label: Text(label), selected: on, onSelected: set);
+  }) =>
+      // Without onEnd every step asks the server (cheap on the home network).
+      LabeledSlider(
+        label: label,
+        value: value,
+        v: v,
+        min: min,
+        max: max,
+        onChanged: onChanged,
+        onEnd: onEnd,
+        sliderKey: Key('slider-$key'),
+      );
 
   /// The top (or picked) ball's formula, as the website's "math" line.
   Widget _math(BallOddsOut b) {
@@ -343,13 +397,33 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
         ? ' → guaranteed'
         : ' · shake = 65536 / (255/a)^(3/16) ÷ 65536 = ${t.shake.toStringAsFixed(3)} → '
               '${t.crit > 0 ? 'crit ${(t.crit * 100).toStringAsFixed(1)}% + ' : ''}${t.shake.toStringAsFixed(3)}⁴ = ${pctText(b.p)}%';
-    return Container(
+    return FoldPanel(
       key: const Key('catch-math'),
-      padding: const EdgeInsets.all(Space.sm),
-      decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.inset)),
-      child: Text(
-        '$head$tail\nSword/Shield formula; ball and status multipliers are Gen 5+ values.',
-        style: AppText.readout.copyWith(fontSize: 11, height: 1.5),
+      title: 'How it\'s worked out',
+      summary: b.name,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(Space.sm),
+            decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.inset)),
+            child: Text(
+              '$head$tail',
+              style: AppText.readout.copyWith(
+                fontSize: 11,
+                height: 1.6,
+                fontWeight: FontWeight.w500,
+                color: Palette.inkDim,
+              ),
+            ),
+          ),
+          const SizedBox(height: Space.xs),
+          Text(
+            'The Sword / Shield formula; ball and status multipliers are Gen 5+ values.',
+            style: AppText.bodySmall.copyWith(color: Palette.mutedSlate),
+          ),
+        ],
       ),
     );
   }

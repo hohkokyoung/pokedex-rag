@@ -89,6 +89,9 @@ void main() {
     final first = be.requests.lastWhere((r) => r.path == '/api/pokemon/149/catch');
     expect(first.queryParameters['hp_pct'], 25);
     expect(first.queryParameters['level'], 55);
+    // The best six show; the rest are one tap away.
+    expect(find.byKey(const Key('ball-dream')), findsNothing);
+    await _tap(tester, find.byKey(const Key('all-balls')));
     expect(find.byKey(const Key('ball-dream')), findsOneWidget);
     double y(String id) => tester.getTopLeft(find.byKey(Key('ball-$id'))).dy;
     expect(y('ultra'), lessThan(y('dream')));

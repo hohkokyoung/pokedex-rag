@@ -107,7 +107,7 @@ void main() {
     expect(find.text('Total'), findsNothing);
   });
 
-  testWidgets('a third type replaces the oldest (two at most)', (tester) async {
+  testWidgets('any number of types can be picked (any may match)', (tester) async {
     final be = backend();
     await pumpApp(tester, be);
     await tester.tap(find.byKey(const Key('filter-type')));
@@ -116,7 +116,8 @@ void main() {
       await tester.tap(find.byKey(Key('type-$t')));
       await tester.pumpAndSettle();
     }
-    expect(be.requests.lastWhere((r) => r.path == '/api/pokemon').queryParameters['type'], ['water', 'grass']);
+    expect(be.requests.lastWhere((r) => r.path == '/api/pokemon').queryParameters['type'], ['fire', 'water', 'grass']);
+    expect(find.text('3 types'), findsOneWidget);
   });
 }
 

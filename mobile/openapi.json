@@ -8231,7 +8231,7 @@
       }
      },
      {
-      "description": "Filter by type id(s); all must match",
+      "description": "Filter by type id(s); any may match",
       "in": "query",
       "name": "type",
       "required": false,
@@ -8247,7 +8247,7 @@
          "type": "null"
         }
        ],
-       "description": "Filter by type id(s); all must match",
+       "description": "Filter by type id(s); any may match",
        "title": "Type"
       }
      },

@@ -7,7 +7,6 @@ grades, profile, strategy and matchup the backend computes for the website.
 
 ## Requirements
 
-
 ### Requirement: Teams tab and team list
 The app SHALL have a bottom navigation bar with Pokédex and Teams. The Teams tab SHALL list every saved team. A non-empty team's card SHALL show its name, sprites, grade and score from the backend rating, play style, AI summary, weak to / resists / hits-hard facts, six letter grades and up to three fixes. An empty team SHALL show its name and an invitation to add Pokémon.
 
@@ -89,3 +88,10 @@ The team page SHALL let the user pick another saved team as the opponent. With a
 #### Scenario: Garchomp team vs Rival
 - **WHEN** the user compares Garchomp team with Rival (mockup)
 - **THEN** it shows the verdict "Even", the one-on-ones 17–18, and Tyranitar among their threats, and Garchomp team's grade is still A (88)
+
+### Requirement: A report that reads at a glance
+The team report's type profile SHALL put each group's label above its chips, with shared counts inside the chip. "Hits hard" SHALL name only the types it misses, when there are few. Defence SHALL list the types more of the team is weak to than resists, with "Show the other N" for the rest, and omit an empty resist line.
+
+#### Scenario: Strong coverage
+- **WHEN** a team hits 17 of 18 types hard
+- **THEN** the report reads "17 of 18 types · misses" and the one type

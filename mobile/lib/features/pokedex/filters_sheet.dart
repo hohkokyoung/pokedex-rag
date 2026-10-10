@@ -39,7 +39,11 @@ class ListFilterBar extends ConsumerWidget {
       children: [
         FilterPill(
           key: const Key('filter-type'),
-          label: q.types.isEmpty ? 'Type' : q.types.map(_cap).join(' + '),
+          label: switch (q.types.length) {
+            0 => 'Type',
+            1 || 2 => q.types.map(_cap).join(', '),
+            final n => '$n types',
+          },
           on: q.types.isNotEmpty,
           onTap: () => _types(context),
         ),
@@ -74,12 +78,11 @@ class ListFilterBar extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Up to two; a Pokémon must have both.', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+            Text('Pick any number; a Pokémon with any of them is listed.', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
             const SizedBox(height: Space.sm),
             TypeGrid(
               types: types,
               selected: q.types,
-              max: 2,
               onChanged: (next) => ref.read(listQueryProvider.notifier).set(q.copyWith(types: next)),
             ),
           ],
@@ -143,26 +146,18 @@ class ListFilterBar extends ConsumerWidget {
   );
 }
 
-/// A type filter drawn as the type's own chip (solid colour, name written out), so
-/// filters and results read the same. Picked ones carry a check; while any type is
-/// picked, the others fade.
+/// A type picker button, as on the website (`.lc-tg`): the name in grey on nothing
+/// when off; the type's own colour with a soft glow of it when on.
 class TypeToggle extends StatelessWidget {
-  const TypeToggle({super.key, required this.type, required this.selected, required this.onChanged, this.dimmed = false, this.expand = false});
+  const TypeToggle({super.key, required this.type, required this.selected, required this.onChanged});
 
   final String type;
   final bool selected;
   final ValueChanged<bool> onChanged;
 
-  /// Another type is picked and this one isn't.
-  final bool dimmed;
-
-  /// Fill the width it's given (a grid cell).
-  final bool expand;
-
   @override
   Widget build(BuildContext context) {
     final fill = TypeColors.fill[type] ?? Palette.mutedSlate;
-    final on = TypeColors.on[type] ?? Palette.panelWhite;
     final still = MediaQuery.of(context).disableAnimations;
     return Semantics(
       button: true,
@@ -174,27 +169,20 @@ class TypeToggle extends StatelessWidget {
           HapticFeedback.selectionClick();
           onChanged(!selected);
         },
-        child: AnimatedOpacity(
-          duration: still ? Duration.zero : const Duration(milliseconds: 160),
-          opacity: dimmed ? .45 : 1,
-          child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(Radii.chip)),
-            child: Row(
-              mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (selected) ...[Icon(Icons.check, size: 14, color: on), const SizedBox(width: 4)],
-                Flexible(
-                  child: Text(
-                    type[0].toUpperCase() + type.substring(1),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.label.copyWith(color: on),
-                  ),
-                ),
-              ],
+        child: AnimatedContainer(
+          duration: still ? Duration.zero : const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? fill : Colors.transparent,
+            borderRadius: BorderRadius.circular(Radii.control),
+            boxShadow: selected ? [BoxShadow(color: fill.withValues(alpha: .4), blurRadius: 10, offset: const Offset(0, 3))] : null,
+          ),
+          child: Text(
+            type[0].toUpperCase() + type.substring(1),
+            style: AppText.label.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: selected ? (TypeColors.on[type] ?? Palette.panelWhite) : Palette.faintSlate,
             ),
           ),
         ),
@@ -203,8 +191,8 @@ class TypeToggle extends StatelessWidget {
   }
 }
 
-/// Every type as a three-column grid of type chips: the phone's way to pick types
-/// (no strip running off the edge). [max] keeps the newest picks.
+/// Every type as the website's picker: names wrapping across the width. [max] keeps the
+/// newest picks (the type calculator's two); without it any number may be picked.
 class TypeGrid extends StatelessWidget {
   const TypeGrid({super.key, required this.types, required this.selected, required this.onChanged, this.max, this.keyPrefix = 'type'});
 
@@ -215,32 +203,21 @@ class TypeGrid extends StatelessWidget {
   final String keyPrefix;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, c) {
-      const gap = 6.0;
-      final w = (c.maxWidth - gap * 2) / 3;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: [
-          for (final t in types)
-            SizedBox(
-              width: w,
-              child: TypeToggle(
-                key: Key('$keyPrefix-$t'),
-                type: t,
-                expand: true,
-                selected: selected.contains(t),
-                dimmed: selected.isNotEmpty && !selected.contains(t),
-                onChanged: (on) {
-                  final next = [...selected]..remove(t);
-                  if (on) next.add(t);
-                  onChanged(max != null && next.length > max! ? next.sublist(next.length - max!) : next);
-                },
-              ),
-            ),
-        ],
-      );
-    },
+  Widget build(BuildContext context) => Wrap(
+    spacing: 4,
+    runSpacing: 6,
+    children: [
+      for (final t in types)
+        TypeToggle(
+          key: Key('$keyPrefix-$t'),
+          type: t,
+          selected: selected.contains(t),
+          onChanged: (on) {
+            final next = [...selected]..remove(t);
+            if (on) next.add(t);
+            onChanged(max != null && next.length > max! ? next.sublist(next.length - max!) : next);
+          },
+        ),
+    ],
   );
 }

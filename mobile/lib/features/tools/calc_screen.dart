@@ -118,22 +118,43 @@ class _CalcScreenState extends ConsumerState<CalcScreen> {
           },
           child: Container(
             margin: const EdgeInsets.all(3),
-            padding: const EdgeInsets.all(Space.xs),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            constraints: const BoxConstraints(minHeight: 62),
             decoration: BoxDecoration(
-              color: Palette.panelWhite,
-              borderRadius: BorderRadius.circular(Radii.inset),
-              border: Border.all(color: i == focus ? Palette.instrumentInk : Palette.hairline, width: i == focus ? 2 : 1),
+              // An empty slot is an outline on the ground; a filled one a white panel, the
+              // focused one outlined in ink.
+              color: s.mon == null ? Colors.transparent : Palette.panelWhite,
+              borderRadius: BorderRadius.circular(Radii.card),
+              border: Border.all(
+                color: s.mon != null && i == focus ? Palette.instrumentInk : Palette.hairline,
+                width: s.mon != null && i == focus ? 1.5 : 1,
+              ),
             ),
             child: s.mon == null
-                ? SizedBox(height: 72, child: Center(child: Text('+ ${_role[i]}', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))))
+                ? SizedBox(
+                    height: 46,
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Icon(Icons.add, size: 16, color: Palette.mutedSlate),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          // Doubles slots are narrow: just the role there.
+                          m.doubles ? _role[i] : (i >= 2 ? 'Add opponent' : 'Add ${_role[i].toLowerCase()}'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.bodySmall.copyWith(color: Palette.mutedSlate),
+                        ),
+                      ),
+                    ]),
+                  )
                 : Row(children: [
-                    Artwork(thumbUrl(base, s.mon!.spriteUrl), size: 40),
-                    const SizedBox(width: 4),
+                    Artwork(thumbUrl(base, s.mon!.spriteUrl), size: 42),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(s.mon!.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-                        Text('${n > 0 ? '#$n · ' : ''}${s.move ?? 'no move'}',
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.readout.copyWith(fontSize: 10.5, color: Palette.inkDim)),
+                        Text('${n > 0 ? '#$n · ' : ''}${s.move ?? 'No move yet'}',
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.bodySmall.copyWith(fontSize: 12, color: Palette.mutedSlate)),
                         if (best != null) Text(_range(best), style: AppText.readout.copyWith(fontSize: 12)),
                         // HP left after the turn: solid = worst roll, faded = best roll.
                         if (t?.hp.where((x) => x.slot == i).firstOrNull case final hp?)
@@ -328,116 +349,103 @@ class _SlotEditor extends ConsumerWidget {
     final cur = moves.where((x) => x.name == s.move).firstOrNull;
     final foes = [for (final j in m.active) if (_sideOf(j) != _sideOf(slot) && m.sets[j].mon != null) j];
     final aim = turn?.aims['$slot'];
-    Widget row(String label, Widget child) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(children: [
-            SizedBox(width: 72, child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))),
-            Expanded(child: child),
-          ]),
-        );
-    Widget drop(String key, String value, List<(String, String?)> items, ValueChanged<String> on) => PickerButton<String>(
+    // Settings rows: the label left, the choice right; a tap opens the check sheet.
+    Widget drop(String key, String label, String value, List<(String, String?)> items, ValueChanged<String> on, {bool first = false}) =>
+        PickerRow<String>(
           key: Key(key),
-          // 'calc-move' → 'Move'
-          title: '${key[5].toUpperCase()}${key.substring(6)}',
+          label: label,
           value: value,
           placeholder: value,
+          first: first,
           options: [for (final (v, note) in items) (v, v, note)],
           onChanged: on,
-          style: AppText.bodySmall,
         );
+    Future<void> change() async {
+      final p = await pickPokemon(context);
+      if (p == null) return;
+      var stats = p.stats;
+      stats ??= (await ref.read(repositoryProvider).detail('${p.dexNumber}')).stats;
+      await n.pick(slot, CalcPick(
+        pokemonId: p.formId != null ? p.dexNumber : p.id, formId: p.formId, name: p.name, spriteUrl: p.spriteUrl,
+        types: p.types, attack: stats.attack, spAttack: stats.spAttack,
+      ));
+    }
+    Widget stat(String label, String value, double v, double max, int divisions, ValueChanged<double> on, {Key? key}) => Row(children: [
+          SizedBox(width: 44, child: Text(label, style: AppText.bodySmall.copyWith(color: Palette.inkDim))),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4)),
+              child: Slider(key: key, value: v, min: 0, max: max, divisions: divisions, onChanged: on),
+            ),
+          ),
+          SizedBox(width: 36, child: Text(value, textAlign: TextAlign.right, style: AppText.readout.copyWith(fontSize: 12))),
+        ]);
     return Section(
       title: '${mon.name} · ${_role[slot]}',
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Wrap(spacing: 4, children: [for (final t in mon.types) TypeChip(t, dense: true)]),
-        Row(children: [
-          TextButton.icon(
-            key: const Key('calc-change'),
-            icon: const Icon(Icons.swap_horiz, size: 18),
-            label: const Text('Change'),
-            onPressed: () async {
-              final p = await pickPokemon(context);
-              if (p == null) return;
-              var stats = p.stats;
-              stats ??= (await ref.read(repositoryProvider).detail('${p.dexNumber}')).stats;
-              await n.pick(slot, CalcPick(
-                pokemonId: p.formId != null ? p.dexNumber : p.id, formId: p.formId, name: p.name, spriteUrl: p.spriteUrl,
-                types: p.types, attack: stats.attack, spAttack: stats.spAttack,
-              ));
-            },
-          ),
-          if (slot == 1 || slot == 3)
-            TextButton.icon(key: const Key('calc-clear'), icon: const Icon(Icons.close, size: 18), label: const Text('Remove'), onPressed: () => n.clear(slot)),
-        ]),
-        row('Move', drop('calc-move', s.move ?? '—', [
-          for (final mv in moves) (mv.name, '${mv.type ?? ''} ${mv.damageClass ?? ''} ${mv.power ?? '—'}'),
-        ], (v) => n.update(slot, (x) => x.copyWith(move: v)))),
+      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+        SquareButton(key: const Key('calc-change'), tooltip: 'Change Pokémon', icon: Icons.swap_horiz, size: 34, onPressed: change),
+        if (slot == 1 || slot == 3) ...[
+          const SizedBox(width: 6),
+          SquareButton(key: const Key('calc-clear'), tooltip: 'Remove', icon: Icons.close, size: 34, onPressed: () => n.clear(slot)),
+        ],
+      ]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Wrap(spacing: 6, children: [for (final t in mon.types) TypeChip(t, dense: true)]),
+        const SizedBox(height: Space.sm),
+        drop('calc-move', 'Move', s.move ?? '—', [
+          for (final mv in moves) (mv.name, [?mv.type, ?mv.damageClass, '${mv.power ?? '—'}'].join(' · ')),
+        ], (v) => n.update(slot, (x) => x.copyWith(move: v)), first: true),
         if (m.doubles && cur != null && (cur.power ?? 0) > 0 && _aimable(cur.target) && foes.length > 1)
-          row('Target', Wrap(spacing: 6, children: [
-            for (final j in foes)
-              ChoiceChip(
-                key: Key('calc-aim-$j'),
-                label: Text(m.sets[j].mon!.name),
-                selected: aim == j,
-                onSelected: (_) => n.set((x) => x.copyWith(aims: [for (final (k, a) in x.aims.indexed) k == slot ? j : a])),
-              ),
-          ])),
-        row('Ability', drop('calc-ability', s.ability, [
+          PickerRow<int>(
+            key: const Key('calc-aim'),
+            label: 'Target',
+            value: aim ?? foes.first,
+            keyOf: (label) => 'calc-aim-${foes.firstWhere((j) => m.sets[j].mon!.name == label, orElse: () => foes.first)}',
+            options: [for (final j in foes) (j, m.sets[j].mon!.name, null)],
+            onChanged: (j) => n.set((x) => x.copyWith(aims: [for (final (k, a) in x.aims.indexed) k == slot ? j : a])),
+          ),
+        drop('calc-ability', 'Ability', s.ability, [
           for (final a in abilities) (a.name, hint[a.name] ?? 'no damage effect'),
-        ], (v) => n.update(slot, (x) => x.copyWith(ability: v)))),
-        row('Item', drop('calc-item', s.item, [
+        ], (v) => n.update(slot, (x) => x.copyWith(ability: v))),
+        drop('calc-item', 'Item', s.item, [
           ('None', 'no item'),
           for (final i in opts?.items ?? const <CalcOptionOut>[]) (i.name, itemNote[i.name]),
-        ], (v) => n.update(slot, (x) => x.copyWith(item: v)))),
-        row('Nature', drop('calc-nature', s.nature, [for (final nat in opts?.natures ?? const <String>[]) (nat, null)],
-            (v) => n.update(slot, (x) => x.copyWith(nature: v, pre: 'Custom')))),
-        row('Preset', Segmented<String>(
+        ], (v) => n.update(slot, (x) => x.copyWith(item: v))),
+        drop('calc-nature', 'Nature', s.nature, [for (final nat in opts?.natures ?? const <String>[]) (nat, null)],
+            (v) => n.update(slot, (x) => x.copyWith(nature: v, pre: 'Custom'))),
+        const SizedBox(height: Space.sm),
+        Segmented<String>(
           key: const Key('calc-preset'),
           compact: true,
           value: s.pre,
           // Custom is what any edit makes; picking it changes nothing.
           onChanged: (v) => v == 'Custom' ? null : n.preset(slot, v),
           options: const [('Offensive', 'Offensive', null), ('Bulky', 'Bulky', null), ('Custom', 'Custom', null)],
-        )),
-        row('HP', Row(children: [
-          Expanded(
-            child: Slider(key: const Key('calc-hp'), value: s.hp.toDouble(), min: 1, max: 100, divisions: 99,
-                onChanged: (v) => n.update(slot, (x) => x.copyWith(hp: v.round()))),
-          ),
-          SizedBox(width: 44, child: Text('${s.hp}%', textAlign: TextAlign.right, style: AppText.readout)),
-        ])),
-        Text('EVs ${s.evTotal} / $maxEvTotal', key: const Key('calc-ev-total'), style: AppText.label.copyWith(color: Palette.mutedSlate)),
+        ),
+        LabeledSlider(
+          sliderKey: const Key('calc-hp'),
+          label: 'HP left',
+          value: '${s.hp}%',
+          v: s.hp.toDouble(),
+          min: 1,
+          max: 100,
+          onChanged: (v) => n.update(slot, (x) => x.copyWith(hp: v.round())),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: Space.xs, bottom: 2),
+          child: Text('EVs ${s.evTotal} / $maxEvTotal', key: const Key('calc-ev-total'), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+        ),
         for (final k in statKeys)
-          Row(children: [
-            SizedBox(width: 40, child: Text(statShort[k]!, style: AppText.readout.copyWith(fontSize: 12))),
-            Expanded(
-              child: Slider(
-                key: Key('calc-ev-$k'),
-                value: (s.ev[k] ?? 0).toDouble(),
-                min: 0,
-                max: maxEv.toDouble(),
-                divisions: maxEv ~/ 4,
-                onChanged: (v) => n.update(slot, (x) => x.withEv(k, v.round())),
-              ),
-            ),
-            SizedBox(width: 36, child: Text('${s.ev[k] ?? 0}', textAlign: TextAlign.right, style: AppText.readout.copyWith(fontSize: 12))),
-          ]),
-        ExpansionTile(
+          stat(statShort[k]!, '${s.ev[k] ?? 0}', (s.ev[k] ?? 0).toDouble(), maxEv.toDouble(), maxEv ~/ 4,
+              (v) => n.update(slot, (x) => x.withEv(k, v.round())), key: Key('calc-ev-$k')),
+        FoldRow(
           key: const Key('calc-ivs'),
-          tilePadding: EdgeInsets.zero,
-          title: Text('IVs ${statKeys.map((k) => s.iv[k]).join(' / ')}', style: AppText.bodySmall),
-          children: [
+          title: 'IVs ${statKeys.map((k) => s.iv[k]).join(' / ')}',
+          child: Column(children: [
             for (final k in statKeys)
-              Row(children: [
-                SizedBox(width: 40, child: Text(statShort[k]!, style: AppText.readout.copyWith(fontSize: 12))),
-                Expanded(
-                  child: Slider(
-                    value: (s.iv[k] ?? 31).toDouble(), min: 0, max: 31, divisions: 31,
-                    onChanged: (v) => n.update(slot, (x) => x.copyWith(pre: 'Custom', iv: {...x.iv, k: v.round()})),
-                  ),
-                ),
-                SizedBox(width: 36, child: Text('${s.iv[k]}', textAlign: TextAlign.right, style: AppText.readout.copyWith(fontSize: 12))),
-              ]),
-          ],
+              stat(statShort[k]!, '${s.iv[k]}', (s.iv[k] ?? 31).toDouble(), 31, 31,
+                  (v) => n.update(slot, (x) => x.copyWith(pre: 'Custom', iv: {...x.iv, k: v.round()}))),
+          ]),
         ),
       ]),
     );
@@ -456,44 +464,44 @@ class _FieldCard extends ConsumerWidget {
     final n = ref.read(calcProvider.notifier);
     final opts = ref.watch(calcOptionsProvider).value;
     Widget flag(String key, String label, bool on, CalcModel Function(bool) f) =>
-        FilterChip(key: Key('field-$key'), label: Text(label), selected: on, onSelected: (v) => n.set((_) => f(v)));
-    return ExpansionTile(
+        SwitchRow(key: Key('field-$key'), label: label, value: on, onChanged: (v) => n.set((_) => f(v)));
+    final summary = [
+      if (m.weather != 'None') m.weather,
+      if (m.terrain != 'None') '${m.terrain} Terrain',
+      if (m.reflect) 'Reflect',
+      if (m.lightscreen) 'Light Screen',
+      if (m.crit) 'crit',
+      if (m.burn) 'burned',
+      if (m.friendGuard) 'Friend Guard',
+    ].join(' · ').ifEmpty('clear');
+    return FoldPanel(
       key: const Key('calc-field'),
-      tilePadding: EdgeInsets.zero,
-      title: Text(
-        'Field: ${[
-          if (m.weather != 'None') m.weather,
-          if (m.terrain != 'None') '${m.terrain} Terrain',
-          if (m.reflect) 'Reflect',
-          if (m.lightscreen) 'Light Screen',
-          if (m.crit) 'crit',
-          if (m.burn) 'burned',
-          if (m.friendGuard) 'Friend Guard',
-        ].join(' · ').ifEmpty('clear')}',
-        style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w600),
-      ),
-      children: [
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final w in opts?.weathers ?? const ['None'])
-            ChoiceChip(key: Key('weather-$w'), label: Text(w == 'None' ? 'No weather' : w), selected: m.weather == w,
-                onSelected: (_) => n.set((x) => x.copyWith(weather: w))),
-        ]),
-        const SizedBox(height: Space.xs),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final t in opts?.terrains ?? const ['None'])
-            ChoiceChip(key: Key('terrain-$t'), label: Text(t == 'None' ? 'No terrain' : t), selected: m.terrain == t,
-                onSelected: (_) => n.set((x) => x.copyWith(terrain: t))),
-        ]),
-        const SizedBox(height: Space.xs),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          flag('reflect', 'Reflect', m.reflect, (v) => m.copyWith(reflect: v)),
-          flag('lightscreen', 'Light Screen', m.lightscreen, (v) => m.copyWith(lightscreen: v)),
-          flag('crit', 'Critical hit', m.crit, (v) => m.copyWith(crit: v)),
-          flag('burn', 'Attacker burned', m.burn, (v) => m.copyWith(burn: v)),
-          if (m.doubles) flag('friend-guard', 'Friend Guard', m.friendGuard, (v) => m.copyWith(friendGuard: v)),
-        ]),
-        const SizedBox(height: Space.sm),
-      ],
+      title: 'Field',
+      summary: summary,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        PickerRow<String>(
+          key: const Key('calc-weather'),
+          label: 'Weather',
+          first: true,
+          value: m.weather,
+          keyOf: (label) => 'weather-${label == 'None' ? 'None' : label}',
+          options: [for (final w in opts?.weathers ?? const ['None']) (w, w, null)],
+          onChanged: (w) => n.set((x) => x.copyWith(weather: w)),
+        ),
+        PickerRow<String>(
+          key: const Key('calc-terrain'),
+          label: 'Terrain',
+          value: m.terrain,
+          keyOf: (label) => 'terrain-$label',
+          options: [for (final t in opts?.terrains ?? const ['None']) (t, t, null)],
+          onChanged: (t) => n.set((x) => x.copyWith(terrain: t)),
+        ),
+        flag('reflect', 'Reflect', m.reflect, (v) => m.copyWith(reflect: v)),
+        flag('lightscreen', 'Light Screen', m.lightscreen, (v) => m.copyWith(lightscreen: v)),
+        flag('crit', 'Critical hit', m.crit, (v) => m.copyWith(crit: v)),
+        flag('burn', 'Attacker burned', m.burn, (v) => m.copyWith(burn: v)),
+        if (m.doubles) flag('friend-guard', 'Friend Guard', m.friendGuard, (v) => m.copyWith(friendGuard: v)),
+      ]),
     );
   }
 }
@@ -512,26 +520,23 @@ class _MathCard extends StatelessWidget {
     final h = all.where((h) => h.attacker == focus).firstOrNull ?? all.firstOrNull;
     if (h == null) return const SizedBox.shrink();
     String x(num n) => n % 1 == 0 ? '${n.toInt()}' : n.toStringAsFixed(3).replaceFirst(RegExp(r'0+$'), '');
-    return ExpansionTile(
+    return FoldPanel(
       key: const Key('calc-math'),
-      tilePadding: EdgeInsets.zero,
-      title: Text('Math', style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(Space.sm),
-          decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.inset)),
-          child: Text(
-            '${model.sets[h.attacker].mon?.name} → ${model.sets[h.target].mon?.name} (${h.move})\n'
-            'Attack ${h.attack} vs Defence ${h.defense} · base damage ${h.baseValue}\n'
-            '× ${x(h.mod)} modifiers × ${x(h.stab)} STAB × ${x(h.te)} type × 0.85–1 roll\n'
-            '= ${_range(h)} of max HP${h.koHits > 0 ? ' · ${h.koHits}HKO from its current HP' : ''}',
-            key: const Key('calc-math-text'),
-            style: AppText.readout.copyWith(fontSize: 11.5, height: 1.5),
-          ),
+      title: 'Math',
+      summary: h.move,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(Space.sm),
+        decoration: BoxDecoration(color: Palette.insetGray, borderRadius: BorderRadius.circular(Radii.inset)),
+        child: Text(
+          '${model.sets[h.attacker].mon?.name} → ${model.sets[h.target].mon?.name} (${h.move})\n'
+          'Attack ${h.attack} vs Defence ${h.defense} · base damage ${h.baseValue}\n'
+          '× ${x(h.mod)} modifiers × ${x(h.stab)} STAB × ${x(h.te)} type × 0.85–1 roll\n'
+          '= ${_range(h)} of max HP${h.koHits > 0 ? ' · ${h.koHits}HKO from its current HP' : ''}',
+          key: const Key('calc-math-text'),
+          style: AppText.readout.copyWith(fontSize: 11, height: 1.6, fontWeight: FontWeight.w500, color: Palette.inkDim),
         ),
-        const SizedBox(height: Space.sm),
-      ],
+      ),
     );
   }
 }

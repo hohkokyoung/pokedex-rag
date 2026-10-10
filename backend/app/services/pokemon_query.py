@@ -129,20 +129,14 @@ def _apply_filters(
     if mythical is not None:
         stmt = stmt.where(Pokemon.is_mythical.is_(mythical))
     if types:
-        # Require the Pokémon to have *all* requested types.
-        for type_identifier in types:
-            exists = (
-                select(PokemonType.pokemon_id)
-                .join(Type, Type.id == PokemonType.type_id)
-                .where(
-                    and_(
-                        PokemonType.pokemon_id == Pokemon.id,
-                        Type.identifier == type_identifier,
-                    )
-                )
-                .exists()
-            )
-            stmt = stmt.where(exists)
+        # Any requested type may match (Fire, Water, Grass → every Pokémon with one).
+        has_any = (
+            select(PokemonType.pokemon_id)
+            .join(Type, Type.id == PokemonType.type_id)
+            .where(and_(PokemonType.pokemon_id == Pokemon.id, Type.identifier.in_(types)))
+            .exists()
+        )
+        stmt = stmt.where(has_any)
     return stmt
 
 

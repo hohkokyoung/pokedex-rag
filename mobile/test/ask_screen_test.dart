@@ -59,6 +59,9 @@ void main() {
     await tester.tap(find.byKey(const Key('starter-Rank')));
     await tester.pumpAndSettle();
     expect(find.textContaining('Kartana'), findsWidgets);
+    // A citation is a small chip beside the text, never a bar across the line.
+    expect(tester.getSize(find.byKey(const Key('cite-1')).first).width, lessThan(40));
+    await tester.scrollUntilVisible(find.textContaining('Highest Attack'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.textContaining('Highest Attack'), findsOneWidget); // the ranking card
   });
 

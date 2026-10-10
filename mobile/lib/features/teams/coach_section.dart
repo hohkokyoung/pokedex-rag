@@ -132,7 +132,7 @@ class _Turn extends StatelessWidget {
         if (t.answer.isEmpty && t.status == AskStatus.streaming)
           Text(runningLine(t), style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))
         else if (t.answer.isNotEmpty)
-          AnswerText(t.answer, onCite: cite),
+          AnswerText(t.answer, onCite: cite, verdict: false),
         if (t.status == AskStatus.error && t.answer.isEmpty)
           Text(
             t.error is Unreachable

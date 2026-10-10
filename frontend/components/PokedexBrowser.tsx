@@ -166,16 +166,15 @@ export default function PokedexBrowser() {
     };
   }, [editing]);
 
+  // Any picked type may match (the server's rule), so there's no limit.
   function toggleType(t: string) {
-    setTypes((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : prev.length < 2 ? [...prev, t] : [prev[1], t],
-    );
+    setTypes((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   }
 
   const genLabel = generations.map((g) => GENS[g - 1].label).join(", ");
   const summary = [
     q && `“${q}”`,
-    types.length ? types.map(titleCase).join(" + ") : "All types",
+    types.length ? types.map(titleCase).join(", ") : "All types",
     generations.length === 0 ? "All gens"
       : generations.length <= 3 ? `Gen ${generations.map((g) => GENS[g - 1].short).join(" · ")}`
       : `${generations.length} gens`,
@@ -292,7 +291,7 @@ export default function PokedexBrowser() {
         <span>
           {total.toLocaleString()} {total === 1 ? "specimen" : "specimens"}
           {generations.length > 0 && ` · ${genLabel}`}
-          {types.length > 0 && ` · ${types.map(titleCase).join(" + ")}`}
+          {types.length > 0 && ` · ${types.map(titleCase).join(", ")}`}
         </span>
         {loading && items.length === 0 && <span className="pk-meta__loading">loading…</span>}
       </div>
