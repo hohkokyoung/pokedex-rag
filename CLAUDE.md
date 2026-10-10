@@ -94,8 +94,9 @@ in this environment — overridable in `.env`).
   `extend-immutable-calls`).
 - **Design context:** read `PRODUCT.md` before UI work (product register; "precise,
   premium, playful"; WCAG AA; anti-references). `/impeccable` commands read it too.
-- **App UI from the website:** use the `web-to-flutter` skill (convert or audit a screen;
-  `.claude/skills/web-to-flutter/`). It holds the web→phone patterns the owner settled.
+- **App UI from the website:** use the `web-to-flutter` skill (convert or audit a screen).
+  Its pokérag profile, `.claude/web-to-flutter.md`, holds the paths, shared widgets and
+  the UI decisions the owner settled; add new ones there.
 - Frontend: entrance/scroll reveals use IntersectionObserver + CSS; GSAP is reserved
   for high-impact moments (stat bars, artwork). Respect `prefers-reduced-motion`.
 - Feature work goes through OpenSpec (`openspec/`): propose → apply → archive, one
