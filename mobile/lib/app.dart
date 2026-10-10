@@ -6,7 +6,6 @@ import 'widgets/ui.dart';
 import 'features/tools/calc_screen.dart';
 import 'features/tools/catch_screen.dart';
 import 'features/tools/finder_screen.dart';
-import 'features/tools/lookup_screen.dart';
 import 'features/tools/nature_screen.dart';
 import 'features/tools/tools_screen.dart';
 import 'features/tools/type_calc_screen.dart';
@@ -20,64 +19,58 @@ import 'features/teams/team_screen.dart';
 import 'features/teams/teams_screen.dart';
 import 'theme/theme.dart';
 
+/// Every page as a MaterialPage, so it slides in the iOS way on its own ground (see the
+/// theme). Left to itself go_router can fall back to pages with no transition, which cut
+/// in with a flash and can't be swiped back.
+Page<void> _page(GoRouterState s, Widget child) => MaterialPage<void>(key: s.pageKey, name: s.name ?? s.path, child: child);
+
+GoRoute _go(String path, Widget Function(GoRouterState s) build, {List<RouteBase> routes = const []}) =>
+    GoRoute(path: path, pageBuilder: (_, s) => _page(s, build(s)), routes: routes);
+
 /// Tabs (each keeps its own stack) plus full-screen routes that open over any tab.
 GoRouter buildRouter() => GoRouter(
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (_, _, shell) => AppShell(shell: shell),
       branches: [
-        StatefulShellBranch(
-          routes: [GoRoute(path: '/', builder: (_, _) => const ListScreen())],
-        ),
+        StatefulShellBranch(routes: [_go('/', (_) => const ListScreen())]),
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/teams',
-              builder: (_, _) => const TeamsScreen(),
+            _go(
+              '/teams',
+              (_) => const TeamsScreen(),
               routes: [
-                GoRoute(
-                  path: ':id',
-                  builder: (_, s) =>
-                      TeamScreen(id: int.parse(s.pathParameters['id']!), opponentId: int.tryParse(s.uri.queryParameters['vs'] ?? '')),
+                _go(
+                  ':id',
+                  (s) => TeamScreen(id: int.parse(s.pathParameters['id']!), opponentId: int.tryParse(s.uri.queryParameters['vs'] ?? '')),
                 ),
               ],
             ),
           ],
         ),
-        StatefulShellBranch(
-          routes: [GoRoute(path: '/ask', builder: (_, _) => const AskScreen())],
-        ),
+        StatefulShellBranch(routes: [_go('/ask', (_) => const AskScreen())]),
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/tools',
-              builder: (_, _) => const ToolsScreen(),
+            _go(
+              '/tools',
+              (_) => const ToolsScreen(),
               routes: [
-                GoRoute(path: 'calc', builder: (_, _) => const CalcScreen()),
-                GoRoute(path: 'types', builder: (_, _) => const TypeCalcScreen()),
-                GoRoute(path: 'natures', builder: (_, _) => const NatureScreen()),
-                GoRoute(path: 'catch', builder: (_, _) => const CatchScreen()),
-                GoRoute(
-                  path: 'lookup',
-                  builder: (_, _) => const LookupScreen(),
-                  routes: [GoRoute(path: 'finder', builder: (_, _) => const FinderScreen())],
-                ),
+                _go('calc', (_) => const CalcScreen()),
+                _go('types', (_) => const TypeCalcScreen()),
+                _go('natures', (_) => const NatureScreen()),
+                _go('catch', (_) => const CatchScreen()),
+                // Lookup lists every move, ability and item, with filters (the website's finder).
+                _go('lookup', (_) => const FinderScreen()),
               ],
             ),
           ],
         ),
       ],
     ),
-    GoRoute(
-      path: '/pokemon/:id',
-      builder: (_, s) => DetailScreen(id: s.pathParameters['id']!, formId: int.tryParse(s.uri.queryParameters['form'] ?? '')),
-    ),
-    GoRoute(
-      path: '/teams/:id/slot/:slot',
-      builder: (_, s) => SetEditor(teamId: int.parse(s.pathParameters['id']!), slot: int.parse(s.pathParameters['slot']!)),
-    ),
-    GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
-    GoRoute(path: '/favourites', builder: (_, _) => const FavouritesScreen()),
+    _go('/pokemon/:id', (s) => DetailScreen(id: s.pathParameters['id']!, formId: int.tryParse(s.uri.queryParameters['form'] ?? ''))),
+    _go('/teams/:id/slot/:slot', (s) => SetEditor(teamId: int.parse(s.pathParameters['id']!), slot: int.parse(s.pathParameters['slot']!))),
+    _go('/settings', (_) => const SettingsScreen()),
+    _go('/favourites', (_) => const FavouritesScreen()),
   ],
 );
 
@@ -89,17 +82,16 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: shell,
-    // The website's Tray as a tab bar, with Ask as the one red action beside it.
-    bottomNavigationBar: TrayBar(
+    bottomNavigationBar: NavBar(
       current: shell.currentIndex,
       // Tapping the current tab returns to its first page.
       onTap: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
       tabs: const [
-        (0, 'Pokédex', Icons.catching_pokemon, Key('tab-pokedex')),
-        (1, 'Teams', Icons.groups_outlined, Key('tab-teams')),
-        (3, 'Tools', Icons.tune, Key('tab-tools')),
+        (0, 'Pokédex', Icons.catching_pokemon_outlined, Icons.catching_pokemon, Key('tab-pokedex'), false),
+        (1, 'Teams', Icons.groups_outlined, Icons.groups, Key('tab-teams'), false),
+        (3, 'Tools', Icons.tune_outlined, Icons.tune, Key('tab-tools'), false),
+        (2, 'Ask', Icons.chat_bubble_outline, Icons.chat_bubble, Key('tab-ask'), true),
       ],
-      ask: (2, const Key('tab-ask')),
     ),
   );
 }
@@ -115,16 +107,19 @@ class _PokeragAppState extends State<PokeragApp> {
   final _router = buildRouter();
 
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-    title: 'pokérag',
-    debugShowCheckedModeBanner: false,
-    theme: AppTheme.light(),
-    routerConfig: _router,
-    // The website's ground behind every route; screens are transparent over it.
-    builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-      // Dark status-bar icons and time on the light ground.
-      value: SystemUiOverlayStyle.dark,
-      child: Ground(child: child ?? const SizedBox.shrink()),
-    ),
-  );
+  Widget build(BuildContext context) => appFor(_router);
 }
+
+/// The app around a router (the tests use it too, so they run with the real theme).
+Widget appFor(GoRouter router) => MaterialApp.router(
+  title: 'pokérag',
+  debugShowCheckedModeBanner: false,
+  theme: AppTheme.light(),
+  routerConfig: router,
+  // The website's ground behind the shell; each page also paints its own (see theme).
+  builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+    // Dark status-bar icons and time on the light ground.
+    value: SystemUiOverlayStyle.dark,
+    child: Ground(child: child ?? const SizedBox.shrink()),
+  ),
+);

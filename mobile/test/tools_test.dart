@@ -16,13 +16,11 @@ FakeBackend toolsBackend() => FakeBackend((o) {
       return switch (p) {
         '/api/types/chart' => fixture('type_chart'),
         '/api/natures' => fixture('natures'),
-        '/api/moves' => q['q'] == 'leftovers' ? fixture('look_moves_leftovers') : <Object>[],
-        '/api/abilities' => switch (q['q']) {
-            'leftovers' => fixture('look_abilities_leftovers'),
-            'intimidate' => fixture('look_abilities_intimidate'),
-            _ => <Object>[],
-          },
-        '/api/items' => q['q'] == 'leftovers' ? fixture('look_items_leftovers') : <Object>[],
+        // Lookup loads every move, ability and item once and filters on the phone.
+        '/api/moves' => fixture('all_moves'),
+        '/api/moves/games' => fixture('move_games'),
+        '/api/abilities' => fixture('all_abilities'),
+        '/api/items' => fixture('all_items'),
         '/api/pokemon' => listPage(o),
         _ => 404,
       };
@@ -36,10 +34,12 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 }
 
 Future<void> _search(WidgetTester tester, String q) async {
-  await tester.enterText(find.byKey(const Key('lookup-field')), q);
-  await tester.pump(const Duration(milliseconds: 250));
+  await tester.enterText(find.byKey(const Key('finder-search')), q);
   await tester.pumpAndSettle();
 }
+
+String _tab(WidgetTester tester, String kind) =>
+    tester.widget<Text>(find.descendant(of: find.byKey(Key('finder-$kind')), matching: find.byType(Text))).data!;
 
 void main() {
   test('Fire/Flying: Rock ×4, Ground immune, hits Grass ×2', () {
@@ -107,17 +107,21 @@ void main() {
 
   testWidgets('lookup: leftovers finds the item and opens its effect', (tester) async {
     await pumpApp(tester, toolsBackend(), location: '/tools/lookup');
+    // It opens on everything; a search counts its matches on each tab.
+    expect(_tab(tester, 'items'), startsWith('Items 2,'));
     await _search(tester, 'leftovers');
-    expect(find.text('Items'), findsOneWidget);
-    await _tap(tester, find.text('Leftovers').first);
+    expect(_tab(tester, 'items'), 'Items 1');
+    await _tap(tester, find.byKey(const Key('finder-items')));
+    await _tap(tester, find.byKey(const Key('finder-item-211')));
     expect(find.byKey(const Key('item-effect')), findsOneWidget);
     expect(find.byKey(const Key('item-facts')), findsOneWidget);
   });
 
   testWidgets('lookup: Intimidate holders filter to Gyarados, which opens its page', (tester) async {
     final router = await pumpApp(tester, toolsBackend(), location: '/tools/lookup');
+    await _tap(tester, find.byKey(const Key('finder-abilities')));
     await _search(tester, 'intimidate');
-    await _tap(tester, find.byKey(const Key('look-ability-22')));
+    await _tap(tester, find.byKey(const Key('finder-ability-22')));
     expect(find.byKey(const Key('ability-effect')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('holders-filter')), 'gyara');
     await tester.pumpAndSettle();

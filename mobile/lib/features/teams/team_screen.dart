@@ -55,7 +55,7 @@ class TeamScreen extends ConsumerWidget {
           CantReach(address: error.address, onRetry: () => ref.invalidate(teamProvider(id))),
         AsyncError(:final error) when error is NotFound => Center(child: Text('This team no longer exists.', style: AppText.body)),
         AsyncError() => Center(child: Text('The server had a problem loading this team.', style: AppText.body)),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: Spinner()),
       },
     );
   }
@@ -273,15 +273,11 @@ class _OpponentPicker extends ConsumerWidget {
       Text('Compare with', style: AppText.label.copyWith(color: Palette.mutedSlate)),
       const SizedBox(width: Space.sm),
       Expanded(
-        child: DropdownButton<int?>(
+        child: PickerButton<int?>(
           key: const Key('opponent'),
-          isExpanded: true,
+          title: 'Compare with',
           value: others.any((t) => t.id == opponentId) ? opponentId : null,
-          hint: const Text('No opponent'),
-          items: [
-            const DropdownMenuItem<int?>(value: null, child: Text('No opponent')),
-            for (final t in others) DropdownMenuItem<int?>(value: t.id, child: Text(t.name)),
-          ],
+          options: [(null, 'No opponent', null), for (final t in others) (t.id, t.name, null)],
           // The opponent lives in the URL (?vs=), as on the website.
           onChanged: (v) => context.replace(v == null ? '/teams/${team.id}' : '/teams/${team.id}?vs=$v'),
         ),

@@ -31,7 +31,7 @@ Future<GoRouter> pumpApp(WidgetTester tester, FakeBackend be, {String? location,
       artworkProvider.overrideWithValue((url, size, {fadeIn = Duration.zero}) =>
           SizedBox(key: ValueKey('art:$url'), width: size, height: size)),
     ],
-    child: MaterialApp.router(routerConfig: router),
+    child: appFor(router),
   ));
   await tester.pumpAndSettle();
   return router;
@@ -43,5 +43,12 @@ Future<void> openPart(WidgetTester tester, String part) async {
   await tester.ensureVisible(f);
   await tester.pumpAndSettle();
   await tester.tap(f);
+  await tester.pumpAndSettle();
+}
+
+/// Lets a request started on the last settled frame finish (a refetch can begin on a
+/// frame that schedules no other; with no tap ripples left, nothing else keeps frames going).
+Future<void> flush(WidgetTester tester) async {
+  await tester.pump();
   await tester.pumpAndSettle();
 }

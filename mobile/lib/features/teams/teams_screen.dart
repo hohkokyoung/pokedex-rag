@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +53,7 @@ class TeamsScreen extends ConsumerWidget {
         AsyncError(:final error) when error is Unreachable =>
           CantReach(address: error.address, onRetry: () => ref.invalidate(teamsListProvider)),
         AsyncError() => Center(child: Text('The server had a problem loading teams.', style: AppText.body)),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: Spinner()),
       },
     );
   }
@@ -60,7 +61,11 @@ class TeamsScreen extends ConsumerWidget {
 
 /// Asks for a name, creates the team on the server and opens it.
 Future<void> createTeam(BuildContext context, WidgetRef ref) async {
-  final name = await showDialog<String>(context: context, builder: (_) => const _NameDialog(title: 'New team', action: 'Create'));
+  final name = await showCupertinoDialog<String>(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => const _NameDialog(title: 'New team', action: 'Create'),
+  );
   if (name == null || name.trim().isEmpty || !context.mounted) return;
   try {
     final team = await ref.read(teamsRepositoryProvider).create(name.trim());
@@ -91,36 +96,54 @@ class _NameDialogState extends State<_NameDialog> {
     super.dispose();
   }
 
+  // An iOS alert with a text field.
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context) => CupertinoAlertDialog(
         title: Text(widget.title),
-        content: TextField(
-          key: const Key('team-name'),
-          controller: _c,
-          autofocus: true,
-          maxLength: 64,
-          decoration: const InputDecoration(hintText: 'Team name'),
-          onSubmitted: (v) => Navigator.pop(context, v),
+        content: Padding(
+          padding: const EdgeInsets.only(top: Space.sm),
+          child: CupertinoTextField(
+            key: const Key('team-name'),
+            controller: _c,
+            autofocus: true,
+            maxLength: 64,
+            placeholder: 'Team name',
+            onSubmitted: (v) => Navigator.pop(context, v),
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          FilledButton(key: const Key('name-ok'), onPressed: () => Navigator.pop(context, _c.text), child: Text(widget.action)),
+          CupertinoDialogAction(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          CupertinoDialogAction(
+            key: const Key('name-ok'),
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context, _c.text),
+            child: Text(widget.action),
+          ),
         ],
       );
 }
 
-Future<String?> askTeamName(BuildContext context, String current) =>
-    showDialog<String>(context: context, builder: (_) => _NameDialog(title: 'Rename team', action: 'Rename', initial: current));
+Future<String?> askTeamName(BuildContext context, String current) => showCupertinoDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => _NameDialog(title: 'Rename team', action: 'Rename', initial: current),
+    );
 
 Future<bool> confirmDelete(BuildContext context, String name) async =>
-    await showDialog<bool>(
+    await showCupertinoDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      barrierDismissible: true,
+      builder: (context) => CupertinoAlertDialog(
         title: Text('Delete $name?'),
         content: const Text('This removes the team from the server for the website too.'),
         actions: [
-          TextButton(key: const Key('delete-cancel'), onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(key: const Key('delete-ok'), onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          CupertinoDialogAction(key: const Key('delete-cancel'), onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          CupertinoDialogAction(
+            key: const Key('delete-ok'),
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     ) ??

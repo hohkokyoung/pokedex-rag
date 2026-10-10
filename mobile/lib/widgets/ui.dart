@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/theme.dart';
 import '../theme/tokens.g.dart';
@@ -141,97 +143,326 @@ class KeyValueRow extends StatelessWidget {
 /// A muted note after a value in a [KeyValueRow] ("· Atk ×1.5").
 Widget note(String text) => Text(text, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate));
 
-/// The bottom bar: the website's Tray (current tab raised white) plus a separate red Ask.
-class TrayBar extends StatelessWidget {
-  const TrayBar({super.key, required this.tabs, required this.current, required this.onTap, required this.ask});
+/// The bottom bar: one white capsule of equal tabs. The current tab sits on a soft ink
+/// capsule that slides between them; Ask is the one red tab (the app's main action).
+class NavBar extends StatelessWidget {
+  const NavBar({super.key, required this.tabs, required this.current, required this.onTap});
 
-  /// (branch index, label, icon, key) for the tray's tabs.
-  final List<(int, String, IconData, Key)> tabs;
+  /// (branch index, label, icon, selected icon, key, red) in display order.
+  final List<(int, String, IconData, IconData, Key, bool)> tabs;
   final int current;
   final ValueChanged<int> onTap;
-
-  /// (branch index, key) for Ask.
-  final (int, Key) ask;
 
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
-    final askOn = current == ask.$1;
-    Widget item(String label, IconData icon, bool on, Color fg) => Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 21, color: fg),
-        const SizedBox(height: 2),
-        Text(label, style: AppText.label.copyWith(fontSize: 11, color: fg)),
-      ],
-    );
+    final still = MediaQuery.of(context).disableAnimations;
+    final at = tabs.indexWhere((t) => t.$1 == current);
+    final red = at >= 0 && tabs[at].$6;
     return Padding(
-      padding: EdgeInsets.fromLTRB(Space.gutter, 6, Space.gutter, bottom > 0 ? bottom : 12),
-      child: SizedBox(
-        height: 58,
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color(0xF0E8EAF0),
-                  borderRadius: BorderRadius.circular(Radii.card),
-                  border: Border.all(color: Palette.hairline),
-                ),
-                child: Row(
+      padding: EdgeInsets.fromLTRB(Space.gutter, 6, Space.gutter, bottom > 0 ? bottom - 6 : 12),
+      child: Container(
+        height: 60,
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Palette.panelWhite,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Palette.hairline),
+        ),
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final w = c.maxWidth / tabs.length;
+            return Stack(
+              children: [
+                if (at >= 0)
+                  AnimatedPositioned(
+                    duration: still ? Duration.zero : const Duration(milliseconds: 260),
+                    curve: const Cubic(0.16, 1, 0.3, 1),
+                    left: w * at,
+                    top: 0,
+                    bottom: 0,
+                    width: w,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: red ? const Color(0x14D8310C) : const Color(0x0F14171D),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                  ),
+                Row(
                   children: [
-                    for (final (i, label, icon, key) in tabs)
+                    for (final (i, label, icon, onIcon, key, isRed) in tabs)
                       Expanded(
-                        child: Semantics(
-                          selected: i == current,
-                          button: true,
+                        child: _NavItem(
+                          key: key,
                           label: label,
-                          excludeSemantics: true,
-                          child: GestureDetector(
-                            key: key,
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => onTap(i),
-                            child: AnimatedContainer(
-                              duration: MediaQuery.of(context).disableAnimations ? Duration.zero : const Duration(milliseconds: 200),
-                              curve: const Cubic(0.16, 1, 0.3, 1),
-                              decoration: BoxDecoration(
-                                color: i == current ? Palette.panelWhite : Colors.transparent,
-                                borderRadius: BorderRadius.circular(Radii.control),
-                                boxShadow: i == current
-                                    ? const [BoxShadow(color: Color(0x1414171D), blurRadius: 2, offset: Offset(0, 1))]
-                                    : null,
-                              ),
-                              child: item(label, icon, i == current, i == current ? Palette.instrumentInk : Palette.mutedSlate),
-                            ),
-                          ),
+                          icon: i == current ? onIcon : icon,
+                          on: i == current,
+                          red: isRed,
+                          onTap: () {
+                            if (i != current) HapticFeedback.selectionClick();
+                            onTap(i);
+                          },
                         ),
                       ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Semantics(
-              selected: askOn,
-              button: true,
-              label: 'Ask',
-              excludeSemantics: true,
-              child: GestureDetector(
-                key: ask.$2,
-                onTap: () => onTap(ask.$1),
-                child: Container(
-                  width: 74,
-                  decoration: BoxDecoration(
-                    color: Palette.pokeballRed,
-                    borderRadius: BorderRadius.circular(Radii.card),
-                    border: askOn ? Border.all(color: const Color(0x4DD8310C), width: 3) : null,
-                  ),
-                  child: item('Ask', askOn ? Icons.chat_bubble : Icons.chat_bubble_outline, askOn, Palette.panelWhite),
-                ),
-              ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({super.key, required this.label, required this.icon, required this.on, required this.red, required this.onTap});
+
+  final String label;
+  final IconData icon;
+  final bool on;
+  final bool red;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = red ? Palette.pokeballRed : (on ? Palette.instrumentInk : Palette.mutedSlate);
+    return Semantics(
+      selected: on,
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Pressable(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 22, color: fg),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: AppText.label.copyWith(fontSize: 10.5, color: fg, fontWeight: on ? FontWeight.w600 : FontWeight.w500),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// iOS-style press feedback: the child dims and settles slightly while held, with no
+/// ripple. The whole box is the tap target.
+class Pressable extends StatefulWidget {
+  const Pressable({super.key, required this.child, required this.onTap});
+
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  State<Pressable> createState() => _PressableState();
+}
+
+class _PressableState extends State<Pressable> {
+  var _down = false;
+
+  void _set(bool v) {
+    if (_down != v) setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.of(context).disableAnimations;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: widget.onTap == null ? null : (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      onTap: widget.onTap,
+      child: AnimatedOpacity(
+        duration: still ? Duration.zero : Duration(milliseconds: _down ? 60 : 180),
+        opacity: _down ? .55 : 1,
+        child: AnimatedScale(
+          duration: still ? Duration.zero : Duration(milliseconds: _down ? 60 : 180),
+          scale: _down ? .96 : 1,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+/// The app's activity indicator (iOS style, not Material's ring).
+class Spinner extends StatelessWidget {
+  const Spinner({super.key, this.radius = 11, this.color});
+
+  final double radius;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => CupertinoActivityIndicator(radius: radius, color: color);
+}
+
+/// A row in a choice sheet: label (and a note), a red check when chosen.
+class ChoiceRow extends StatelessWidget {
+  const ChoiceRow({super.key, required this.label, this.hint, required this.selected, required this.onTap});
+
+  final String label;
+  final String? hint;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    selected: selected,
+    button: true,
+    child: InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 50),
+        padding: const EdgeInsets.symmetric(horizontal: Space.gutter, vertical: 10),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Palette.hairlineSoft))),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(label, style: AppText.body.copyWith(fontWeight: selected ? FontWeight.w600 : FontWeight.w400)),
+                  if (hint != null) Text(hint!, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
+                ],
+              ),
+            ),
+            const SizedBox(width: Space.sm),
+            SizedBox(width: 22, child: selected ? const Icon(Icons.check, size: 20, color: Palette.pokeballRed) : null),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// A sheet of choices with checks. With [many], rows toggle and the sheet stays open
+/// ([onChanged] gets the whole set each time); otherwise picking a row closes it.
+Future<void> showChoices<T>(
+  BuildContext context, {
+  required String title,
+  required List<(T, String, String?)> options,
+  required Set<T> selected,
+  required ValueChanged<Set<T>> onChanged,
+  bool many = false,
+  String Function(String label)? keyOf,
+}) => showModalBottomSheet<void>(
+  context: context,
+  useRootNavigator: true,
+  showDragHandle: true,
+  isScrollControlled: true,
+  builder: (sheet) {
+    var picked = {...selected};
+    return StatefulBuilder(
+      builder: (context, setSheet) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .75),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xs),
+                child: Text(title, style: AppText.headline),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final (v, label, hint) in options)
+                      ChoiceRow(
+                        key: Key(keyOf?.call(label) ?? 'pick-$label'),
+                        label: label,
+                        hint: hint,
+                        selected: picked.contains(v),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          if (many) {
+                            setSheet(() => picked = picked.contains(v) ? ({...picked}..remove(v)) : {...picked, v});
+                            onChanged(picked);
+                          } else {
+                            onChanged({v});
+                            Navigator.of(sheet).pop();
+                          }
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+/// A one-of-many control (the app's dropdown): the current choice and a chevron; tapping
+/// opens a check sheet. Replaces Material's dropdown menu.
+class PickerButton<T> extends StatelessWidget {
+  const PickerButton({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+    this.placeholder,
+    this.expand = true,
+    this.style,
+  });
+
+  final String title;
+  final T value;
+
+  /// (value, label, note).
+  final List<(T, String, String?)> options;
+  final ValueChanged<T> onChanged;
+  final String? placeholder;
+  final bool expand;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final hit = options.where((o) => o.$1 == value).firstOrNull;
+    final text = hit == null ? (placeholder ?? title) : (hit.$3 == null ? hit.$2 : '${hit.$2} · ${hit.$3}');
+    final label = Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: (style ?? AppText.body).copyWith(color: hit == null ? Palette.mutedSlate : Palette.instrumentInk),
+    );
+    return Material(
+      color: Palette.panelWhite,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Radii.control),
+        side: const BorderSide(color: Palette.hairline),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Radii.control),
+        onTap: () => showChoices<T>(
+          context,
+          title: title,
+          options: options,
+          selected: {if (hit != null) value},
+          onChanged: (s) => onChanged(s.first),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+            children: [
+              if (expand) Expanded(child: label) else Flexible(child: label),
+              const SizedBox(width: 6),
+              const Icon(Icons.unfold_more, size: 18, color: Palette.mutedSlate),
+            ],
+          ),
         ),
       ),
     );
@@ -350,7 +581,7 @@ class SendButton extends StatelessWidget {
             disabledForegroundColor: Palette.panelWhite,
           ),
           child: busy
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Palette.panelWhite))
+              ? const Spinner(radius: 8, color: Palette.panelWhite)
               : Text(label, style: AppText.label.copyWith(fontSize: 14, color: Palette.panelWhite)),
         ),
       );

@@ -14,7 +14,7 @@ import '../../widgets/ui.dart';
 import '../pokedex/filters_sheet.dart' show TypeToggle;
 import '../pokedex/list_state.dart' show typeOptionsProvider;
 import 'finder_logic.dart';
-import 'lookup_screen.dart' show AbilitySheet, ItemSheet, openMove, showLookupSheet;
+import 'lookup_sheets.dart' show AbilitySheet, ItemSheet, openMove, showLookupSheet;
 
 // Each catalog is fixed at runtime: fetch once per launch (as the website's finder).
 Future<T> _load<T>(Ref ref, Future<T> Function(PokeragClient api) call) async {
@@ -105,11 +105,12 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
   Widget build(BuildContext context) {
     final moves = ref.watch(allMovesProvider);
     final abilities = ref.watch(allAbilitiesProvider);
-    final items = kind == FinderKind.items ? ref.watch(allItemsProvider) : ref.read(allItemsProvider);
-    String label(String name, AsyncValue<List<Object?>> v) =>
-        v.value == null ? name : '$name ${_count(v.value!.length)}';
+    final items = ref.watch(allItemsProvider);
+    // With a search, each tab counts its matches, so "leftovers" shows where it is.
+    String label<T>(String name, AsyncValue<List<T>> v, int Function(List<T>) matches) =>
+        v.value == null ? name : '$name ${_count(q.isEmpty ? v.value!.length : matches(v.value!))}';
     return Scaffold(
-      appBar: pageBar('Advanced search'),
+      appBar: pageBar('Lookup'),
       body: Column(
         children: [
           Padding(
@@ -123,9 +124,21 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
                   value: kind,
                   onChanged: (k) => setState(() => kind = k),
                   options: [
-                    (FinderKind.moves, label('Moves', moves), const Key('finder-moves')),
-                    (FinderKind.abilities, label('Abilities', abilities), const Key('finder-abilities')),
-                    (FinderKind.items, label('Items', items), const Key('finder-items')),
+                    (
+                      FinderKind.moves,
+                      label('Moves', moves, (all) => filterMoves(all, query: q).length),
+                      const Key('finder-moves'),
+                    ),
+                    (
+                      FinderKind.abilities,
+                      label('Abilities', abilities, (all) => filterAbilities(all, query: q).length),
+                      const Key('finder-abilities'),
+                    ),
+                    (
+                      FinderKind.items,
+                      label('Items', items, (all) => filterItems(all, query: q).length),
+                      const Key('finder-items'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -335,7 +348,7 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
     AsyncError() => Center(
       child: TextButton(onPressed: _retry, child: const Text("Couldn't load the catalog. Tap to retry.")),
     ),
-    _ => const Center(child: CircularProgressIndicator()),
+    _ => const Center(child: Spinner()),
   };
 
   void _retry() => switch (kind) {
@@ -533,96 +546,10 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
     List<(T, String, String?)> options,
     Set<T> current,
     ValueChanged<Set<T>> apply,
-  ) => showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    showDragHandle: true,
-    isScrollControlled: true,
-    builder: (sheet) => StatefulBuilder(
-      builder: (context, setLocal) {
-        var picked = {...current};
-        return StatefulBuilder(
-          builder: (context, setSheet) {
-            return _PickerSheet(
-              title: title,
-              children: [
-                for (final (v, l, hint) in options)
-                  CheckboxListTile(
-                    key: Key('pick-$l'),
-                    value: picked.contains(v),
-                    title: Text(l, style: AppText.body),
-                    subtitle: hint == null
-                        ? null
-                        : Text(hint, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    onChanged: (on) {
-                      setSheet(() => picked = on == true ? {...picked, v} : ({...picked}..remove(v)));
-                      apply(picked);
-                    },
-                  ),
-              ],
-            );
-          },
-        );
-      },
-    ),
-  );
+  ) => showChoices<T>(context, title: title, options: options, selected: current, onChanged: apply, many: true);
 
   Future<void> _pickOne<T>(String title, List<(T, String, String?)> options, T current, ValueChanged<T> apply) =>
-      showModalBottomSheet<void>(
-        context: context,
-        useRootNavigator: true,
-        showDragHandle: true,
-        isScrollControlled: true,
-        builder: (sheet) => _PickerSheet(
-          title: title,
-          children: [
-            for (final (v, l, hint) in options)
-              ListTile(
-                key: Key('pick-$l'),
-                selected: v == current,
-                selectedColor: Palette.instrumentInk,
-                leading: Icon(
-                  v == current ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                  color: v == current ? Palette.pokeballRed : Palette.faintSlate,
-                ),
-                title: Text(l, style: AppText.body),
-                subtitle: hint == null
-                    ? null
-                    : Text(hint, style: AppText.bodySmall.copyWith(color: Palette.mutedSlate)),
-                onTap: () {
-                  apply(v);
-                  Navigator.of(sheet).pop();
-                },
-              ),
-          ],
-        ),
-      );
-}
-
-class _PickerSheet extends StatelessWidget {
-  const _PickerSheet({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .75),
-    child: SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xs),
-            child: Text(title, style: AppText.headline),
-          ),
-          Flexible(child: ListView(shrinkWrap: true, children: children)),
-        ],
-      ),
-    ),
-  );
+      showChoices<T>(context, title: title, options: options, selected: {current}, onChanged: (s) => apply(s.first));
 }
 
 /// A filter control: white and hairline when off, ink-filled when it holds a choice.

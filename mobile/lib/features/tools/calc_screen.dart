@@ -204,7 +204,7 @@ class _ThisTurn extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Text('priority › speed', style: AppText.bodySmall.copyWith(color: Palette.mutedSlate))),
-          if (loading) const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+          if (loading) const Spinner(radius: 7),
         ]),
         if (t == null)
           const Padding(padding: EdgeInsets.all(Space.sm), child: LinearProgressIndicator(minHeight: 2))
@@ -335,19 +335,15 @@ class _SlotEditor extends ConsumerWidget {
             Expanded(child: child),
           ]),
         );
-    DropdownButton<String> drop(String key, String value, List<(String, String?)> items, ValueChanged<String> on) => DropdownButton<String>(
+    Widget drop(String key, String value, List<(String, String?)> items, ValueChanged<String> on) => PickerButton<String>(
           key: Key(key),
-          isExpanded: true,
-          value: items.any((x) => x.$1 == value) ? value : null,
-          hint: Text(value, style: AppText.bodySmall),
-          items: [
-            for (final (v, note) in items)
-              DropdownMenuItem(
-                value: v,
-                child: Text(note == null ? v : '$v · $note', maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
-              ),
-          ],
-          onChanged: (v) => v == null ? null : on(v),
+          // 'calc-move' → 'Move'
+          title: '${key[5].toUpperCase()}${key.substring(6)}',
+          value: value,
+          placeholder: value,
+          options: [for (final (v, note) in items) (v, v, note)],
+          onChanged: on,
+          style: AppText.bodySmall,
         );
     return Section(
       title: '${mon.name} · ${_role[slot]}',

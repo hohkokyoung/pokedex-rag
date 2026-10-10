@@ -8,6 +8,7 @@ import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/grade.dart';
 import '../../widgets/type_chip.dart';
+import '../../widgets/ui.dart' show Spinner;
 import '../pokedex/detail_more.dart' show SectionError;
 import '../pokedex/detail_sections.dart' show Section;
 import 'team_state.dart';
@@ -101,7 +102,7 @@ class _RatingCardState extends ConsumerState<_RatingCard> {
             tooltip: 'Regenerate',
             visualDensity: VisualDensity.compact,
             icon: _regenerating
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const Spinner(radius: 8)
                 : const Icon(Icons.refresh, size: 20),
             onPressed: _regenerating
                 ? null

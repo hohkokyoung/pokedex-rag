@@ -35,7 +35,7 @@ class _NatureScreenState extends ConsumerState<NatureScreen> {
         AsyncError(:final error) when error is Unreachable =>
           CantReach(address: error.address, onRetry: () => ref.invalidate(naturesProvider)),
         AsyncError() => Center(child: Text('The server had a problem loading natures.', style: AppText.body)),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: Spinner()),
       },
     );
   }

@@ -20,6 +20,7 @@ FakeBackend finderBackend() => FakeBackend((o) => switch (o.path) {
           for (final (i, t) in ['normal', 'fire', 'water', 'electric', 'grass'].indexed) {'id': i + 1, 'identifier': t, 'name': t},
         ],
       '/api/pokemon' => listPage(o),
+      '/api/natures' => <Object>[],
       _ => 404,
     });
 
@@ -70,10 +71,10 @@ void main() {
     }
   });
 
-  testWidgets('the lookup opens the finder; the search carries across tabs', (tester) async {
-    final router = await pumpApp(tester, finderBackend(), location: '/tools/lookup');
-    await _tap(tester, find.byKey(const Key('open-finder')));
-    expect(router.state.uri.path, '/tools/lookup/finder');
+  testWidgets('Lookup opens on every move; the search carries across tabs', (tester) async {
+    final router = await pumpApp(tester, finderBackend(), location: '/tools');
+    await _tap(tester, find.byKey(const Key('tool-lookup')));
+    expect(router.state.uri.path, '/tools/lookup');
     expect(_count(tester), contains('of 901 moves'));
     await tester.enterText(find.byKey(const Key('finder-search')), 'rain');
     await tester.pumpAndSettle();
@@ -85,7 +86,7 @@ void main() {
   });
 
   testWidgets('kind Max Move in Sword/Shield lists the Max Moves', (tester) async {
-    await pumpApp(tester, finderBackend(), location: '/tools/lookup/finder');
+    await pumpApp(tester, finderBackend(), location: '/tools/lookup');
     await _tap(tester, find.byKey(const Key('filter-kind')));
     await _tap(tester, find.byKey(const Key('pick-Max Move')));
     await tester.tapAt(const Offset(195, 60)); // close the sheet
@@ -100,7 +101,7 @@ void main() {
   });
 
   testWidgets('items by Fling power: highest first; a row opens its details', (tester) async {
-    await pumpApp(tester, finderBackend(), location: '/tools/lookup/finder');
+    await pumpApp(tester, finderBackend(), location: '/tools/lookup');
     await _tap(tester, find.byKey(const Key('finder-items')));
     await _tap(tester, find.byKey(const Key('item-sort-Fling')));
     final first = find.descendant(of: find.byType(ListView).last, matching: find.byType(InkWell)).first;

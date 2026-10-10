@@ -103,7 +103,7 @@ class FavouritesScreen extends ConsumerWidget {
         AsyncError(:final error) when error is Unreachable =>
           CantReach(address: error.address, onRetry: () => ref.invalidate(favouritesProvider)),
         AsyncError() => Center(child: Text('The server had a problem loading favourites.', style: AppText.body)),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: Spinner()),
       },
     );
   }

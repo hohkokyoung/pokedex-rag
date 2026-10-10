@@ -9,6 +9,7 @@ import '../../data/errors.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/type_chip.dart';
+import '../../widgets/ui.dart' show PickerButton, Spinner;
 import '../pokedex/detail_state.dart';
 import 'team_state.dart';
 
@@ -84,7 +85,7 @@ class SetEditor extends ConsumerWidget {
       AsyncData() when member != null => _Editor(teamId: teamId, member: member),
       AsyncData() => Scaffold(appBar: AppBar(), body: Center(child: Text('Slot $slot is empty.', style: AppText.body))),
       AsyncError(:final error) => Scaffold(appBar: AppBar(), body: Center(child: Text('$error', style: AppText.body))),
-      _ => Scaffold(appBar: AppBar(), body: const Center(child: CircularProgressIndicator())),
+      _ => Scaffold(appBar: AppBar(), body: const Center(child: Spinner())),
     };
   }
 }
@@ -266,15 +267,11 @@ class _AbilityPicker extends ConsumerWidget {
       final list = ref.watch(abilitiesProvider(member.pokemonId)).value ?? const <AbilityOut>[];
       options = [for (final a in list) (id: a.id, name: a.name, hidden: a.isHidden)];
     }
-    return DropdownButton<int?>(
+    return PickerButton<int?>(
       key: const Key('ability'),
-      isExpanded: true,
+      title: 'Ability',
       value: options.any((o) => o.id == value) ? value : null,
-      hint: const Text('No ability'),
-      items: [
-        const DropdownMenuItem<int?>(value: null, child: Text('No ability')),
-        for (final o in options) DropdownMenuItem<int?>(value: o.id, child: Text(o.hidden ? '${o.name} (hidden)' : o.name)),
-      ],
+      options: [(null, 'No ability', null), for (final o in options) (o.id, o.name, o.hidden ? 'hidden' : null)],
       onChanged: onChanged,
     );
   }
@@ -289,18 +286,14 @@ class _NaturePicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final natures = ref.watch(naturesProvider).value ?? const <NatureOut>[];
-    String label(NatureOut n) => n.increasedStat == null
-        ? '${n.name} (neutral)'
-        : '${n.name} (+${statLabels[n.increasedStat] ?? n.increasedStat} −${statLabels[n.decreasedStat] ?? n.decreasedStat})';
-    return DropdownButton<int?>(
+    String effect(NatureOut n) => n.increasedStat == null
+        ? 'neutral'
+        : '+${statLabels[n.increasedStat] ?? n.increasedStat} −${statLabels[n.decreasedStat] ?? n.decreasedStat}';
+    return PickerButton<int?>(
       key: const Key('nature'),
-      isExpanded: true,
+      title: 'Nature',
       value: natures.any((n) => n.id == value) ? value : null,
-      hint: const Text('No nature'),
-      items: [
-        const DropdownMenuItem<int?>(value: null, child: Text('No nature')),
-        for (final n in natures) DropdownMenuItem<int?>(value: n.id, child: Text(label(n))),
-      ],
+      options: [(null, 'No nature', null), for (final n in natures) (n.id, n.name, effect(n))],
       onChanged: onChanged,
     );
   }
@@ -413,7 +406,7 @@ class _MovePickerState extends ConsumerState<_MovePicker> {
                     ),
               ]),
             AsyncError(:final error) => Center(child: Text("Couldn't load its moves: $error", style: AppText.bodySmall)),
-            _ => const Center(child: CircularProgressIndicator()),
+            _ => const Center(child: Spinner()),
           },
         ),
       ]),

@@ -68,6 +68,7 @@ void main() {
     await _tap(tester, find.byKey(const Key('damage-revert')));
     expect(_calc(tester).sets[0].item, 'None');
     expect(_calc(tester).sets[0].pre, 'Offensive');
+    await flush(tester);
   });
 
   testWidgets('a survive card applies EVs and nature; Revert restores the set exactly', (tester) async {

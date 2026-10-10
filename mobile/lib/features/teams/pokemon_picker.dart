@@ -11,6 +11,7 @@ import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/type_chip.dart';
+import '../../widgets/ui.dart' show Spinner;
 
 /// Opens a search over the Pokédex (forms included) and returns the pick.
 Future<PokemonSummary?> pickPokemon(BuildContext context) => showModalBottomSheet<PokemonSummary>(
@@ -77,7 +78,7 @@ class _PokemonPickerState extends ConsumerState<PokemonPicker> {
             builder: (context, snap) {
               if (snap.hasError) return Center(child: Text("Couldn't search: ${snap.error}", style: AppText.bodySmall));
               final items = snap.data?.items;
-              if (items == null) return const Center(child: CircularProgressIndicator());
+              if (items == null) return const Center(child: Spinner());
               if (items.isEmpty) return Center(child: Text('No Pokémon match.', style: AppText.body));
               return ListView.builder(
                 itemCount: items.length,

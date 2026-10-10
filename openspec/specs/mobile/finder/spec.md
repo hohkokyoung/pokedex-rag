@@ -7,7 +7,7 @@ and sorting, opening the same details as the lookup.
 ## Requirements
 
 ### Requirement: Advanced search
-The lookup SHALL offer Advanced search: tabs for Moves, Abilities and Items with their counts, one search box shared across tabs, "N of M" shown, and Clear to reset search and filters. Picking a row SHALL open the same move, ability or item details as the lookup. The catalogs SHALL load once per launch, and a failed load SHALL offer retry or the can't-reach state.
+The finder SHALL be the Lookup page itself: tabs for Moves, Abilities and Items with their counts (matches when searching), one search box shared across tabs, "N of M" shown, and Clear to reset search and filters. Picking a row SHALL open the move, ability or item details. The catalogs SHALL load once per launch, and a failed load SHALL offer retry or the can't-reach state.
 
 #### Scenario: Switch tabs
 - **WHEN** the owner types "rain" on Moves and switches to Abilities

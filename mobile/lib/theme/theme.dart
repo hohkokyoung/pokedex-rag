@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../widgets/ui.dart' show Ground;
 import 'tokens.g.dart';
 
 /// The light "Field Instrument" theme (DESIGN.md), built only from generated tokens.
@@ -60,6 +62,11 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(Radii.control),
           borderSide: const BorderSide(color: Palette.hairline),
         ),
+        // Focus darkens the hairline; no thick coloured Material outline.
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Radii.control),
+          borderSide: const BorderSide(color: Palette.mutedSlate),
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -114,6 +121,38 @@ abstract final class AppTheme {
       ),
       bottomSheetTheme: const BottomSheetThemeData(backgroundColor: Palette.panelWhite, surfaceTintColor: Colors.transparent),
       dividerColor: Palette.hairline,
+      // iOS feel on every platform: no ink ripples (a pressed thing dims instead),
+      // iOS page slides with swipe-back, and each page opaque so pages never show through.
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: const Color(0x0A14171D),
+      hoverColor: Colors.transparent,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: _GroundedPages(),
+          TargetPlatform.android: _GroundedPages(),
+          TargetPlatform.macOS: _GroundedPages(),
+        },
+      ),
+      textSelectionTheme: const TextSelectionThemeData(cursorColor: Palette.instrumentInk),
+      // Sliders: a thin ink track and a round white knob, like iOS.
+      sliderTheme: SliderThemeData(
+        trackHeight: 4,
+        activeTrackColor: Palette.instrumentInk,
+        inactiveTrackColor: Palette.hairline,
+        thumbColor: Palette.panelWhite,
+        overlayColor: Colors.transparent,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 13, elevation: 2, pressedElevation: 3),
+        trackShape: const RoundedRectSliderTrackShape(),
+        tickMarkShape: SliderTickMarkShape.noTickMark,
+        showValueIndicator: ShowValueIndicator.never,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Palette.instrumentInk,
+        contentTextStyle: AppText.bodySmall.copyWith(color: Palette.panelWhite),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),
+        elevation: 0,
+      ),
     );
   }
 }
@@ -131,4 +170,20 @@ abstract final class AppText {
 
   static TextStyle _v(TextStyle s) =>
       s.copyWith(fontVariations: [FontVariation.weight((s.fontWeight ?? FontWeight.w400).value.toDouble())]);
+}
+
+/// iOS page slides (with swipe-back), each page on its own ground.
+class _GroundedPages extends PageTransitionsBuilder {
+  const _GroundedPages();
+
+  static const _ios = CupertinoPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => _ios.buildTransitions(route, context, animation, secondaryAnimation, Ground(child: child));
 }

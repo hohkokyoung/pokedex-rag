@@ -198,7 +198,7 @@ class _CatchScreenState extends ConsumerState<CatchScreen> {
               Expanded(
                 child: Text('Best balls here', style: AppText.label.copyWith(color: Palette.mutedSlate)),
               ),
-              if (odds.isLoading) const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+              if (odds.isLoading) const Spinner(radius: 7),
               const SizedBox(width: Space.xs),
               Text('per throw', style: AppText.label.copyWith(color: Palette.mutedSlate)),
             ],

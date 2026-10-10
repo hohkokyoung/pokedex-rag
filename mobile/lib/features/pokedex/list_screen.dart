@@ -123,7 +123,7 @@ class _ListScreenState extends ConsumerState<ListScreen> {
               child: switch (list) {
                 AsyncData(:final value) => _Results(state: value, query: query),
                 AsyncError(:final error) => _ErrorState(error: error),
-                _ => const Center(child: CircularProgressIndicator()),
+                _ => const Center(child: Spinner()),
               },
             ),
           ],
@@ -273,7 +273,7 @@ class _Results extends ConsumerWidget {
   /// last cards build), or a retry after a failed page.
   Widget _footer(WidgetRef ref) => state.moreFailed == null
       ? (state.loadingMore
-          ? const Padding(padding: EdgeInsets.all(Space.lg), child: Center(child: CircularProgressIndicator()))
+          ? const Padding(padding: EdgeInsets.all(Space.lg), child: Center(child: Spinner()))
           : const SizedBox(height: Space.lg))
       : Center(
           child: TextButton(

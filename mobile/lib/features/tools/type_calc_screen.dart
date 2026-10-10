@@ -70,7 +70,7 @@ class _TypeCalcScreenState extends ConsumerState<TypeCalcScreen> {
         AsyncError(:final error) when error is Unreachable =>
           CantReach(address: error.address, onRetry: () => ref.invalidate(typeChartProvider)),
         AsyncError() => Center(child: Text('The server had a problem loading the type chart.', style: AppText.body)),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: Spinner()),
       },
     );
   }

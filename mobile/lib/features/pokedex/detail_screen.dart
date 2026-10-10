@@ -57,7 +57,7 @@ class DetailScreen extends ConsumerWidget {
             NotFound() => Center(child: Text('No Pokémon “$id”.', style: AppText.body)),
             _ => Center(child: Text('The server had a problem loading this Pokémon.', style: AppText.body)),
           },
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: Spinner()),
       },
     );
   }

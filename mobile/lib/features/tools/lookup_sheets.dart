@@ -1,43 +1,18 @@
-import 'dart:async';
-
+// The details a lookup row opens: a move, an ability with who has it, an item.
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../api/export.dart';
-import '../../data/errors.dart';
 import '../../data/pokedex_repository.dart' show failureOf;
 import '../../data/server.dart';
 import '../../data/sprites.dart';
 import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
-import '../../widgets/ui.dart';
 import '../../widgets/artwork.dart';
-import '../../widgets/cant_reach.dart';
 import '../../widgets/type_chip.dart';
 import '../pokedex/detail_more.dart' show showMoveSheet;
-
-typedef LookupResults = ({List<MoveOut> moves, List<AbilityOut> abilities, List<ItemOut> items});
-
-/// Moves, abilities and items whose name matches [q] (empty: the first of each).
-final lookupProvider = FutureProvider.autoDispose.family<LookupResults, String>((ref, q) async {
-  final dio = ref.watch(dioProvider);
-  final api = PokeragClient(dio);
-  final query = q.isEmpty ? null : q;
-  try {
-    final (moves, abilities, items) = await (
-      api.searchMovesApiMovesGet(q: query, limit: 20),
-      api.searchAbilitiesApiAbilitiesGet(q: query, limit: 10),
-      api.searchItemsApiItemsGet(q: query, limit: 10),
-    ).wait;
-    return (moves: moves, abilities: abilities, items: items);
-  } on ParallelWaitError catch (e) {
-    final err = (e.errors as (AsyncError?, AsyncError?, AsyncError?)).$1 ?? e.errors.$2 ?? e.errors.$3;
-    final cause = err?.error;
-    throw cause is DioException ? failureOf(cause, dio.options.baseUrl) : cause ?? e;
-  }
-});
 
 final abilityHoldersProvider = FutureProvider.autoDispose.family<List<AbilityHolderOut>, int>((ref, id) async {
   final dio = ref.watch(dioProvider);
@@ -72,112 +47,6 @@ void showLookupSheet(BuildContext context, Widget Function(ScrollController) bui
         builder: (_, scroll) => build(scroll),
       ),
     );
-
-class LookupScreen extends ConsumerStatefulWidget {
-  const LookupScreen({super.key});
-
-  @override
-  ConsumerState<LookupScreen> createState() => _LookupScreenState();
-}
-
-class _LookupScreenState extends ConsumerState<LookupScreen> {
-  Timer? _debounce;
-  String q = '';
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final results = ref.watch(lookupProvider(q));
-    return Scaffold(
-      appBar: pageBar('Lookup', actions: [
-        SquareButton(
-          key: const Key('open-finder'),
-          tooltip: 'Advanced search',
-          icon: Icons.filter_list,
-          onPressed: () => context.go('/tools/lookup/finder'),
-        ),
-      ]),
-      body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.sm),
-          child: TextField(
-            key: const Key('lookup-field'),
-            autocorrect: false,
-            onChanged: (v) {
-              _debounce?.cancel();
-              _debounce = Timer(const Duration(milliseconds: 200), () => setState(() => q = v.trim()));
-            },
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Earthquake, Intimidate, Leftovers…',
-              isDense: true,
-            ),
-          ),
-        ),
-        Expanded(
-          child: switch (results) {
-            AsyncData(:final value) => _list(value),
-            AsyncError(:final error) when error is Unreachable =>
-              CantReach(address: error.address, onRetry: () => ref.invalidate(lookupProvider(q))),
-            AsyncError() => Center(child: Text('The server had a problem searching.', style: AppText.body)),
-            _ => const Center(child: CircularProgressIndicator()),
-          },
-        ),
-      ]),
-    );
-  }
-
-  Widget _list(LookupResults r) {
-    if (r.moves.isEmpty && r.abilities.isEmpty && r.items.isEmpty) {
-      return Center(child: Text('Nothing matches “$q”.', style: AppText.body));
-    }
-    Widget head(String t) => Padding(
-          padding: const EdgeInsets.only(top: Space.md, bottom: 2),
-          child: Text(t, style: AppText.label.copyWith(color: Palette.mutedSlate)),
-        );
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.gutter * 2),
-      children: [
-        if (r.moves.isNotEmpty) head('Moves'),
-        for (final m in r.moves)
-          ListTile(
-            key: Key('look-move-${m.id}'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(m.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-            subtitle: m.shortEffect == null ? null : Text(m.shortEffect!, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
-            trailing: m.type == null ? null : TypeChip(m.type!, dense: true),
-            onTap: () => openMove(context, m),
-          ),
-        if (r.abilities.isNotEmpty) head('Abilities'),
-        for (final a in r.abilities)
-          ListTile(
-            key: Key('look-ability-${a.id}'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(a.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-            subtitle: Text(a.shortEffect ?? a.effect ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
-            onTap: () => showLookupSheet(context, (scroll) => AbilitySheet(ability: a, scroll: scroll)),
-          ),
-        if (r.items.isNotEmpty) head('Items'),
-        for (final i in r.items)
-          ListTile(
-            key: Key('look-item-${i.id}'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(i.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
-            subtitle: Text(i.shortEffect ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
-            onTap: () => showLookupSheet(context, (scroll) => ItemSheet(item: i, scroll: scroll)),
-          ),
-      ],
-    );
-  }
-}
 
 /// An ability's effect and the Pokémon that have it (filterable), each opening its page.
 class AbilitySheet extends ConsumerStatefulWidget {

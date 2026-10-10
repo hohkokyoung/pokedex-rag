@@ -10,6 +10,7 @@ import '../../theme/theme.dart';
 import '../../theme/tokens.g.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/type_chip.dart';
+import '../../widgets/ui.dart' show PickerButton;
 import 'detail_sections.dart';
 import 'detail_state.dart';
 
@@ -155,12 +156,11 @@ class _MovesetCardState extends ConsumerState<MovesetCard> {
     final types = {for (final mv in m.moves) if (mv.type != null) mv.type!}.toList()..sort();
     final rows = m.moves.where((mv) => (_category == null || mv.damageClass == _category) && (_type == null || mv.type == _type));
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      DropdownButton<int>(
+      PickerButton<int>(
         key: const Key('moveset-game'),
+        title: 'Game',
         value: game,
-        isExpanded: true,
-        style: AppText.body.copyWith(color: Palette.instrumentInk),
-        items: [for (final g in m.games) DropdownMenuItem(value: g.id, child: Text('${g.name} · ${g.moves} moves'))],
+        options: [for (final g in m.games) (g.id, g.name, '${g.moves} moves')],
         onChanged: (v) => setState(() => _game = v),
       ),
       const SizedBox(height: Space.xs),
@@ -174,15 +174,12 @@ class _MovesetCardState extends ConsumerState<MovesetCard> {
           ),
       ]),
       const SizedBox(height: Space.xs),
-      DropdownButton<String?>(
+      PickerButton<String?>(
         key: const Key('moveset-type'),
+        title: 'Type',
         value: _type,
-        hint: const Text('Any type'),
-        style: AppText.body.copyWith(color: Palette.instrumentInk),
-        items: [
-          const DropdownMenuItem<String?>(value: null, child: Text('Any type')),
-          for (final t in types) DropdownMenuItem(value: t, child: Text(_cap(t))),
-        ],
+        expand: false,
+        options: [(null, 'Any type', null), for (final t in types) (t, _cap(t), null)],
         onChanged: (v) => setState(() => _type = v),
       ),
       for (final (label, methods) in _groups)
@@ -381,12 +378,11 @@ class _EncountersCardState extends ConsumerState<EncountersCard> {
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (e.games.length > 1)
-        DropdownButton<int>(
+        PickerButton<int>(
           key: const Key('encounters-game'),
+          title: 'Game',
           value: e.versionId ?? e.games.last.versionId,
-          isExpanded: true,
-          style: AppText.body.copyWith(color: Palette.instrumentInk),
-          items: [for (final g in e.games) DropdownMenuItem(value: g.versionId, child: Text('${g.version} · ${g.places} places'))],
+          options: [for (final g in e.games) (g.versionId, g.version, '${g.places} places')],
           onChanged: (v) => setState(() => _version = v),
         )
       else

@@ -159,6 +159,7 @@ void main() {
     final build = lastBody(be, 'POST', '/api/teams/456/slots/4/build');
     expect(build['item'], 'Life Orb');
     expect(build['moves'], isNotEmpty);
+    await flush(tester);
   });
 
   testWidgets('compare with Rival shows the matchup; the grade stays opponent-free', (tester) async {

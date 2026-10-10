@@ -11,8 +11,15 @@ The website's light Instrument language, cleaner:
 - **Surfaces:** the tinted ground, white panels with hairlines (no nested panels),
   10/14px corners, 6px type chips.
 - **Type:** Chakra Petch for titles and names, mono numbers.
-- **Navigation:** the bottom bar is the website's Tray (Pokédex, Teams, Tools; the
-  current one raised) with Ask as the one red button.
+- **Navigation:** the bottom bar is one white capsule of four equal tabs (Pokédex,
+  Teams, Tools, and Ask in red). A soft capsule slides to the current tab.
+- **iOS feel, on both platforms:**
+  - Pages slide in and can be swiped back, each on its own ground. The routes use
+    explicit pages, since go_router alone fell back to cuts with no transition.
+  - Pressed things dim instead of drawing ripples.
+  - Choices open a sheet of rows with a red check (`PickerButton`, `showChoices`), not
+    dropdown menus.
+  - Spinners and alerts are iOS's.
 - **Long pages:** split into segments. A Pokémon has Overview, Moves, Evolution and
   Where. A team has Report, Coach and Compare.
 - **Shared parts:** in `mobile/lib/widgets/ui.dart`.
@@ -138,17 +145,19 @@ The website home page's tool tiles, one page each:
   - **Situation** holds wild and your level, turn, species caught, night/cave,
     fishing, caught before, love match and the Catching Charm;
   - the formula for the picked ball is at the bottom.
-- **Lookup:** one search over moves, abilities and items.
-  - A move shows its details and who learns it.
-  - An ability shows its effect and the Pokémon that have it (filterable).
-  - An item shows its effect, category, cost and Fling power.
-  - **Advanced search** (the filter button) is the website's finder: every move, ability
-    and item loaded once and filtered on the phone. One search carries across the three
-    tabs. Moves filter by type, category, kind (regular, Z-Move, Max Move) and game, and
-    sort by power, PP, accuracy or name. Abilities also match their effect text, so
-    "rain" finds Drizzle. Items sort by name, cost or Fling power. Kinds and which moves
-    each game had come from the server (`MoveOut.kind`, `GET /api/moves/games`).
-
+- **Lookup:** the website's finder. It opens on every move, ability and item, loaded
+  once and filtered on the phone.
+  - One search carries across the three tabs, and while searching each tab counts its
+    matches.
+  - Moves filter by type, category, kind (regular, Z-Move, Max Move) and game, and sort
+    by power, PP, accuracy or name.
+  - Abilities also match their effect text, so "rain" finds Drizzle.
+  - Items sort by name, cost or Fling power.
+  - Kinds and which moves each game had come from the server (`MoveOut.kind`,
+    `GET /api/moves/games`).
+  - A move shows its details and who learns it. An ability shows its effect and the
+    Pokémon that have it (filterable). An item shows its effect, category, cost and
+    Fling power.
 ## Server
 
 The **server** button (top right) sets where the app reads from. An address is saved
