@@ -50,6 +50,7 @@ PATHS = [
     # Damage calculator
     "/api/calc/turn",
     "/api/calc/options",
+    "/api/calc/ask",
     # Ask (phase 4): the answer's typed views and sources; the app reads the SSE twin.
     "/api/ask",
     "/api/ask/status",

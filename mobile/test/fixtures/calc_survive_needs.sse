@@ -1,0 +1,27 @@
+event: plan
+data: {"planner": "keyword", "cached": false, "replan": false, "steps": [{"id": "ctx", "tool": "calc_context", "why": "read the calculator", "args": {}}, {"id": "s1", "tool": "survive_threshold", "why": "the bulk needed to survive the hit", "args": {"defender": "Garchomp", "attacker": "Corviknight", "move": "Sky Attack"}}]}
+
+event: step
+data: {"id": "ctx", "state": "running", "summary": "", "ms": 0}
+
+event: step
+data: {"id": "s1", "state": "running", "summary": "", "ms": 0}
+
+event: step
+data: {"id": "ctx", "state": "done", "summary": "calculator: Garchomp, Corviknight", "ms": 1}
+
+event: step
+data: {"id": "s1", "state": "done", "summary": "Garchomp: survives with no extra EVs, Impish nature", "ms": 10}
+
+event: view
+data: {"kind": "survive", "step": "s1", "defender": {"slot": 0, "name": "Garchomp", "side": 0, "dex_number": 445}, "attacker": {"slot": 2, "name": "Corviknight", "side": 1, "dex_number": 823}, "move": {"ref": 0, "move_id": 143, "name": "Sky Attack", "type": "flying", "damage_class": "physical", "power": 140, "accuracy": null, "pp": null, "learners": null, "effect": null}, "survives": true, "stat": "def", "hp_ev": 0, "stat_ev": 0, "nature": "Impish", "nature_changed": true, "range": {"min_pct": 32.5, "max_pct": 38.1, "ko": 2, "te": 1.0, "ko_text": "a 2HKO"}, "current": {"min_pct": 35.5, "max_pct": 41.9, "ko": 2, "te": 1.0, "ko_text": "a possible OHKO (high rolls)"}, "apply": {"slot": 0, "fields": {"evs": {"hp": 0, "atk": 252, "def": 0, "spa": 0, "spd": 0, "spe": 252}, "nature": "Impish"}}, "already": false, "chunk_refs": [0]}
+
+event: sources
+data: [{"n": 1, "pokemon_id": 445, "pokemon_name": "Garchomp", "dex_number": 445, "chunk_type": "calc_slot", "source_ref": "slot 0", "snippet": "Calculator: your Garchomp (Dragon/Ground), Lv 100, Adamant nature, 252 Atk / 252 Spe / 4 HP, item None, ability Sand Veil, 40% HP. Stats: HP 358 / Atk 394 / Def 226 / SpA 176 / SpD 206 / Spe 303. Chosen move: Outrage (Dragon, physical, 120 power).", "score": 1.0, "step": "ctx", "step_index": 0}, {"n": 2, "pokemon_id": 823, "pokemon_name": "Corviknight", "dex_number": 823, "chunk_type": "calc_slot", "source_ref": "slot 2", "snippet": "Calculator: the opposing Corviknight (Flying/Steel), Lv 100, Bold nature, 252 HP / 252 Def / 4 SpD, item None, ability Pressure, 100% HP. Stats: HP 400 / Atk 189 / Def 339 / SpA 142 / SpD 207 / Spe 170. Chosen move: Sky Attack (Flying, physical, 140 power).", "score": 1.0, "step": "ctx", "step_index": 1}, {"n": 3, "pokemon_id": null, "pokemon_name": null, "dex_number": null, "chunk_type": "calc_field", "source_ref": "field", "snippet": "Calculator field: singles, Lv 100, weather None, terrain None.", "score": 1.0, "step": "ctx", "step_index": 2}, {"n": 4, "pokemon_id": null, "pokemon_name": null, "dex_number": null, "chunk_type": "calc_hits", "source_ref": "turn", "snippet": "What the calculator shows this turn: your Garchomp's Outrage \u2192 the opposing Corviknight: 19\u201322%, 5HKO; the opposing Corviknight's Sky Attack \u2192 your Garchomp: 35\u201342%, 3HKO.", "score": 1.0, "step": "ctx", "step_index": 3}, {"n": 5, "pokemon_id": 445, "pokemon_name": "Garchomp", "dex_number": 445, "chunk_type": "calc_survive", "source_ref": "Garchomp vs Sky Attack", "snippet": "Survival by the calculator's maths: your Garchomp vs the opposing Corviknight's Sky Attack from 40% HP \u2014 currently takes 35.5\u201341.9%. Survives with no extra EVs, Impish nature: 32.5\u201338.1%.", "score": 1.0, "step": "s1", "step_index": 0}]
+
+event: delta
+data: {"text": "Your **Garchomp** survives the opposing **Corviknight**'s **Sky Attack** with no extra EVs, Impish nature [5].\n\n- **At that spread** \u2014 takes 32.5\u201338.1% [5]\n- **Right now** \u2014 takes 35.5\u201341.9% [5]"}
+
+event: done
+data: {"usage": {"llm_calls": 0, "input_tokens": 0, "output_tokens": 0}, "fallback": false}
+

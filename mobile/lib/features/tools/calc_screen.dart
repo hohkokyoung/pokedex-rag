@@ -15,6 +15,7 @@ import '../../widgets/type_chip.dart';
 import '../pokedex/detail_sections.dart' show Section;
 import '../teams/pokemon_picker.dart' show pickPokemon;
 import '../teams/team_state.dart' show abilitiesProvider;
+import 'calc_coach_section.dart';
 import 'calc_state.dart';
 
 const _role = ['Lead', 'Partner', 'Left', 'Right'];
@@ -61,6 +62,8 @@ class _CalcScreenState extends ConsumerState<CalcScreen> {
               _ThisTurn(model: m, turn: shown, loading: turn.isLoading),
               const SizedBox(height: Space.md),
               _SlotEditor(slot: focus, turn: shown),
+              const SizedBox(height: Space.md),
+              CalcCoachSection(focus: focus, turn: shown),
               const SizedBox(height: Space.md),
               _FieldCard(model: m),
               if (shown != null) _MathCard(turn: shown, focus: focus, model: m),

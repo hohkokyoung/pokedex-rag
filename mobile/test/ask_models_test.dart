@@ -44,6 +44,6 @@ void main() {
   });
 
   test('an unknown kind decodes to null', () {
-    expect(decodeView({'kind': 'damage'}), isNull);
+    expect(decodeView({'kind': 'not_a_view'}), isNull);
   });
 }

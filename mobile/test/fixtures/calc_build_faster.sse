@@ -1,0 +1,21 @@
+event: plan
+data: {"planner": "keyword", "cached": false, "replan": false, "steps": [{"id": "s0", "tool": "calc_context", "why": "the calculator"}, {"id": "s1", "tool": "propose_build", "why": "a build for Garchomp"}]}
+
+event: step
+data: {"id": "s0", "state": "done", "summary": "calculator", "ms": 1}
+
+event: step
+data: {"id": "s1", "state": "done", "summary": "proposed a build", "ms": 5}
+
+event: view
+data: {"kind": "build_proposal", "step": "s1", "slot": 0, "pokemon": "Garchomp", "build": {"pokemon": "Garchomp", "moves": ["Earthquake", "Outrage", "Stone Edge", "Fire Fang"], "ability": "Rough Skin", "nature": "Jolly", "item": "Choice Scarf", "evs": {"hp": 4, "atk": 252, "def": 0, "spa": 0, "spd": 0, "spe": 252}, "why": "Faster with a Scarf."}, "chunk_refs": []}
+
+event: sources
+data: []
+
+event: delta
+data: {"text": "Faster with a Choice Scarf."}
+
+event: done
+data: {"usage": {"llm_calls": 1, "input_tokens": 0, "output_tokens": 0}}
+

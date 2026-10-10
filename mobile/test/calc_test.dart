@@ -1,6 +1,5 @@
 // The damage calculator: the app sets up the state, the server plays the turn
 // (recorded responses from POST /api/calc/turn).
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,33 +7,9 @@ import 'package:pokerag/api/export.dart';
 import 'package:pokerag/features/tools/calc_state.dart';
 
 import 'support/app_harness.dart';
+import 'support/calc_backend.dart';
 import 'support/fake_backend.dart';
 
-FakeBackend calcBackend({String? turn}) => FakeBackend((o) {
-      final body = _json(o.data);
-      return switch (o.path) {
-        '/api/pokemon/445' => fixture('garchomp'),
-        '/api/pokemon/823' => fixture('corviknight'),
-        '/api/pokemon/445/moves' => fixture('learnset_445'),
-        '/api/pokemon/823/moves' => fixture('learnset_823'),
-        '/api/pokemon/445/abilities' => fixture('abilities_445'),
-        '/api/pokemon/823/abilities' => fixture('abilities_823'),
-        '/api/calc/options' => fixture('calc_options'),
-        '/api/calc/turn' => fixture(turn ??
-            (body['doubles'] == true
-                ? 'turn_doubles'
-                : ((body['slots'] as List?) ?? const []).any((s) => (s as Map)['item'] == 'Focus Sash')
-                    ? 'turn_sash'
-                    : 'turn_default')),
-        '/api/pokemon' => listPage(o),
-        _ => 404,
-      };
-    });
-
-/// A request body as it goes over the wire (Dio serializes generated models later).
-Map<String, Object?> _json(Object? data) => data is Map ? Map<String, Object?>.from(jsonDecode(jsonEncode(data)) as Map) : const {};
-
-Map<String, Object?> lastTurnBody(FakeBackend be) => _json(be.requests.lastWhere((r) => r.path == '/api/calc/turn').data);
 
 Future<void> _tap(WidgetTester tester, Finder f) async {
   // The calculator is a long lazy list: scroll until the target is built.

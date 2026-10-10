@@ -17,7 +17,7 @@ class Raw {
   final String contentType;
 }
 
-/// A recorded Ask stream (test/fixtures/<name>.sse).
+/// A recorded Ask stream (`test/fixtures/<name>.sse`).
 Raw sse(String name) => Raw(File('test/fixtures/$name.sse').readAsStringSync());
 
 class FakeBackend implements HttpClientAdapter {

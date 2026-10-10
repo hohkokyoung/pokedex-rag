@@ -457,6 +457,67 @@
     "title": "CalcApply",
     "type": "object"
    },
+   "CalcAskRequest": {
+    "properties": {
+     "doubles": {
+      "default": false,
+      "title": "Doubles",
+      "type": "boolean"
+     },
+     "field": {
+      "$ref": "#/components/schemas/CalcField"
+     },
+     "focus": {
+      "default": 0,
+      "title": "Focus",
+      "type": "integer"
+     },
+     "hits": {
+      "items": {
+       "$ref": "#/components/schemas/CalcHitIn"
+      },
+      "maxItems": 16,
+      "title": "Hits",
+      "type": "array"
+     },
+     "level": {
+      "default": 100,
+      "maximum": 100.0,
+      "minimum": 1.0,
+      "title": "Level",
+      "type": "integer"
+     },
+     "proposal": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/CalcProposal"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "question": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Question",
+      "type": "string"
+     },
+     "slots": {
+      "items": {
+       "$ref": "#/components/schemas/CalcSlot"
+      },
+      "maxItems": 4,
+      "title": "Slots",
+      "type": "array"
+     }
+    },
+    "required": [
+     "question"
+    ],
+    "title": "CalcAskRequest",
+    "type": "object"
+   },
    "CalcField": {
     "properties": {
      "burn": {
@@ -496,6 +557,50 @@
      }
     },
     "title": "CalcField",
+    "type": "object"
+   },
+   "CalcHitIn": {
+    "description": "A hit the calculator currently shows (its own turn result, used as-is).",
+    "properties": {
+     "attacker": {
+      "title": "Attacker",
+      "type": "integer"
+     },
+     "ko": {
+      "default": 0,
+      "title": "Ko",
+      "type": "integer"
+     },
+     "max_pct": {
+      "title": "Max Pct",
+      "type": "number"
+     },
+     "min_pct": {
+      "title": "Min Pct",
+      "type": "number"
+     },
+     "move": {
+      "title": "Move",
+      "type": "string"
+     },
+     "target": {
+      "title": "Target",
+      "type": "integer"
+     },
+     "te": {
+      "default": 1,
+      "title": "Te",
+      "type": "number"
+     }
+    },
+    "required": [
+     "attacker",
+     "target",
+     "move",
+     "min_pct",
+     "max_pct"
+    ],
+    "title": "CalcHitIn",
     "type": "object"
    },
    "CalcHitOut": {
@@ -768,6 +873,30 @@
      "speed"
     ],
     "title": "CalcOrderOut",
+    "type": "object"
+   },
+   "CalcProposal": {
+    "properties": {
+     "build": {
+      "$ref": "#/components/schemas/BuildSuggestion"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "thread": {
+      "items": {
+       "$ref": "#/components/schemas/CoachTurn"
+      },
+      "title": "Thread",
+      "type": "array"
+     }
+    },
+    "required": [
+     "slot",
+     "build"
+    ],
+    "title": "CalcProposal",
     "type": "object"
    },
    "CalcRef": {
@@ -1241,6 +1370,25 @@
      "question"
     ],
     "title": "CoachAskRequest",
+    "type": "object"
+   },
+   "CoachTurn": {
+    "description": "One earlier exchange: what the user asked and what the coach replied.",
+    "properties": {
+     "ask": {
+      "title": "Ask",
+      "type": "string"
+     },
+     "reply": {
+      "default": "",
+      "title": "Reply",
+      "type": "string"
+     }
+    },
+    "required": [
+     "ask"
+    ],
+    "title": "CoachTurn",
     "type": "object"
    },
    "CosmeticVariantOut": {
@@ -7625,6 +7773,46 @@
     "summary": "Ask Status",
     "tags": [
      "ask"
+    ]
+   }
+  },
+  "/api/calc/ask": {
+   "post": {
+    "description": "SSE coaching over the calculator, planned like Ask (see ``app.agent``).\n\nThe state (sets, moves, field, hits, proposal + thread) comes with the question; types,\nstats and move data are re-read from the DB. Nothing is saved: Apply happens client-side.\nEvents: ``plan`` (the calc context step first), ``step``*, ``view``* (damage, survive,\nbuild proposal and dex views), ``sources``, ``delta``*, ``done``.",
+    "operationId": "calc_ask_api_calc_ask_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CalcAskRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Calc Ask",
+    "tags": [
+     "calc"
     ]
    }
   },

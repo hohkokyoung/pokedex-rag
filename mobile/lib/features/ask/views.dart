@@ -19,5 +19,9 @@ Object? decodeView(Map<String, dynamic> json) => switch (json['kind']) {
       'candidates' => CandidatesView.fromJson(json),
       'member_added' => MemberAddedView.fromJson(json),
       'duel' => DuelView.fromJson(json),
+      // The calculator coach's.
+      'damage' => DamageView.fromJson(json),
+      'survive' => SurviveView.fromJson(json),
+      'build_proposal' => BuildProposalView.fromJson(json),
       _ => null,
     };

@@ -9,6 +9,7 @@ import '../models/ability_holder_out.dart';
 import '../models/ability_out.dart';
 import '../models/ask_request.dart';
 import '../models/ask_response.dart';
+import '../models/calc_ask_request.dart';
 import '../models/calc_options_out.dart';
 import '../models/calc_turn_out.dart';
 import '../models/calc_turn_request.dart';
@@ -73,6 +74,19 @@ abstract class PokeragClient {
   /// Whether the RAG assistant is configured, and which provider is active.
   @GET('/api/ask/status')
   Future<dynamic> askStatusApiAskStatusGet();
+
+  /// Calc Ask.
+  ///
+  /// SSE coaching over the calculator, planned like Ask (see ``app.agent``).
+  ///
+  /// The state (sets, moves, field, hits, proposal + thread) comes with the question; types,.
+  /// stats and move data are re-read from the DB. Nothing is saved: Apply happens client-side.
+  /// Events: ``plan`` (the calc context step first), ``step``*, ``view``* (damage, survive,.
+  /// build proposal and dex views), ``sources``, ``delta``*, ``done``.
+  @POST('/api/calc/ask')
+  Future<void> calcAskApiCalcAskPost({
+    @Body() required CalcAskRequest body,
+  });
 
   /// Calc Options.
   ///

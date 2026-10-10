@@ -2,8 +2,7 @@
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
 home network. It covers the Pokédex (and your favourites), Teams with their coach, Ask,
-and the home page's tools, the damage calculator included; the calculator's coach stays
-on the website for now. Tabs at the bottom switch between Pokédex, Teams, Ask and Tools; each
+and the home page's tools, the damage calculator and its coach included. Tabs at the bottom switch between Pokédex, Teams, Ask and Tools; each
 keeps its place.
 
 ## List
@@ -107,6 +106,14 @@ The website home page's tool tiles, one page each:
     (`POST /api/calc/turn`, the same turn the website shows): ranges, HP bars, KO
     calls, Focus Sash, who faints.
   - **Math** shows the focused hit term by term.
+  - **Coach** (for the focused Pokémon, as on the website):
+    - "Best build", "Bulky set", "Fast sweeper" (follow-ups once a build is
+      proposed), the OHKO and bulk questions for its matchup, and a box;
+    - damage what-ifs and bulk thresholds come as cards with **Apply** / **Revert**
+      into the calculator;
+    - a proposed build shows against the current set with its moveset; **Apply**
+      sets it (with the picked move), **Revert** restores the set and move.
+    - Nothing is saved outside the calculator.
 
 - **Type calculator:** pick 1–2 types (a third replaces the older). It shows what the
   typing takes ×4/×2, resists ×½/×¼, is immune to, and hits ×2, all read from the
