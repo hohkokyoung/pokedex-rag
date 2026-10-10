@@ -3798,6 +3798,43 @@
     "title": "MoveGameLearnersOut",
     "type": "object"
    },
+   "MoveGameOut": {
+    "description": "A game and its moves (the finder's game filter): every move some Pokémon learns\nthere, plus the Z-Moves or Max Moves of the games that had them.",
+    "properties": {
+     "generation": {
+      "title": "Generation",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "move_ids": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Move Ids",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name",
+     "generation",
+     "move_ids"
+    ],
+    "title": "MoveGameOut",
+    "type": "object"
+   },
    "MoveListView": {
     "properties": {
      "chunk_refs": {
@@ -3869,6 +3906,16 @@
      },
      "identifier": {
       "title": "Identifier",
+      "type": "string"
+     },
+     "kind": {
+      "default": "regular",
+      "enum": [
+       "regular",
+       "z",
+       "max"
+      ],
+      "title": "Kind",
       "type": "string"
      },
      "name": {
@@ -8046,6 +8093,31 @@
      }
     },
     "summary": "Search Moves",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
+  "/api/moves/games": {
+   "get": {
+    "operationId": "move_games_api_moves_games_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/MoveGameOut"
+         },
+         "title": "Response Move Games Api Moves Games Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Move Games",
     "tags": [
      "builder"
     ]

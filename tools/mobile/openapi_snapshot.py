@@ -45,6 +45,7 @@ PATHS = [
     # Tools tab
     "/api/pokemon/{pokemon_id}/catch",
     "/api/moves",
+    "/api/moves/games",
     "/api/abilities",
     "/api/abilities/{ability_id}/pokemon",
     # Damage calculator

@@ -142,6 +142,12 @@ The website home page's tool tiles, one page each:
   - A move shows its details and who learns it.
   - An ability shows its effect and the Pokémon that have it (filterable).
   - An item shows its effect, category, cost and Fling power.
+  - **Advanced search** (the filter button) is the website's finder: every move, ability
+    and item loaded once and filtered on the phone. One search carries across the three
+    tabs. Moves filter by type, category, kind (regular, Z-Move, Max Move) and game, and
+    sort by power, PP, accuracy or name. Abilities also match their effect text, so
+    "rain" finds Drizzle. Items sort by name, cost or Fling power. Kinds and which moves
+    each game had come from the server (`MoveOut.kind`, `GET /api/moves/games`).
 
 ## Server
 

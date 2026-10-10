@@ -4,6 +4,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
+import 'move_out_kind.dart';
 import 'signature_z_out.dart';
 
 part 'move_out.g.dart';
@@ -15,6 +16,7 @@ class MoveOut {
     required this.id,
     required this.identifier,
     required this.name,
+    this.kind = MoveOutKind.regular,
     this.priority = 0,
     this.accuracy,
     this.damageClass,
@@ -32,6 +34,7 @@ class MoveOut {
   final String? damageClass;
   final int id;
   final String identifier;
+  final MoveOutKind kind;
   final String name;
   final int? power;
   final int? pp;

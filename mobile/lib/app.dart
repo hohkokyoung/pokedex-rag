@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'widgets/ui.dart';
 import 'features/tools/calc_screen.dart';
 import 'features/tools/catch_screen.dart';
+import 'features/tools/finder_screen.dart';
 import 'features/tools/lookup_screen.dart';
 import 'features/tools/nature_screen.dart';
 import 'features/tools/tools_screen.dart';
@@ -56,7 +57,11 @@ GoRouter buildRouter() => GoRouter(
                 GoRoute(path: 'types', builder: (_, _) => const TypeCalcScreen()),
                 GoRoute(path: 'natures', builder: (_, _) => const NatureScreen()),
                 GoRoute(path: 'catch', builder: (_, _) => const CatchScreen()),
-                GoRoute(path: 'lookup', builder: (_, _) => const LookupScreen()),
+                GoRoute(
+                  path: 'lookup',
+                  builder: (_, _) => const LookupScreen(),
+                  routes: [GoRoute(path: 'finder', builder: (_, _) => const FinderScreen())],
+                ),
               ],
             ),
           ],

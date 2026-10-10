@@ -48,6 +48,31 @@ final abilityHoldersProvider = FutureProvider.autoDispose.family<List<AbilityHol
   }
 });
 
+/// A move's details and who learns it, in any game (from the lookup or the finder).
+void openMove(BuildContext context, MoveOut m) => showMoveSheet(
+      context,
+      GameMoveOut(
+        identifier: m.identifier, moveId: m.id, name: m.name, priority: m.priority, accuracy: m.accuracy,
+        damageClass: m.damageClass, power: m.power, pp: m.pp, shortEffect: m.shortEffect, type: m.type,
+      ),
+      null,
+    );
+
+/// An ability's or item's details in a draggable sheet over the tab bar.
+void showLookupSheet(BuildContext context, Widget Function(ScrollController) build) => showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: Palette.panelWhite,
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.7,
+        maxChildSize: 0.95,
+        builder: (_, scroll) => build(scroll),
+      ),
+    );
+
 class LookupScreen extends ConsumerStatefulWidget {
   const LookupScreen({super.key});
 
@@ -69,7 +94,14 @@ class _LookupScreenState extends ConsumerState<LookupScreen> {
   Widget build(BuildContext context) {
     final results = ref.watch(lookupProvider(q));
     return Scaffold(
-      appBar: pageBar('Lookup'),
+      appBar: pageBar('Lookup', actions: [
+        SquareButton(
+          key: const Key('open-finder'),
+          tooltip: 'Advanced search',
+          icon: Icons.filter_list,
+          onPressed: () => context.go('/tools/lookup/finder'),
+        ),
+      ]),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.sm),
@@ -120,14 +152,7 @@ class _LookupScreenState extends ConsumerState<LookupScreen> {
             title: Text(m.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
             subtitle: m.shortEffect == null ? null : Text(m.shortEffect!, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
             trailing: m.type == null ? null : TypeChip(m.type!, dense: true),
-            onTap: () => showMoveSheet(
-              context,
-              GameMoveOut(
-                identifier: m.identifier, moveId: m.id, name: m.name, priority: m.priority, accuracy: m.accuracy,
-                damageClass: m.damageClass, power: m.power, pp: m.pp, shortEffect: m.shortEffect, type: m.type,
-              ),
-              null,
-            ),
+            onTap: () => openMove(context, m),
           ),
         if (r.abilities.isNotEmpty) head('Abilities'),
         for (final a in r.abilities)
@@ -137,7 +162,7 @@ class _LookupScreenState extends ConsumerState<LookupScreen> {
             dense: true,
             title: Text(a.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
             subtitle: Text(a.shortEffect ?? a.effect ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
-            onTap: () => _sheet((scroll) => AbilitySheet(ability: a, scroll: scroll)),
+            onTap: () => showLookupSheet(context, (scroll) => AbilitySheet(ability: a, scroll: scroll)),
           ),
         if (r.items.isNotEmpty) head('Items'),
         for (final i in r.items)
@@ -147,25 +172,11 @@ class _LookupScreenState extends ConsumerState<LookupScreen> {
             dense: true,
             title: Text(i.name, style: AppText.bodySmall.copyWith(fontWeight: FontWeight.w700)),
             subtitle: Text(i.shortEffect ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
-            onTap: () => _sheet((scroll) => ItemSheet(item: i, scroll: scroll)),
+            onTap: () => showLookupSheet(context, (scroll) => ItemSheet(item: i, scroll: scroll)),
           ),
       ],
     );
   }
-
-  void _sheet(Widget Function(ScrollController) build) => showModalBottomSheet<void>(
-        context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        showDragHandle: true,
-        backgroundColor: Palette.panelWhite,
-        builder: (_) => DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.7,
-          maxChildSize: 0.95,
-          builder: (_, scroll) => build(scroll),
-        ),
-      );
 }
 
 /// An ability's effect and the Pokémon that have it (filterable), each opening its page.

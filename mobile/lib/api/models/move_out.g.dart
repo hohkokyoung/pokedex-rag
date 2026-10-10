@@ -10,6 +10,9 @@ MoveOut _$MoveOutFromJson(Map<String, dynamic> json) => MoveOut(
   id: (json['id'] as num).toInt(),
   identifier: json['identifier'] as String,
   name: json['name'] as String,
+  kind: json['kind'] == null
+      ? MoveOutKind.regular
+      : MoveOutKind.fromJson(json['kind'] as String),
   priority: (json['priority'] as num?)?.toInt() ?? 0,
   accuracy: (json['accuracy'] as num?)?.toInt(),
   damageClass: json['damage_class'] as String?,
@@ -27,6 +30,7 @@ Map<String, dynamic> _$MoveOutToJson(MoveOut instance) => <String, dynamic>{
   'damage_class': instance.damageClass,
   'id': instance.id,
   'identifier': instance.identifier,
+  'kind': _$MoveOutKindEnumMap[instance.kind]!,
   'name': instance.name,
   'power': instance.power,
   'pp': instance.pp,
@@ -34,4 +38,11 @@ Map<String, dynamic> _$MoveOutToJson(MoveOut instance) => <String, dynamic>{
   'short_effect': instance.shortEffect,
   'signature_z': instance.signatureZ,
   'type': instance.type,
+};
+
+const _$MoveOutKindEnumMap = {
+  MoveOutKind.regular: 'regular',
+  MoveOutKind.z: 'z',
+  MoveOutKind.max: 'max',
+  MoveOutKind.$unknown: r'$unknown',
 };

@@ -20,6 +20,7 @@ import '../models/health_response.dart';
 import '../models/item_out.dart';
 import '../models/learnset_move_out.dart';
 import '../models/move_game_learners_out.dart';
+import '../models/move_game_out.dart';
 import '../models/move_out.dart';
 import '../models/nature_out.dart';
 import '../models/pokemon_detail.dart';
@@ -129,6 +130,10 @@ abstract class PokeragClient {
     @Query('limit') int? limit = 8,
     @Query('q') String? q,
   });
+
+  /// Move Games
+  @GET('/api/moves/games')
+  Future<List<MoveGameOut>> moveGamesApiMovesGamesGet();
 
   /// Move Learners By Game.
   ///

@@ -16,6 +16,10 @@ final prefsProvider = Provider<SharedPreferences>((ref) => throw UnimplementedEr
 /// Lets tests swap the network for a fake backend; null means the real network.
 final httpAdapterProvider = Provider<HttpClientAdapter?>((ref) => null);
 
+/// How responses are decoded. Null keeps Dio's default, which parses large JSON (the
+/// finder's catalogs) off the UI isolate; tests use a synchronous one.
+final dioTransformerProvider = Provider<Transformer?>((ref) => null);
+
 /// The server the app reads from: the saved address, else the build default.
 final serverAddressProvider = NotifierProvider<ServerAddress, String>(ServerAddress.new);
 
@@ -71,15 +75,17 @@ Future<String?> checkServer(String address, {HttpClientAdapter? adapter}) async 
   }
 }
 
-Dio _dio(String address, HttpClientAdapter? adapter, {Duration timeout = const Duration(seconds: 5)}) {
+Dio _dio(String address, HttpClientAdapter? adapter,
+    {Duration timeout = const Duration(seconds: 5), Transformer? transformer}) {
   final dio = Dio(BaseOptions(baseUrl: address, connectTimeout: timeout, receiveTimeout: const Duration(seconds: 15)));
   if (adapter != null) dio.httpClientAdapter = adapter;
+  if (transformer != null) dio.transformer = transformer;
   return dio;
 }
 
 /// The HTTP client for the current server (shared by the repositories).
 final dioProvider = Provider<Dio>((ref) {
-  final dio = _dio(ref.watch(serverAddressProvider), ref.watch(httpAdapterProvider));
+  final dio = _dio(ref.watch(serverAddressProvider), ref.watch(httpAdapterProvider), transformer: ref.watch(dioTransformerProvider));
   ref.onDispose(dio.close);
   return dio;
 });

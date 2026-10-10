@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +25,8 @@ Future<GoRouter> pumpApp(WidgetTester tester, FakeBackend be, {String? location,
     overrides: [
       prefsProvider.overrideWithValue(prefs),
       httpAdapterProvider.overrideWithValue(be),
+      // Large JSON would decode on another isolate, which a fake-async test never awaits.
+      dioTransformerProvider.overrideWithValue(SyncTransformer()),
       // No network images in tests: a sized placeholder that remembers its URL.
       artworkProvider.overrideWithValue((url, size, {fadeIn = Duration.zero}) =>
           SizedBox(key: ValueKey('art:$url'), width: size, height: size)),
