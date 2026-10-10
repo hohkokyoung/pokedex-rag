@@ -5,9 +5,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
-from app.models import Generation, Type
+from app.models import Generation, Pokemon, PokemonType, Type
+from app.schemas.catch import BallOddsOut, CatchOut, CatchStatus, CatchTermsOut
 from app.schemas.encounter import PokemonEncountersOut
 from app.schemas.pokemon import (
     GenerationOut,
@@ -16,7 +18,7 @@ from app.schemas.pokemon import (
     TypeChartOut,
     TypeOut,
 )
-from app.services import encounters, matchups, pokemon_query
+from app.services import catch_rate, encounters, matchups, pokemon_query
 
 router = APIRouter(prefix="/api", tags=["pokedex"])
 
@@ -80,6 +82,48 @@ async def pokemon_encounters(
 ) -> PokemonEncountersOut:
     """Where a species or form (id > 10000) is found in the wild, one game at a time."""
     return await encounters.encounters_by_game(session, pokemon_id, version)
+
+
+@router.get("/pokemon/{pokemon_id}/catch", response_model=CatchOut)
+async def catch_odds(
+    pokemon_id: int,
+    level: int = Query(30, ge=1, le=100, description="Wild level"),
+    my_level: int = Query(30, ge=1, le=100, description="Your lead's level (Level Ball)"),
+    hp_pct: int = Query(100, ge=1, le=100, description="Wild HP left, %"),
+    turn: int = Query(1, ge=1, le=99),
+    status: CatchStatus = "none",
+    night: bool = Query(False, description="Night or in a cave (Dusk Ball)"),
+    water: bool = Query(False, description="Fishing, surfing or underwater (Dive, Lure)"),
+    caught: bool = Query(False, description="Species caught before (Repeat Ball)"),
+    love_match: bool = Query(False, description="Lead: same species, opposite gender"),
+    dex_caught: int = Query(0, ge=0, le=1025, description="Species caught (critical capture)"),
+    charm: bool = Query(False, description="Catching Charm"),
+    session: AsyncSession = Depends(get_session),
+) -> CatchOut:
+    """Every ball ranked by catch chance for this situation (Gen 8+ formula)."""
+    p = (
+        await session.execute(
+            select(Pokemon).where(Pokemon.id == pokemon_id)
+            .options(selectinload(Pokemon.types).selectinload(PokemonType.type))
+        )
+    ).scalar_one_or_none()
+    if p is None:
+        raise HTTPException(status_code=404, detail="Pokémon not found")
+    mon = catch_rate.CatchMon(
+        dex=p.dex_number, types=[pt.type.identifier for pt in p.types],
+        capture_rate=p.capture_rate if p.capture_rate is not None else 45,
+        base_hp=p.hp, base_speed=p.speed, weight_kg=p.weight_kg or 0,
+        gender_rate=p.gender_rate if p.gender_rate is not None else 0,
+    )
+    ctx = catch_rate.Situation(hp_pct=hp_pct, level=level, my_level=my_level, turn=turn,
+                               status=status, night=night, water=water, caught=caught,
+                               love_match=love_match, dex_caught=dex_caught, charm=charm)
+    return CatchOut(
+        pokemon_id=p.id, name=p.name, capture_rate=mon.capture_rate,
+        balls=[BallOddsOut(id=b.id, name=b.name, why=b.why, p=b.p, throws=b.throws, sure=b.sure,
+                           terms=CatchTermsOut(**vars(b.terms)))
+               for b in catch_rate.rank(mon, ctx)],
+    )
 
 
 @router.get("/types", response_model=list[TypeOut])

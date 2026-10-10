@@ -24,7 +24,9 @@ code:
   - frontend/components/TypeMatchups.tsx
   - frontend/components/CatchRateTile.tsx
   - frontend/lib/typeChart.ts   # fetches GET /api/types/chart once; lookup helpers
-  - frontend/lib/catchRate.ts
+  - frontend/lib/catchRate.ts   # display only; odds from services/catch_rate.py
+  - backend/app/services/catch_rate.py
+  - backend/app/schemas/catch.py
 
 documentation:
   - docs/product/pokedex.md

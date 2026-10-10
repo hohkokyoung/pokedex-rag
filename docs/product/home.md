@@ -72,7 +72,8 @@ one to see its ±10% effect.
 Pick a wild Pokémon and set the situation — wild level, your level, HP left, status
 (sleep, freeze, paralysis, burn, poison), turn, species caught, caught before,
 Catching Charm. It ranks the **best balls here** by catch chance per throw (Gen 5+
-multipliers). "Math" shows the formula.
+multipliers). "Math" shows the formula. The odds are computed by the backend
+(`GET /api/pokemon/{id}/catch`, `services/catch_rate.py`), so the app shows the same.
 
 ## Code
 

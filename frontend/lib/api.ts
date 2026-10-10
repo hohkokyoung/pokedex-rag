@@ -104,6 +104,25 @@ export function listPokemon(
   return getJSON<PokemonListResponse>(`/api/pokemon?${buildListQuery(params)}`, init);
 }
 
+/** Every ball ranked by catch chance for a situation (computed by the backend). */
+export type BallOdds = {
+  id: string; name: string; why: string; p: number; throws: number | null; sure: boolean;
+  terms: { max_hp: number; hp: number; rate: number; hp_factor: number; ball: number; status: number; low_level: number; a: number; shake: number; crit: number };
+};
+export type CatchOdds = { pokemon_id: number; name: string; capture_rate: number; balls: BallOdds[] };
+export function getCatchOdds(
+  pokemonId: number,
+  c: { hpPct: number; level: number; myLevel: number; turn: number; status: string; night: boolean; water: boolean; caught: boolean; loveMatch: boolean; dexCaught: number; charm: boolean },
+  signal?: AbortSignal,
+): Promise<CatchOdds> {
+  const q = new URLSearchParams({
+    hp_pct: String(c.hpPct), level: String(c.level), my_level: String(c.myLevel), turn: String(c.turn),
+    status: c.status, night: String(c.night), water: String(c.water), caught: String(c.caught),
+    love_match: String(c.loveMatch), dex_caught: String(c.dexCaught), charm: String(c.charm),
+  });
+  return getJSON<CatchOdds>(`/api/pokemon/${pokemonId}/catch?${q}`, { signal });
+}
+
 export function getPokemon(idOrName: string | number): Promise<PokemonDetail> {
   return getJSON<PokemonDetail>(`/api/pokemon/${idOrName}`);
 }

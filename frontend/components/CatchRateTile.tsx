@@ -1,18 +1,17 @@
 "use client";
 
 // Home "Catch rate" tile: pick a wild Pokémon, its HP and status, and every ball is
-// ranked by its odds for that situation. Maths lives in lib/catchRate (client-side).
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+// ranked by its odds for that situation. The odds come from the backend
+// (GET /api/pokemon/{id}/catch); lib/catchRate holds only display helpers.
+import { useEffect, useState, type CSSProperties } from "react";
 import { DcPicker, HpPicker, type CalcMon } from "@/components/calc/fields";
-import { getPokemon } from "@/lib/api";
-import {
-  BALLS, DEFAULT_CTX, catchChance, pct,
-  type Ball, type CatchCtx, type CatchMon, type Status,
-} from "@/lib/catchRate";
+import { getCatchOdds, getPokemon, type BallOdds } from "@/lib/api";
+import { BALL_LOOK, DEFAULT_CTX, pct, type CatchCtx, type Status } from "@/lib/catchRate";
 
 /** A Poké Ball drawn from its colours (no ball sprites in the dataset). */
-function BallIcon({ b, size = 22 }: { b: Ball; size?: number }) {
-  const clip = `cr-top-${b.id}`;
+function BallIcon({ id, size = 22 }: { id: string; size?: number }) {
+  const clip = `cr-top-${id}`;
+  const b = BALL_LOOK[id] ?? BALL_LOOK.poke;
   return (
     <svg className="cr-ball" width={size} height={size} viewBox="0 0 32 32" aria-hidden>
       <defs><clipPath id={clip}><rect x="0" y="0" width="32" height="16" /></clipPath></defs>
@@ -40,7 +39,7 @@ const hpCol = (v: number) => (v > 50 ? "var(--ok)" : v > 20 ? "var(--warn)" : "v
 const hpText = (v: number) => (v > 50 ? "var(--ok-text)" : v > 20 ? "var(--warn-text)" : "var(--red-text)");
 const x = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
 
-type Mon = CatchMon & { calc: CalcMon };
+type Mon = { captureRate: number; calc: CalcMon };
 
 export default function CatchRateTile() {
   const [mon, setMon] = useState<Mon | null>(null);
@@ -51,18 +50,24 @@ export default function CatchRateTile() {
   const set = <K extends keyof CatchCtx>(k: K, v: CatchCtx[K]) => setCtx((c) => ({ ...c, [k]: v }));
 
   const load = (dex: number) => getPokemon(dex).then((d) => setMon({
-    name: d.name, dex: d.dex_number, types: d.types, captureRate: d.capture_rate ?? 45,
-    baseHp: d.stats.hp, baseSpeed: d.stats.speed, weightKg: d.weight_kg ?? 0, genderRate: d.gender_rate ?? 0,
+    captureRate: d.capture_rate ?? 45,
     calc: { id: d.id, name: d.name, dex: d.dex_number, types: d.types, stats: d.stats },
   })).catch(() => {});
   useEffect(() => { load(149); }, []);
 
-  const rows = useMemo(
-    () => (mon ? BALLS.map((b) => ({ b, r: catchChance(mon, b, ctx) })).sort((a, b) => b.r.p - a.r.p) : []),
-    [mon, ctx],
-  );
-  const cur = rows.find((r) => r.b.id === ballId);
-  const res = cur?.r;
+  // The backend ranks the balls; the last ranking stays up while the next one loads.
+  const [rows, setRows] = useState<BallOdds[]>([]);
+  const monId = mon?.calc.id;
+  useEffect(() => {
+    if (monId == null) return;
+    const ctl = new AbortController();
+    const t = setTimeout(() => {
+      getCatchOdds(monId, ctx, ctl.signal).then((o) => setRows(o.balls)).catch(() => {});
+    }, 150);
+    return () => { clearTimeout(t); ctl.abort(); };
+  }, [monId, ctx]);
+  const cur = rows.find((r) => r.id === ballId);
+  const res = cur?.terms;
   const v = ctx.hpPct;
 
   const num = (k: "level" | "myLevel" | "turn" | "dexCaught", l: string, max: number, min = 1) => (
@@ -98,18 +103,18 @@ export default function CatchRateTile() {
         <div className="cr-hpbar" style={{ "--v": `${v}%`, "--c": hpCol(v) } as CSSProperties}>
           <div className="dc-hpl"><i /></div>
           <input type="range" min={1} max={100} value={v} onChange={(e) => set("hpPct", Number(e.target.value))}
-            aria-label="Wild Pokémon's HP" aria-valuetext={res ? `${res.hp} of ${res.maxHp} HP, ${v}%` : `${v}%`} />
+            aria-label="Wild Pokémon's HP" aria-valuetext={res ? `${res.hp} of ${res.max_hp} HP, ${v}%` : `${v}%`} />
         </div>
-        <span className="cr-hpn">{res ? `${res.hp}/${res.maxHp}` : ""}</span>
+        <span className="cr-hpn">{res ? `${res.hp}/${res.max_hp}` : ""}</span>
       </div>
 
       <div className="cr-lh"><span className="dc-k">Best balls here</span><span className="dc-k">per throw</span></div>
       <div className="cr-list" data-lenis-prevent>
-        {rows.map(({ b, r }) => (
-          <button key={b.id} className={`cr-row${ballId === b.id ? " on" : ""}`} aria-pressed={ballId === b.id} onClick={() => setBallId(b.id)}>
-            <BallIcon b={b} />
-            <span className="nm">{b.name}</span>
-            <span className="mt">{r.ballWhy}</span>
+        {rows.map((r) => (
+          <button key={r.id} className={`cr-row${ballId === r.id ? " on" : ""}`} aria-pressed={ballId === r.id} onClick={() => setBallId(r.id)}>
+            <BallIcon id={r.id} />
+            <span className="nm">{r.name}</span>
+            <span className="mt">{r.why}</span>
             <b style={{ color: hpText(r.p * 100) }}>{pct(r.p)}%</b>
           </button>
         ))}
@@ -134,10 +139,10 @@ export default function CatchRateTile() {
       )}
       {math && res && cur && (
         <div className="dc-formula dc-formula-top">
-          a = (3·{res.maxHp} − 2·{res.hp}) / (3·{res.maxHp}) × {res.rate} rate × {x(res.ballMul)} {cur.b.name} × {x(res.statusMul)} {STATUS_WORD[ctx.status]}{res.lowLv > 1 ? ` × ${x(res.lowLv)} low Lv` : ""} = <b>{res.a.toFixed(1)}</b>
-          {res.sure
+          a = (3·{res.max_hp} − 2·{res.hp}) / (3·{res.max_hp}) × {res.rate} rate × {x(res.ball)} {cur.name} × {x(res.status)} {STATUS_WORD[ctx.status]}{res.low_level > 1 ? ` × ${x(res.low_level)} low Lv` : ""} = <b>{res.a.toFixed(1)}</b>
+          {cur.sure
             ? <> → <b>guaranteed</b></>
-            : <> · shake = 65536 / (255/a)^(3/16) ÷ 65536 = {res.shake.toFixed(3)} → {res.crit > 0 ? `crit ${(res.crit * 100).toFixed(1)}% + ` : ""}{res.shake.toFixed(3)}⁴ = <b>{pct(res.p)}%</b></>}
+            : <> · shake = 65536 / (255/a)^(3/16) ÷ 65536 = {res.shake.toFixed(3)} → {res.crit > 0 ? `crit ${(res.crit * 100).toFixed(1)}% + ` : ""}{res.shake.toFixed(3)}⁴ = <b>{pct(cur.p)}%</b></>}
           <br />Ball and status multipliers are Gen 5+ values · Sword/Shield formula.
         </div>
       )}

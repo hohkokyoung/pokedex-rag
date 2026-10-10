@@ -1,0 +1,204 @@
+[
+ {
+  "id": 25,
+  "name": "Pikachu",
+  "dex": 25,
+  "types": [
+   "electric"
+  ],
+  "captureRate": 190,
+  "baseHp": 35,
+  "baseSpeed": 90,
+  "weightKg": 6.0,
+  "genderRate": 4
+ },
+ {
+  "id": 445,
+  "name": "Garchomp",
+  "dex": 445,
+  "types": [
+   "dragon",
+   "ground"
+  ],
+  "captureRate": 45,
+  "baseHp": 108,
+  "baseSpeed": 102,
+  "weightKg": 95.0,
+  "genderRate": 4
+ },
+ {
+  "id": 143,
+  "name": "Snorlax",
+  "dex": 143,
+  "types": [
+   "normal"
+  ],
+  "captureRate": 25,
+  "baseHp": 160,
+  "baseSpeed": 30,
+  "weightKg": 460.0,
+  "genderRate": 1
+ },
+ {
+  "id": 35,
+  "name": "Clefairy",
+  "dex": 35,
+  "types": [
+   "fairy"
+  ],
+  "captureRate": 150,
+  "baseHp": 70,
+  "baseSpeed": 35,
+  "weightKg": 7.5,
+  "genderRate": 6
+ },
+ {
+  "id": 793,
+  "name": "Nihilego",
+  "dex": 793,
+  "types": [
+   "rock",
+   "poison"
+  ],
+  "captureRate": 45,
+  "baseHp": 109,
+  "baseSpeed": 103,
+  "weightKg": 55.5,
+  "genderRate": -1
+ },
+ {
+  "id": 129,
+  "name": "Magikarp",
+  "dex": 129,
+  "types": [
+   "water"
+  ],
+  "captureRate": 255,
+  "baseHp": 20,
+  "baseSpeed": 80,
+  "weightKg": 10.0,
+  "genderRate": 4
+ },
+ {
+  "id": 150,
+  "name": "Mewtwo",
+  "dex": 150,
+  "types": [
+   "psychic"
+  ],
+  "captureRate": 3,
+  "baseHp": 106,
+  "baseSpeed": 130,
+  "weightKg": 122.0,
+  "genderRate": -1
+ },
+ {
+  "id": 376,
+  "name": "Metagross",
+  "dex": 376,
+  "types": [
+   "steel",
+   "psychic"
+  ],
+  "captureRate": 3,
+  "baseHp": 80,
+  "baseSpeed": 70,
+  "weightKg": 550.0,
+  "genderRate": -1
+ },
+ {
+  "id": 12,
+  "name": "Butterfree",
+  "dex": 12,
+  "types": [
+   "bug",
+   "flying"
+  ],
+  "captureRate": 45,
+  "baseHp": 60,
+  "baseSpeed": 70,
+  "weightKg": 32.0,
+  "genderRate": 4
+ },
+ {
+  "id": 101,
+  "name": "Electrode",
+  "dex": 101,
+  "types": [
+   "electric"
+  ],
+  "captureRate": 60,
+  "baseHp": 60,
+  "baseSpeed": 150,
+  "weightKg": 66.6,
+  "genderRate": -1
+ },
+ {
+  "id": 81,
+  "name": "Magnemite",
+  "dex": 81,
+  "types": [
+   "electric",
+   "steel"
+  ],
+  "captureRate": 190,
+  "baseHp": 25,
+  "baseSpeed": 45,
+  "weightKg": 6.0,
+  "genderRate": -1
+ },
+ {
+  "id": 798,
+  "name": "Kartana",
+  "dex": 798,
+  "types": [
+   "grass",
+   "steel"
+  ],
+  "captureRate": 45,
+  "baseHp": 59,
+  "baseSpeed": 109,
+  "weightKg": 0.1,
+  "genderRate": -1
+ },
+ {
+  "id": 149,
+  "name": "Dragonite",
+  "dex": 149,
+  "types": [
+   "dragon",
+   "flying"
+  ],
+  "captureRate": 45,
+  "baseHp": 91,
+  "baseSpeed": 80,
+  "weightKg": 210.0,
+  "genderRate": 4
+ },
+ {
+  "id": 10,
+  "name": "Caterpie",
+  "dex": 10,
+  "types": [
+   "bug"
+  ],
+  "captureRate": 255,
+  "baseHp": 45,
+  "baseSpeed": 45,
+  "weightKg": 2.9,
+  "genderRate": 4
+ },
+ {
+  "id": 113,
+  "name": "Chansey",
+  "dex": 113,
+  "types": [
+   "normal"
+  ],
+  "captureRate": 30,
+  "baseHp": 250,
+  "baseSpeed": 50,
+  "weightKg": 34.6,
+  "genderRate": 8
+ }
+]
