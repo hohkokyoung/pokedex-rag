@@ -35,4 +35,5 @@ interfaces:
   - uses the teams API (CRUD, slots, build, analysis, strategy, summary/refresh) and the builder lookups (moves, abilities, items, natures)
   - uses POST /api/ask/stream (SSE; typed views from the /api/ask schema), GET /api/ask/status, PUT /api/profile
   - uses POST /api/teams/{team_id}/ask (SSE, the team coach; same reader as Ask, plus team_updated)
+  - uses POST /api/calc/turn, GET /api/calc/options (the damage calculator)
   - uses GET /api/pokemon/{pokemon_id}/catch, /api/moves, /api/abilities, /api/abilities/{ability_id}/pokemon, /api/items, /api/natures (Tools)

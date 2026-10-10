@@ -49,6 +49,28 @@ RESIST_BERRY = {
 }
 
 # The frontend's static chart (lib/typeChart.ts); a test checks it equals the DB chart.
+# What the maths models, for a client's pickers (GET /api/calc/options): each item with
+# the side it works on and what it does; abilities likewise. Keep in step with calc_hit
+# (test_calc_options checks every name here changes some result).
+CALC_ITEMS: list[tuple[str, str, str]] = [
+    ("Choice Band", "a", "Atk ×1.5"), ("Choice Specs", "a", "SpA ×1.5"),
+    ("Life Orb", "a", "×1.3"), ("Expert Belt", "a", "super-effective ×1.2"),
+    ("Muscle Band", "a", "physical ×1.1"), ("Wise Glasses", "a", "special ×1.1"),
+    *[(name, "a", f"{t} moves ×1.2") for name, t in TYPE_BOOST.items()],
+    ("Assault Vest", "d", "SpD ×1.5"), ("Eviolite", "d", "Def & SpD ×1.5 (unevolved)"),
+    ("Focus Sash", "d", "survives one hit from full HP"),
+    *[(name, "d", f"halves super-effective {t}") for name, t in RESIST_BERRY.items()],
+]
+CALC_ABILITIES: list[tuple[str, str, str]] = [
+    ("Adaptability", "a", "STAB ×2"), ("Huge Power", "a", "Atk ×2"),
+    ("Technician", "a", "moves ≤60 power ×1.5"), ("Guts", "a", "Atk ×1.5 while burned"),
+    ("Tinted Lens", "a", "resisted hits ×2"), ("Thick Fat", "d", "takes ½ from Fire & Ice"),
+    ("Multiscale", "d", "takes ½ at full HP"), ("Solid Rock", "d", "super-effective hits ×0.75"),
+    ("Filter", "d", "super-effective hits ×0.75"),
+]
+WEATHERS = ["None", "Rain", "Sun"]
+TERRAINS = ["None", "Electric", "Grassy", "Psychic"]
+
 CHART: dict[str, dict[str, float]] = {
     "normal": {"rock": .5, "ghost": 0, "steel": .5},
     "fire": {"fire": .5, "water": .5, "grass": 2, "ice": 2, "bug": 2, "rock": .5, "dragon": .5,

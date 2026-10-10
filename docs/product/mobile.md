@@ -2,8 +2,8 @@
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
 home network. It covers the Pokédex (and your favourites), Teams with their coach, Ask,
-and the home page's reference tools; the damage calculator and its coach stay on the
-website for now. Tabs at the bottom switch between Pokédex, Teams, Ask and Tools; each
+and the home page's tools, the damage calculator included; the calculator's coach stays
+on the website for now. Tabs at the bottom switch between Pokédex, Teams, Ask and Tools; each
 keeps its place.
 
 ## List
@@ -95,7 +95,18 @@ spend no LLM calls, as on the website.
 
 ## Tools
 
-The website home page's reference tiles, one page each:
+The website home page's tool tiles, one page each:
+
+- **Damage calc:**
+  - singles or doubles, Lv50 or Lv100;
+  - your side and the opponent's, each with a Pokémon, move (and in doubles its
+    target), ability, item, nature, preset (Offensive / Bulky / Custom), EVs, IVs and
+    current HP;
+  - the field (weather, terrain, screens, crit, burn, Friend Guard).
+  - **This turn** is the battle log in move order, played by the server
+    (`POST /api/calc/turn`, the same turn the website shows): ranges, HP bars, KO
+    calls, Focus Sash, who faints.
+  - **Math** shows the focused hit term by term.
 
 - **Type calculator:** pick 1–2 types (a third replaces the older). It shows what the
   typing takes ×4/×2, resists ×½/×¼, is immune to, and hits ×2, all read from the

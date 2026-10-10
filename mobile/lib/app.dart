@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/tools/calc_screen.dart';
 import 'features/tools/catch_screen.dart';
 import 'features/tools/lookup_screen.dart';
 import 'features/tools/nature_screen.dart';
@@ -43,6 +44,7 @@ GoRouter buildRouter() => GoRouter(routes: [
               path: '/tools',
               builder: (_, _) => const ToolsScreen(),
               routes: [
+                GoRoute(path: 'calc', builder: (_, _) => const CalcScreen()),
                 GoRoute(path: 'types', builder: (_, _) => const TypeCalcScreen()),
                 GoRoute(path: 'natures', builder: (_, _) => const NatureScreen()),
                 GoRoute(path: 'catch', builder: (_, _) => const CatchScreen()),

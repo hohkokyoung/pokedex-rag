@@ -13,7 +13,8 @@ The home page's damage calculator runs in the browser; its coach is the
 The **turn** (move order, doubles targeting, HP carried from hit to hit, Focus Sash, KO
 calls) is shared the same way: `frontend/lib/calcTurn.ts` (`playTurn`, used by the
 calculator) and `backend/app/services/calc_turn.py` (`POST /api/calc/turn`, used by the
-mobile app).
+mobile app). `GET /api/calc/options` lists the items and abilities the maths models
+(`damage_calc.CALC_ITEMS` / `CALC_ABILITIES`; a test checks each one changes damage).
 
 They must agree exactly. `make damage-fixtures` runs
 `frontend/scripts/damage-fixtures.ts` under Node type stripping (Node ≥ 22.18) and

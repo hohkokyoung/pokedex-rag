@@ -9,6 +9,9 @@ import '../models/ability_holder_out.dart';
 import '../models/ability_out.dart';
 import '../models/ask_request.dart';
 import '../models/ask_response.dart';
+import '../models/calc_options_out.dart';
+import '../models/calc_turn_out.dart';
+import '../models/calc_turn_request.dart';
 import '../models/catch_out.dart';
 import '../models/coach_ask_request.dart';
 import '../models/generation_out.dart';
@@ -70,6 +73,23 @@ abstract class PokeragClient {
   /// Whether the RAG assistant is configured, and which provider is active.
   @GET('/api/ask/status')
   Future<dynamic> askStatusApiAskStatusGet();
+
+  /// Calc Options.
+  ///
+  /// The items, abilities, weather and terrain the damage maths models (static).
+  @GET('/api/calc/options')
+  Future<CalcOptionsOut> calcOptionsApiCalcOptionsGet();
+
+  /// Calc Turn Route.
+  ///
+  /// Play one calculator turn: order, targeting, HP carried over, Focus Sash, KO calls.
+  ///
+  /// The same turn the website shows (``lib/calcTurn``), with types, stats and moves re-read.
+  /// from the DB. Pure code, no LLM.
+  @POST('/api/calc/turn')
+  Future<CalcTurnOut> calcTurnRouteApiCalcTurnPost({
+    @Body() required CalcTurnRequest body,
+  });
 
   /// List Generations
   @GET('/api/generations')

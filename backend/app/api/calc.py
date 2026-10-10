@@ -19,6 +19,8 @@ from app.schemas.calc import (
     CalcHitOut,
     CalcHpOut,
     CalcMoveOut,
+    CalcOptionOut,
+    CalcOptionsOut,
     CalcOrderOut,
     CalcStepOut,
     CalcTurnOut,
@@ -30,6 +32,16 @@ from app.services.calc_state import UnknownInSlot, resolve_slots, resolve_state
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/calc", tags=["calc"])
+
+
+@router.get("/options", response_model=CalcOptionsOut)
+async def calc_options() -> CalcOptionsOut:
+    """The items, abilities, weather and terrain the damage maths models (static)."""
+    return CalcOptionsOut(
+        items=[CalcOptionOut(name=n, side=s, note=t) for n, s, t in dc.CALC_ITEMS],  # type: ignore[arg-type]
+        abilities=[CalcOptionOut(name=n, side=s, note=t) for n, s, t in dc.CALC_ABILITIES],  # type: ignore[arg-type]
+        weathers=dc.WEATHERS, terrains=dc.TERRAINS, natures=[n for n, _, _ in dc.NAT],
+    )
 
 
 @router.post("/turn", response_model=CalcTurnOut)

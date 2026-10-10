@@ -457,6 +457,319 @@
     "title": "CalcApply",
     "type": "object"
    },
+   "CalcField": {
+    "properties": {
+     "burn": {
+      "default": false,
+      "title": "Burn",
+      "type": "boolean"
+     },
+     "crit": {
+      "default": false,
+      "title": "Crit",
+      "type": "boolean"
+     },
+     "friend_guard": {
+      "default": false,
+      "title": "Friend Guard",
+      "type": "boolean"
+     },
+     "lightscreen": {
+      "default": false,
+      "title": "Lightscreen",
+      "type": "boolean"
+     },
+     "reflect": {
+      "default": false,
+      "title": "Reflect",
+      "type": "boolean"
+     },
+     "terrain": {
+      "default": "None",
+      "title": "Terrain",
+      "type": "string"
+     },
+     "weather": {
+      "default": "None",
+      "title": "Weather",
+      "type": "string"
+     }
+    },
+    "title": "CalcField",
+    "type": "object"
+   },
+   "CalcHitOut": {
+    "description": "One hit of the turn: the damage range and how it ended.",
+    "properties": {
+     "attack": {
+      "title": "Attack",
+      "type": "integer"
+     },
+     "attacker": {
+      "title": "Attacker",
+      "type": "integer"
+     },
+     "base": {
+      "title": "Base",
+      "type": "integer"
+     },
+     "defense": {
+      "title": "Defense",
+      "type": "integer"
+     },
+     "friendly_fire": {
+      "title": "Friendly Fire",
+      "type": "boolean"
+     },
+     "ko": {
+      "anyOf": [
+       {
+        "enum": [
+         "yes",
+         "maybe"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ko"
+     },
+     "ko_hits": {
+      "title": "Ko Hits",
+      "type": "integer"
+     },
+     "max_pct": {
+      "title": "Max Pct",
+      "type": "number"
+     },
+     "min_pct": {
+      "title": "Min Pct",
+      "type": "number"
+     },
+     "mod": {
+      "title": "Mod",
+      "type": "number"
+     },
+     "move": {
+      "title": "Move",
+      "type": "string"
+     },
+     "sash": {
+      "title": "Sash",
+      "type": "boolean"
+     },
+     "stab": {
+      "title": "Stab",
+      "type": "number"
+     },
+     "target": {
+      "title": "Target",
+      "type": "integer"
+     },
+     "te": {
+      "title": "Te",
+      "type": "number"
+     }
+    },
+    "required": [
+     "attacker",
+     "target",
+     "move",
+     "min_pct",
+     "max_pct",
+     "ko_hits",
+     "te",
+     "stab",
+     "attack",
+     "defense",
+     "base",
+     "mod",
+     "ko",
+     "sash",
+     "friendly_fire"
+    ],
+    "title": "CalcHitOut",
+    "type": "object"
+   },
+   "CalcHpOut": {
+    "properties": {
+     "hi": {
+      "title": "Hi",
+      "type": "number"
+     },
+     "lo": {
+      "title": "Lo",
+      "type": "number"
+     },
+     "sash": {
+      "title": "Sash",
+      "type": "boolean"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "lo",
+     "hi",
+     "sash"
+    ],
+    "title": "CalcHpOut",
+    "type": "object"
+   },
+   "CalcMoveOut": {
+    "properties": {
+     "damage_class": {
+      "title": "Damage Class",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "title": "Power",
+      "type": "integer"
+     },
+     "priority": {
+      "title": "Priority",
+      "type": "integer"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target"
+     },
+     "type": {
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slot",
+     "name",
+     "type",
+     "damage_class",
+     "power",
+     "target",
+     "priority"
+    ],
+    "title": "CalcMoveOut",
+    "type": "object"
+   },
+   "CalcOptionOut": {
+    "properties": {
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "side": {
+      "enum": [
+       "a",
+       "d"
+      ],
+      "title": "Side",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "side",
+     "note"
+    ],
+    "title": "CalcOptionOut",
+    "type": "object"
+   },
+   "CalcOptionsOut": {
+    "description": "What the damage maths models, for the calculator's pickers.",
+    "properties": {
+     "abilities": {
+      "items": {
+       "$ref": "#/components/schemas/CalcOptionOut"
+      },
+      "title": "Abilities",
+      "type": "array"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/CalcOptionOut"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "natures": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Natures",
+      "type": "array"
+     },
+     "terrains": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Terrains",
+      "type": "array"
+     },
+     "weathers": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Weathers",
+      "type": "array"
+     }
+    },
+    "required": [
+     "items",
+     "abilities",
+     "weathers",
+     "terrains",
+     "natures"
+    ],
+    "title": "CalcOptionsOut",
+    "type": "object"
+   },
+   "CalcOrderOut": {
+    "properties": {
+     "priority": {
+      "title": "Priority",
+      "type": "integer"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     },
+     "speed": {
+      "title": "Speed",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "priority",
+     "speed"
+    ],
+    "title": "CalcOrderOut",
+    "type": "object"
+   },
    "CalcRef": {
     "properties": {
      "dex_number": {
@@ -489,6 +802,217 @@
      "side"
     ],
     "title": "CalcRef",
+    "type": "object"
+   },
+   "CalcSlot": {
+    "description": "One filled calculator slot: 0–1 are the user's side, 2–3 the opponent's.",
+    "properties": {
+     "ability": {
+      "default": "None",
+      "title": "Ability",
+      "type": "string"
+     },
+     "aim": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Aim"
+     },
+     "evs": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Evs",
+      "type": "object"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "hp": {
+      "default": 100,
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "title": "Hp",
+      "type": "number"
+     },
+     "item": {
+      "default": "None",
+      "title": "Item",
+      "type": "string"
+     },
+     "ivs": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Ivs",
+      "type": "object"
+     },
+     "move": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Move"
+     },
+     "name": {
+      "default": "",
+      "title": "Name",
+      "type": "string"
+     },
+     "nature": {
+      "default": "Hardy",
+      "title": "Nature",
+      "type": "string"
+     },
+     "pokemon_id": {
+      "title": "Pokemon Id",
+      "type": "integer"
+     },
+     "slot": {
+      "maximum": 3.0,
+      "minimum": 0.0,
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "pokemon_id"
+    ],
+    "title": "CalcSlot",
+    "type": "object"
+   },
+   "CalcStepOut": {
+    "properties": {
+     "at_risk": {
+      "title": "At Risk",
+      "type": "boolean"
+     },
+     "hits": {
+      "items": {
+       "$ref": "#/components/schemas/CalcHitOut"
+      },
+      "title": "Hits",
+      "type": "array"
+     },
+     "skipped": {
+      "title": "Skipped",
+      "type": "boolean"
+     },
+     "slot": {
+      "title": "Slot",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "slot",
+     "skipped",
+     "at_risk",
+     "hits"
+    ],
+    "title": "CalcStepOut",
+    "type": "object"
+   },
+   "CalcTurnOut": {
+    "properties": {
+     "aims": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Aims",
+      "type": "object"
+     },
+     "hp": {
+      "items": {
+       "$ref": "#/components/schemas/CalcHpOut"
+      },
+      "title": "Hp",
+      "type": "array"
+     },
+     "moves": {
+      "items": {
+       "$ref": "#/components/schemas/CalcMoveOut"
+      },
+      "title": "Moves",
+      "type": "array"
+     },
+     "order": {
+      "items": {
+       "$ref": "#/components/schemas/CalcOrderOut"
+      },
+      "title": "Order",
+      "type": "array"
+     },
+     "steps": {
+      "items": {
+       "$ref": "#/components/schemas/CalcStepOut"
+      },
+      "title": "Steps",
+      "type": "array"
+     }
+    },
+    "required": [
+     "order",
+     "steps",
+     "hp",
+     "aims",
+     "moves"
+    ],
+    "title": "CalcTurnOut",
+    "type": "object"
+   },
+   "CalcTurnRequest": {
+    "description": "The calculator's state, to play one turn (``POST /api/calc/turn``).",
+    "properties": {
+     "doubles": {
+      "default": false,
+      "title": "Doubles",
+      "type": "boolean"
+     },
+     "field": {
+      "$ref": "#/components/schemas/CalcField"
+     },
+     "level": {
+      "default": 100,
+      "maximum": 100.0,
+      "minimum": 1.0,
+      "title": "Level",
+      "type": "integer"
+     },
+     "slots": {
+      "items": {
+       "$ref": "#/components/schemas/CalcSlot"
+      },
+      "maxItems": 4,
+      "title": "Slots",
+      "type": "array"
+     }
+    },
+    "title": "CalcTurnRequest",
     "type": "object"
    },
    "Candidate": {
@@ -7101,6 +7625,70 @@
     "summary": "Ask Status",
     "tags": [
      "ask"
+    ]
+   }
+  },
+  "/api/calc/options": {
+   "get": {
+    "description": "The items, abilities, weather and terrain the damage maths models (static).",
+    "operationId": "calc_options_api_calc_options_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CalcOptionsOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Calc Options",
+    "tags": [
+     "calc"
+    ]
+   }
+  },
+  "/api/calc/turn": {
+   "post": {
+    "description": "Play one calculator turn: order, targeting, HP carried over, Focus Sash, KO calls.\n\nThe same turn the website shows (``lib/calcTurn``), with types, stats and moves re-read\nfrom the DB. Pure code, no LLM.",
+    "operationId": "calc_turn_route_api_calc_turn_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CalcTurnRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CalcTurnOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Calc Turn Route",
+    "tags": [
+     "calc"
     ]
    }
   },

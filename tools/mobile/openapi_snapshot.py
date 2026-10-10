@@ -47,6 +47,9 @@ PATHS = [
     "/api/moves",
     "/api/abilities",
     "/api/abilities/{ability_id}/pokemon",
+    # Damage calculator
+    "/api/calc/turn",
+    "/api/calc/options",
     # Ask (phase 4): the answer's typed views and sources; the app reads the SSE twin.
     "/api/ask",
     "/api/ask/status",

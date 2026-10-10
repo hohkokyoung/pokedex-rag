@@ -6,6 +6,7 @@ import '../../theme/tokens.g.dart';
 
 /// The website home page's reference tools, one row each.
 const tools = [
+  ('calc', Icons.bolt, 'Damage calc', 'Both sides, the field, and the turn played out'),
   ('types', Icons.shield_outlined, 'Type calculator', 'What a 1–2 type combination takes, resists and hits'),
   ('natures', Icons.grid_view, 'Nature helper', 'The 5×5 grid and each nature’s ±10%'),
   ('catch', Icons.catching_pokemon, 'Catch rate', 'The best balls for a wild Pokémon and situation'),

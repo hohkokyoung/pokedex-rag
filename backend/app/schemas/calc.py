@@ -133,3 +133,19 @@ class CalcTurnOut(BaseModel):
     hp: list[CalcHpOut]  # after the turn, per active slot
     aims: dict[int, int | None]  # the foe each active slot's single-target move aims at
     moves: list[CalcMoveOut]  # each slot's move as the server read it
+
+
+class CalcOptionOut(BaseModel):
+    name: str
+    side: Literal["a", "d"]  # works when attacking / defending
+    note: str
+
+
+class CalcOptionsOut(BaseModel):
+    """What the damage maths models, for the calculator's pickers."""
+
+    items: list[CalcOptionOut]
+    abilities: list[CalcOptionOut]
+    weathers: list[str]
+    terrains: list[str]
+    natures: list[str]

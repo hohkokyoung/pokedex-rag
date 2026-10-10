@@ -53,7 +53,7 @@ void main() {
   testWidgets('the Tools tab lists the tools and opens one, keeping the tab', (tester) async {
     final router = await pumpApp(tester, toolsBackend());
     await _tap(tester, find.byKey(const Key('tab-tools')));
-    for (final t in ['types', 'natures', 'catch', 'lookup']) {
+    for (final t in ['calc', 'types', 'natures', 'catch', 'lookup']) {
       expect(find.byKey(Key('tool-$t')), findsOneWidget);
     }
     await _tap(tester, find.byKey(const Key('tool-catch')));
