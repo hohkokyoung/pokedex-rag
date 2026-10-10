@@ -75,7 +75,11 @@ class _ListScreenState extends ConsumerState<ListScreen> {
                         onPressed: () => context.push('/favourites'),
                       ),
                       const SizedBox(width: 8),
-                      SquareButton(tooltip: 'Server', icon: Icons.dns_outlined, onPressed: () => context.push('/settings')),
+                      SquareButton(
+                        tooltip: 'Server',
+                        icon: Icons.dns_outlined,
+                        onPressed: () => context.push('/settings'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: Space.sm),
@@ -104,12 +108,23 @@ class _ListScreenState extends ConsumerState<ListScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: Space.xs),
             Expanded(
-              child: switch (list) {
-                AsyncData(:final value) => _Results(state: value, query: query),
-                AsyncError(:final error) => _ErrorState(error: error),
-                _ => const Center(child: Spinner()),
-              },
+              // Cards scrolling up fade out under the filters instead of being cut flat.
+              child: ShaderMask(
+                blendMode: BlendMode.dstIn,
+                shaderCallback: (r) => const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x00000000), Color(0xFF000000)],
+                  stops: [0, 1],
+                ).createShader(Rect.fromLTWH(0, 0, r.width, 18)),
+                child: switch (list) {
+                  AsyncData(:final value) => _Results(state: value, query: query),
+                  AsyncError(:final error) => _ErrorState(error: error),
+                  _ => const Center(child: Spinner()),
+                },
+              ),
             ),
           ],
         ),
@@ -178,7 +193,7 @@ class _Results extends ConsumerWidget {
         key: ValueKey(('pokedex-list', query)),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter + 2, Space.md, Space.gutter + 2, 8),
+            padding: const EdgeInsets.fromLTRB(Space.gutter + 2, Space.sm, Space.gutter + 2, 8),
             sliver: SliverToBoxAdapter(
               child: Row(
                 children: [
@@ -202,16 +217,15 @@ class _Results extends ConsumerWidget {
                 crossAxisSpacing: 10,
                 mainAxisExtent: 226,
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  // Nearing the end of what's loaded (also covers a first page shorter than the screen).
-                  if (i >= state.items.length - 6 && !state.done && state.moreFailed == null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(pokedexListProvider.notifier).loadMore());
-                  }
-                  return DexCard(p: state.items[i], base: base, sort: query.sort);
-                },
-                childCount: state.items.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, i) {
+                // Nearing the end of what's loaded (also covers a first page shorter than the screen).
+                if (i >= state.items.length - 6 && !state.done && state.moreFailed == null) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => ref.read(pokedexListProvider.notifier).loadMore(),
+                  );
+                }
+                return DexCard(p: state.items[i], base: base, sort: query.sort);
+              }, childCount: state.items.length),
             ),
           ),
           if (footer) SliverToBoxAdapter(child: _footer(ref)),
@@ -224,8 +238,11 @@ class _Results extends ConsumerWidget {
   /// last cards build), or a retry after a failed page.
   Widget _footer(WidgetRef ref) => state.moreFailed == null
       ? (state.loadingMore
-          ? const Padding(padding: EdgeInsets.all(Space.lg), child: Center(child: Spinner()))
-          : const SizedBox(height: Space.lg))
+            ? const Padding(
+                padding: EdgeInsets.all(Space.lg),
+                child: Center(child: Spinner()),
+              )
+            : const SizedBox(height: Space.lg))
       : Center(
           child: TextButton(
             onPressed: () => ref.read(pokedexListProvider.notifier).loadMore(),
@@ -234,7 +251,6 @@ class _Results extends ConsumerWidget {
         );
 
   static String _count(int n) => n.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
-
 }
 
 /// The website's catalog card: dex number, the sorted number (labelled), artwork on a
@@ -279,12 +295,18 @@ class DexCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text('#${p.dexNumber.toString().padLeft(4, '0')}', style: AppText.readout.copyWith(color: Palette.faintSlate)),
+                    child: Text(
+                      '#${p.dexNumber.toString().padLeft(4, '0')}',
+                      style: AppText.readout.copyWith(color: Palette.faintSlate),
+                    ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('$value', style: AppText.readout.copyWith(fontSize: 15, height: 1, color: Palette.instrumentInk)),
+                      Text(
+                        '$value',
+                        style: AppText.readout.copyWith(fontSize: 15, height: 1, color: Palette.instrumentInk),
+                      ),
                       Text(label, style: AppText.label.copyWith(fontSize: 10.5, color: Palette.faintSlate)),
                     ],
                   ),
@@ -294,9 +316,15 @@ class DexCard extends StatelessWidget {
                 child: Center(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: RadialGradient(colors: [tint.withValues(alpha: .28), tint.withValues(alpha: 0)], stops: const [0, .7]),
+                      gradient: RadialGradient(
+                        colors: [tint.withValues(alpha: .28), tint.withValues(alpha: 0)],
+                        stops: const [0, .7],
+                      ),
                     ),
-                    child: Hero(tag: 'art-${p.formId ?? p.dexNumber}', child: Artwork(thumbUrl(base, p.spriteUrl), size: 96)),
+                    child: Hero(
+                      tag: 'art-${p.formId ?? p.dexNumber}',
+                      child: Artwork(thumbUrl(base, p.spriteUrl), size: 96),
+                    ),
                   ),
                 ),
               ),
