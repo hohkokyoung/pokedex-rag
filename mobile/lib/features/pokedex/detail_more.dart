@@ -227,7 +227,8 @@ class _MoveRow extends StatelessWidget {
 }
 
 /// A move's facts and who else learns it in the same game.
-Future<void> showMoveSheet(BuildContext context, GameMoveOut mv, int game) => showModalBottomSheet<void>(
+/// A move's details and who learns it in [game] (null: the newest game the server picks).
+Future<void> showMoveSheet(BuildContext context, GameMoveOut mv, int? game) => showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -240,11 +241,20 @@ Future<void> showMoveSheet(BuildContext context, GameMoveOut mv, int game) => sh
       ),
     );
 
+/// Why no Pokémon learns a move (the website's lookup wording).
+String unlearnableReason(GameMoveOut m) => m.name == 'Struggle'
+    ? "No Pokémon learns Struggle; it's used automatically once every move is out of PP."
+    : m.pp == 1
+        ? 'Z-Move: no Pokémon learns it. A Z-Crystal turns a damaging move into it for one turn.'
+        : RegExp(r'^(G-)?Max ').hasMatch(m.name)
+            ? "Max Move: no Pokémon learns it. A Dynamaxed Pokémon's moves become it."
+            : "No Pokémon learns this move in any game's regular learnset.";
+
 class MoveSheet extends ConsumerWidget {
   const MoveSheet({super.key, required this.mv, required this.game, required this.scroll});
 
   final GameMoveOut mv;
-  final int game;
+  final int? game;
   final ScrollController scroll;
 
   @override
@@ -273,7 +283,10 @@ class MoveSheet extends ConsumerWidget {
         switch (learners) {
           AsyncData(:final value) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                '${value.learners.length} learn it in ${value.games.where((g) => g.id == game).firstOrNull?.name ?? 'this game'}',
+                game == null
+                    ? (value.learners.isEmpty ? unlearnableReason(mv) : '${value.learners.length} learn it in some game')
+                    : '${value.learners.length} learn it in ${value.games.where((g) => g.id == game).firstOrNull?.name ?? 'this game'}',
+                key: const Key('learners-line'),
                 style: AppText.label.copyWith(color: Palette.mutedSlate),
               ),
               const SizedBox(height: Space.xs),

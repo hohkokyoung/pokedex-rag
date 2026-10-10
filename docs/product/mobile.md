@@ -1,10 +1,10 @@
 # Mobile app (`mobile/`)
 
 The Pokédex on your phone (iOS and Android), read from your own pokérag server on the
-home network. It covers the Pokédex (and your favourites), Teams with their coach, and
-Ask; the damage calculator, its coach and the other calculators stay on the website for
-now. Tabs at the bottom switch between
-Pokédex, Teams and Ask; each keeps its place.
+home network. It covers the Pokédex (and your favourites), Teams with their coach, Ask,
+and the home page's reference tools; the damage calculator and its coach stay on the
+website for now. Tabs at the bottom switch between Pokédex, Teams, Ask and Tools; each
+keeps its place.
 
 ## List
 
@@ -38,8 +38,8 @@ picks use) and **previous / next** through the dex. The list's ♡ button opens
 **Favourites**.
 
 Everything shown is computed by the server, so it always matches the website. The
-only thing the app works out itself is the Hits ×2 list, looked up in the server's
-type chart (fetched once per launch).
+only things the app works out itself are type multipliers (Hits ×2 here, and the Tools
+type calculator), looked up in the server's type chart (fetched once per launch).
 
 ## Teams
 
@@ -92,6 +92,26 @@ The same assistant as the website's Ask, streamed from the server:
 
 Questions the server answers in code (rankings, learn checks, type charts, move info)
 spend no LLM calls, as on the website.
+
+## Tools
+
+The website home page's reference tiles, one page each:
+
+- **Type calculator:** pick 1–2 types (a third replaces the older). It shows what the
+  typing takes ×4/×2, resists ×½/×¼, is immune to, and hits ×2, all read from the
+  served type chart.
+- **Nature helper:** the 5×5 grid (+stat rows, −stat columns, neutral natures on the
+  diagonal); tap one for its ±10%.
+- **Catch rate:**
+  - pick a Pokémon, set its status and HP, and the server ranks every ball with its
+    chance per throw and throws for 90%;
+  - **Situation** holds wild and your level, turn, species caught, night/cave,
+    fishing, caught before, love match and the Catching Charm;
+  - the formula for the picked ball is at the bottom.
+- **Lookup:** one search over moves, abilities and items.
+  - A move shows its details and who learns it.
+  - An ability shows its effect and the Pokémon that have it (filterable).
+  - An item shows its effect, category, cost and Fling power.
 
 ## Server
 

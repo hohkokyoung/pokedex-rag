@@ -5,15 +5,18 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/ability_holder_out.dart';
 import '../models/ability_out.dart';
 import '../models/ask_request.dart';
 import '../models/ask_response.dart';
+import '../models/catch_out.dart';
 import '../models/coach_ask_request.dart';
 import '../models/generation_out.dart';
 import '../models/health_response.dart';
 import '../models/item_out.dart';
 import '../models/learnset_move_out.dart';
 import '../models/move_game_learners_out.dart';
+import '../models/move_out.dart';
 import '../models/nature_out.dart';
 import '../models/pokemon_detail.dart';
 import '../models/pokemon_encounters_out.dart';
@@ -23,6 +26,7 @@ import '../models/profile_out.dart';
 import '../models/profile_update.dart';
 import '../models/slot_build.dart';
 import '../models/slot_update.dart';
+import '../models/status.dart';
 import '../models/team_analysis.dart';
 import '../models/team_create.dart';
 import '../models/team_list_response.dart';
@@ -38,6 +42,22 @@ part 'pokerag_client.g.dart';
 @RestApi()
 abstract class PokeragClient {
   factory PokeragClient(Dio dio, {String? baseUrl}) = _PokeragClient;
+
+  /// Search Abilities.
+  ///
+  /// [q] - Filter abilities by name substring.
+  @GET('/api/abilities')
+  Future<List<AbilityOut>> searchAbilitiesApiAbilitiesGet({
+    @Query('limit') int? limit = 8,
+    @Query('q') String? q,
+  });
+
+  /// Ability Holders
+  @GET('/api/abilities/{ability_id}/pokemon')
+  Future<List<AbilityHolderOut>> abilityHoldersApiAbilitiesAbilityIdPokemonGet({
+    @Path('ability_id') required int abilityId,
+    @Query('limit') int? limit = 250,
+  });
 
   /// Ask
   @POST('/api/ask')
@@ -64,6 +84,15 @@ abstract class PokeragClient {
   Future<List<ItemOut>> searchItemsApiItemsGet({
     @Query('limit') int? limit = 8,
     @Query('held') bool? held = false,
+    @Query('q') String? q,
+  });
+
+  /// Search Moves.
+  ///
+  /// [q] - Filter moves by name substring.
+  @GET('/api/moves')
+  Future<List<MoveOut>> searchMovesApiMovesGet({
+    @Query('limit') int? limit = 8,
     @Query('q') String? q,
   });
 
@@ -119,6 +148,43 @@ abstract class PokeragClient {
   @GET('/api/pokemon/{pokemon_id}/abilities')
   Future<List<AbilityOut>> pokemonAbilitiesApiPokemonPokemonIdAbilitiesGet({
     @Path('pokemon_id') required int pokemonId,
+  });
+
+  /// Catch Odds.
+  ///
+  /// Every ball ranked by catch chance for this situation (Gen 8+ formula).
+  ///
+  /// [level] - Wild level.
+  ///
+  /// [myLevel] - Your lead's level (Level Ball).
+  ///
+  /// [hpPct] - Wild HP left, %.
+  ///
+  /// [night] - Night or in a cave (Dusk Ball).
+  ///
+  /// [water] - Fishing, surfing or underwater (Dive, Lure).
+  ///
+  /// [caught] - Species caught before (Repeat Ball).
+  ///
+  /// [loveMatch] - Lead: same species, opposite gender.
+  ///
+  /// [dexCaught] - Species caught (critical capture).
+  ///
+  /// [charm] - Catching Charm.
+  @GET('/api/pokemon/{pokemon_id}/catch')
+  Future<CatchOut> catchOddsApiPokemonPokemonIdCatchGet({
+    @Path('pokemon_id') required int pokemonId,
+    @Query('level') int? level = 30,
+    @Query('my_level') int? myLevel = 30,
+    @Query('hp_pct') int? hpPct = 100,
+    @Query('turn') int? turn = 1,
+    @Query('status') Status? status = Status.none,
+    @Query('night') bool? night = false,
+    @Query('water') bool? water = false,
+    @Query('caught') bool? caught = false,
+    @Query('love_match') bool? loveMatch = false,
+    @Query('dex_caught') int? dexCaught = 0,
+    @Query('charm') bool? charm = false,
   });
 
   /// Pokemon Encounters.

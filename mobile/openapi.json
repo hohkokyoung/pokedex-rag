@@ -1,6 +1,48 @@
 {
  "components": {
   "schemas": {
+   "AbilityHolderOut": {
+    "description": "A species that has a given ability (reverse ability lookup).",
+    "properties": {
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "is_hidden": {
+      "default": false,
+      "title": "Is Hidden",
+      "type": "boolean"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     },
+     "types": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "dex_number",
+     "name",
+     "types",
+     "sprite_url"
+    ],
+    "title": "AbilityHolderOut",
+    "type": "object"
+   },
    "AbilityOut": {
     "properties": {
      "effect": {
@@ -178,6 +220,55 @@
      "sources"
     ],
     "title": "AskResponse",
+    "type": "object"
+   },
+   "BallOddsOut": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "p": {
+      "title": "P",
+      "type": "number"
+     },
+     "sure": {
+      "title": "Sure",
+      "type": "boolean"
+     },
+     "terms": {
+      "$ref": "#/components/schemas/CatchTermsOut"
+     },
+     "throws": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Throws"
+     },
+     "why": {
+      "title": "Why",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "why",
+     "p",
+     "throws",
+     "sure",
+     "terms"
+    ],
+    "title": "BallOddsOut",
     "type": "object"
    },
    "BuildProposalView": {
@@ -510,6 +601,96 @@
      "candidates"
     ],
     "title": "CandidatesView",
+    "type": "object"
+   },
+   "CatchOut": {
+    "properties": {
+     "balls": {
+      "items": {
+       "$ref": "#/components/schemas/BallOddsOut"
+      },
+      "title": "Balls",
+      "type": "array"
+     },
+     "capture_rate": {
+      "title": "Capture Rate",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "pokemon_id": {
+      "title": "Pokemon Id",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "pokemon_id",
+     "name",
+     "capture_rate",
+     "balls"
+    ],
+    "title": "CatchOut",
+    "type": "object"
+   },
+   "CatchTermsOut": {
+    "description": "The formula's terms for one ball (what the \"math\" line shows).",
+    "properties": {
+     "a": {
+      "title": "A",
+      "type": "number"
+     },
+     "ball": {
+      "title": "Ball",
+      "type": "number"
+     },
+     "crit": {
+      "title": "Crit",
+      "type": "number"
+     },
+     "hp": {
+      "title": "Hp",
+      "type": "integer"
+     },
+     "hp_factor": {
+      "title": "Hp Factor",
+      "type": "number"
+     },
+     "low_level": {
+      "title": "Low Level",
+      "type": "number"
+     },
+     "max_hp": {
+      "title": "Max Hp",
+      "type": "integer"
+     },
+     "rate": {
+      "title": "Rate",
+      "type": "integer"
+     },
+     "shake": {
+      "title": "Shake",
+      "type": "number"
+     },
+     "status": {
+      "title": "Status",
+      "type": "number"
+     }
+    },
+    "required": [
+     "max_hp",
+     "hp",
+     "rate",
+     "hp_factor",
+     "ball",
+     "status",
+     "low_level",
+     "a",
+     "shake",
+     "crit"
+    ],
+    "title": "CatchTermsOut",
     "type": "object"
    },
    "CoachAskRequest": {
@@ -2985,6 +3166,111 @@
     "title": "MoveListView",
     "type": "object"
    },
+   "MoveOut": {
+    "description": "A move independent of any species (global lookup).",
+    "properties": {
+     "accuracy": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accuracy"
+     },
+     "damage_class": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Damage Class"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "identifier": {
+      "title": "Identifier",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "power": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Power"
+     },
+     "pp": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pp"
+     },
+     "priority": {
+      "default": 0,
+      "title": "Priority",
+      "type": "integer"
+     },
+     "short_effect": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Short Effect"
+     },
+     "signature_z": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SignatureZOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Type"
+     }
+    },
+    "required": [
+     "id",
+     "identifier",
+     "name"
+    ],
+    "title": "MoveOut",
+    "type": "object"
+   },
    "MoveRow": {
     "properties": {
      "accuracy": {
@@ -4625,6 +4911,33 @@
      "members"
     ],
     "title": "SharedWeakness",
+    "type": "object"
+   },
+   "SignatureZOut": {
+    "description": "Who can use a signature Z-Move: holding ``crystal``, ``base_move`` becomes it.",
+    "properties": {
+     "base_move": {
+      "title": "Base Move",
+      "type": "string"
+     },
+     "crystal": {
+      "title": "Crystal",
+      "type": "string"
+     },
+     "users": {
+      "items": {
+       "$ref": "#/components/schemas/ZUserOut"
+      },
+      "title": "Users",
+      "type": "array"
+     }
+    },
+    "required": [
+     "crystal",
+     "base_move",
+     "users"
+    ],
+    "title": "SignatureZOut",
     "type": "object"
    },
    "SlotAbility": {
@@ -6552,6 +6865,45 @@
     ],
     "title": "VsOpponent",
     "type": "object"
+   },
+   "ZUserOut": {
+    "properties": {
+     "dex_number": {
+      "title": "Dex Number",
+      "type": "integer"
+     },
+     "form_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Id"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sprite_url": {
+      "title": "Sprite Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "dex_number",
+     "name",
+     "sprite_url"
+    ],
+    "title": "ZUserOut",
+    "type": "object"
    }
   }
  },
@@ -6562,6 +6914,131 @@
  },
  "openapi": "3.1.0",
  "paths": {
+  "/api/abilities": {
+   "get": {
+    "operationId": "search_abilities_api_abilities_get",
+    "parameters": [
+     {
+      "description": "Filter abilities by name substring",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter abilities by name substring",
+       "title": "Q"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 8,
+       "maximum": 2000,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/AbilityOut"
+         },
+         "title": "Response Search Abilities Api Abilities Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Search Abilities",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
+  "/api/abilities/{ability_id}/pokemon": {
+   "get": {
+    "operationId": "ability_holders_api_abilities__ability_id__pokemon_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "ability_id",
+      "required": true,
+      "schema": {
+       "title": "Ability Id",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 250,
+       "maximum": 400,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/AbilityHolderOut"
+         },
+         "title": "Response Ability Holders Api Abilities  Ability Id  Pokemon Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Ability Holders",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
   "/api/ask": {
    "post": {
     "operationId": "ask_api_ask_post",
@@ -6726,6 +7203,73 @@
      }
     },
     "summary": "Search Items",
+    "tags": [
+     "builder"
+    ]
+   }
+  },
+  "/api/moves": {
+   "get": {
+    "operationId": "search_moves_api_moves_get",
+    "parameters": [
+     {
+      "description": "Filter moves by name substring",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Filter moves by name substring",
+       "title": "Q"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 8,
+       "maximum": 2000,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/MoveOut"
+         },
+         "title": "Response Search Moves Api Moves Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Search Moves",
     "tags": [
      "builder"
     ]
@@ -7134,6 +7678,195 @@
     "summary": "Pokemon Abilities",
     "tags": [
      "builder"
+    ]
+   }
+  },
+  "/api/pokemon/{pokemon_id}/catch": {
+   "get": {
+    "description": "Every ball ranked by catch chance for this situation (Gen 8+ formula).",
+    "operationId": "catch_odds_api_pokemon__pokemon_id__catch_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pokemon_id",
+      "required": true,
+      "schema": {
+       "title": "Pokemon Id",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Wild level",
+      "in": "query",
+      "name": "level",
+      "required": false,
+      "schema": {
+       "default": 30,
+       "description": "Wild level",
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Level",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Your lead's level (Level Ball)",
+      "in": "query",
+      "name": "my_level",
+      "required": false,
+      "schema": {
+       "default": 30,
+       "description": "Your lead's level (Level Ball)",
+       "maximum": 100,
+       "minimum": 1,
+       "title": "My Level",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Wild HP left, %",
+      "in": "query",
+      "name": "hp_pct",
+      "required": false,
+      "schema": {
+       "default": 100,
+       "description": "Wild HP left, %",
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Hp Pct",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "turn",
+      "required": false,
+      "schema": {
+       "default": 1,
+       "maximum": 99,
+       "minimum": 1,
+       "title": "Turn",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "default": "none",
+       "enum": [
+        "none",
+        "sleep",
+        "freeze",
+        "paralysis",
+        "burn",
+        "poison"
+       ],
+       "title": "Status",
+       "type": "string"
+      }
+     },
+     {
+      "description": "Night or in a cave (Dusk Ball)",
+      "in": "query",
+      "name": "night",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Night or in a cave (Dusk Ball)",
+       "title": "Night",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Fishing, surfing or underwater (Dive, Lure)",
+      "in": "query",
+      "name": "water",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Fishing, surfing or underwater (Dive, Lure)",
+       "title": "Water",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Species caught before (Repeat Ball)",
+      "in": "query",
+      "name": "caught",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Species caught before (Repeat Ball)",
+       "title": "Caught",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Lead: same species, opposite gender",
+      "in": "query",
+      "name": "love_match",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Lead: same species, opposite gender",
+       "title": "Love Match",
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "Species caught (critical capture)",
+      "in": "query",
+      "name": "dex_caught",
+      "required": false,
+      "schema": {
+       "default": 0,
+       "description": "Species caught (critical capture)",
+       "maximum": 1025,
+       "minimum": 0,
+       "title": "Dex Caught",
+       "type": "integer"
+      }
+     },
+     {
+      "description": "Catching Charm",
+      "in": "query",
+      "name": "charm",
+      "required": false,
+      "schema": {
+       "default": false,
+       "description": "Catching Charm",
+       "title": "Charm",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CatchOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Catch Odds",
+    "tags": [
+     "pokedex"
     ]
    }
   },

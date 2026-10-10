@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/tools/catch_screen.dart';
+import 'features/tools/lookup_screen.dart';
+import 'features/tools/nature_screen.dart';
+import 'features/tools/tools_screen.dart';
+import 'features/tools/type_calc_screen.dart';
 import 'features/ask/ask_screen.dart';
 import 'features/pokedex/detail_screen.dart';
 import 'features/pokedex/favourites.dart';
@@ -33,6 +38,18 @@ GoRouter buildRouter() => GoRouter(routes: [
             ),
           ]),
           StatefulShellBranch(routes: [GoRoute(path: '/ask', builder: (_, _) => const AskScreen())]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/tools',
+              builder: (_, _) => const ToolsScreen(),
+              routes: [
+                GoRoute(path: 'types', builder: (_, _) => const TypeCalcScreen()),
+                GoRoute(path: 'natures', builder: (_, _) => const NatureScreen()),
+                GoRoute(path: 'catch', builder: (_, _) => const CatchScreen()),
+                GoRoute(path: 'lookup', builder: (_, _) => const LookupScreen()),
+              ],
+            ),
+          ]),
         ],
       ),
       GoRoute(
@@ -66,6 +83,7 @@ class AppShell extends StatelessWidget {
             NavigationDestination(key: Key('tab-pokedex'), icon: Icon(Icons.catching_pokemon_outlined), selectedIcon: Icon(Icons.catching_pokemon), label: 'Pokédex'),
             NavigationDestination(key: Key('tab-teams'), icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: 'Teams'),
             NavigationDestination(key: Key('tab-ask'), icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Ask'),
+            NavigationDestination(key: Key('tab-tools'), icon: Icon(Icons.handyman_outlined), selectedIcon: Icon(Icons.handyman), label: 'Tools'),
           ],
         ),
       );

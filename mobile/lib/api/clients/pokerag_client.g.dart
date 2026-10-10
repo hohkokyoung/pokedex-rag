@@ -20,6 +20,74 @@ class _PokeragClient implements PokeragClient {
   final ParseErrorLogger? errorLogger;
 
   @override
+  Future<List<AbilityOut>> searchAbilitiesApiAbilitiesGet({
+    int? limit = 8,
+    String? q,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'limit': limit, r'q': q};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<AbilityOut>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/abilities',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<AbilityOut> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => AbilityOut.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<List<AbilityHolderOut>> abilityHoldersApiAbilitiesAbilityIdPokemonGet({
+    required int abilityId,
+    int? limit = 250,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'limit': limit};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<AbilityHolderOut>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/abilities/${abilityId}/pokemon',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<AbilityHolderOut> _value;
+    try {
+      _value = _result.data!
+          .map(
+            (dynamic i) => AbilityHolderOut.fromJson(i as Map<String, dynamic>),
+          )
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<AskResponse> askApiAskPost({required AskRequest body}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -127,6 +195,39 @@ class _PokeragClient implements PokeragClient {
     try {
       _value = _result.data!
           .map((dynamic i) => ItemOut.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<List<MoveOut>> searchMovesApiMovesGet({
+    int? limit = 8,
+    String? q,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'limit': limit, r'q': q};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<MoveOut>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/moves',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<MoveOut> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => MoveOut.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
@@ -332,6 +433,59 @@ class _PokeragClient implements PokeragClient {
       _value = _result.data!
           .map((dynamic i) => AbilityOut.fromJson(i as Map<String, dynamic>))
           .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CatchOut> catchOddsApiPokemonPokemonIdCatchGet({
+    required int pokemonId,
+    int? level = 30,
+    int? myLevel = 30,
+    int? hpPct = 100,
+    int? turn = 1,
+    Status? status = Status.none,
+    bool? night = false,
+    bool? water = false,
+    bool? caught = false,
+    bool? loveMatch = false,
+    int? dexCaught = 0,
+    bool? charm = false,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'level': level,
+      r'my_level': myLevel,
+      r'hp_pct': hpPct,
+      r'turn': turn,
+      r'status': status,
+      r'night': night,
+      r'water': water,
+      r'caught': caught,
+      r'love_match': loveMatch,
+      r'dex_caught': dexCaught,
+      r'charm': charm,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CatchOut>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/pokemon/${pokemonId}/catch',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late CatchOut _value;
+    try {
+      _value = CatchOut.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
