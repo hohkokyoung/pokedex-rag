@@ -15,11 +15,12 @@ import CatchRateTile from "@/components/CatchRateTile";
 import ServerNote from "@/components/ServerNote";
 import {
   BULKY_SET, DcPicker, EvEditor, HpPicker, InfoBox, MoveSearch, NAT, NAT_OPTS, PickSearch, Tag, natDesc, natTag,
-  SABBR, art, loadCalcMon, loadMonMoves, monArt, natMul, offensiveSet, statFull,
+  SABBR, art, loadCalcMon, loadMonMoves, monArt, offensiveSet,
   type CalcMon, type CalcMove, type EVs, type PickOpt, type SKey,
 } from "@/components/calc/fields";
 import { renderAnswer } from "@/lib/answerFormat";
-import { RESIST_BERRY, TYPE_BOOST, calcHit, type DcField, type DcResult } from "@/lib/damageCalc";
+import { RESIST_BERRY, TYPE_BOOST, type DcResult } from "@/lib/damageCalc";
+import { isAimable, isSpread, playTurn, sideOf, tgKind, type TgKind } from "@/lib/calcTurn";
 import { DamageCard, SurviveCard } from "@/components/calc/CoachCards";
 import { PlanSteps } from "@/components/agent/PlanSteps";
 import { ViewBlock } from "@/components/agent/ViewBlock";
@@ -634,13 +635,7 @@ const sameBuild = (a: BuildSuggestion, b?: BuildSuggestion) => !!b && JSON.strin
 const evText = (ev: EVs) => (Object.keys(ev) as SKey[]).filter((k) => ev[k] > 0).sort((x, y) => ev[y] - ev[x]).map((k) => `${ev[k]} ${SABBR[k]}`).join(" / ") || "none";
 // hp = current HP as % of max; damage % stays relative to max HP, KO calls use current.
 const newDef = (): DcSet => ({ mon: null, pre: "Bulky", ...BULKY_SET, item: "None", abil: "None", hp: 100 });
-// Doubles targeting, from the move's PokéAPI `move_targets` identifier.
-type TgKind = "sel" | "rand" | "foes" | "all" | "ally";
-const tgKind = (t?: string | null): TgKind =>
-  t === "all-opponents" ? "foes" : t === "all-other-pokemon" ? "all" : t === "ally" ? "ally" : t === "random-opponent" ? "rand" : "sel";
 const TG_LABEL: Record<TgKind, string> = { sel: "one target", rand: "random foe", foes: "both foes", all: "everyone else", ally: "ally" };
-const isSpread = (k: TgKind) => k === "foes" || k === "all";
-const isAimable = (k: TgKind) => k === "sel" || k === "rand";
 const pctText = (r: DcResult) => (r.te === 0 ? "immune" : `${r.minPct.toFixed(0)}–${r.maxPct.toFixed(0)}%`);
 
 /** HP left after the hit: solid = worst roll, faded = best roll. */
@@ -706,7 +701,6 @@ const ABIL_HINT: Record<string, string> = {
 };
 const newAtk = (): DcSet => ({ mon: null, pre: "Offensive", ...offensiveSet(null), item: "None", abil: "None", hp: 100 });
 // Slots 0–1 are your side (lead, partner) and 2–3 the opponent's (left, right). Singles uses slots 0 and 2.
-const sideOf = (i: number) => (i < 2 ? 0 : 1);
 const SLOT_ROLE = ["Lead", "Partner", "Left", "Right"];
 const ORD = ["1st", "2nd", "3rd", "4th"];
 const CALC_ABILS = new Set([...DC_ABIL.slice(1), ...DC_ABIL_D.slice(1)]);
@@ -736,8 +730,6 @@ function useAbilityOpts(mon: CalcMon | null): PickOpt[] {
     }));
   }, [ab, mon]);
 }
-type DcHit = { from: number; to: number; r: DcResult; ff: boolean };
-type TurnHit = DcHit & { ko: "yes" | "maybe" | null; sash: boolean };
 
 // Damage / survive cards in the coach thread have no citations to link to.
 const NO_LINK: Linking = { n: () => null, hot: null, cited: new Set<number>(), hover: () => ({}) };
@@ -830,63 +822,15 @@ function DamageCalcTile() {
     patchSet(i, { pre: p, nat: sp.nat, ev: sp.ev, iv: sp.iv });
   };
 
-  const active = doubles ? [0, 1, 2, 3] : [0, 2];
-  const f = active.includes(focus) ? focus : sideOf(focus) === 0 ? 0 : 2;
-  const foesOf = (i: number) => active.filter((j) => sideOf(j) !== sideOf(i));
-  const mateOf = (i: number) => active.find((j) => j !== i && sideOf(j) === sideOf(i));
-  // Aim at a filled opposing slot: the one picked, else the first with a Pokémon in it.
-  const targetsOf = (i: number) => foesOf(i).filter((j) => sets[j].mon);
-  const aimOf = (i: number) => (targetsOf(i).includes(aims[i]) ? aims[i] : targetsOf(i)[0] ?? foesOf(i)[0]);
-  const kindOf = (i: number) => tgKind(mvs[i].move?.target);
-  const baseField: DcField = { level, doubles, spread: false, weather, terrain, reflect, lightscreen, crit, burn, helpingHand: false, friendGuard };
-
-  // The hits `move` from slot `u` makes, following the move's real targeting. `up(t)` says whether slot t is
-  // still standing and `hpOf(t)` its HP going into the hit, so the turn can be played out in order.
-  const hitsFor = (u: number, move: CalcMove | undefined, aim: number, up: (t: number) => boolean = () => true, hpOf: (t: number) => number = (t) => sets[t].hp): DcHit[] => {
-    const a = sets[u], mate = mateOf(u);
-    if (!a.mon || !move || move.power <= 0) return [];
-    // Singles has one foe and no partner: every move is a plain single-target hit.
-    const k = doubles ? tgKind(move.target) : "sel";
-    if (k === "ally") return [];
-    const helped = doubles && mate !== undefined && !!sets[mate].mon && up(mate) && kindOf(mate) === "ally";
-    const standing = foesOf(u).filter((t) => sets[t].mon && up(t));
-    // A single-target move aimed at a fainted foe switches to its partner, as in the games.
-    const single = sets[aim]?.mon && up(aim) ? aim : standing[0];
-    const tos = [...(isSpread(k) ? standing : single !== undefined ? [single] : []), ...(k === "all" && mate !== undefined && sets[mate].mon && up(mate) ? [mate] : [])];
-    return tos.map((t) => {
-      // Screens and Friend Guard sit on the opponent's side; the burn toggle is on your attacker.
-      const opp = sideOf(t) === 1;
-      const fld = { ...baseField, spread: isSpread(k), helpingHand: helped, reflect: reflect && opp, lightscreen: lightscreen && opp, friendGuard: friendGuard && opp, burn: burn && sideOf(u) === 0 };
-      return { from: u, to: t, r: calcHit(a.mon!, a, sets[t].mon!, { ...sets[t], hp: hpOf(t) }, move, fld), ff: sideOf(t) === sideOf(u) };
-    });
-  };
-
-  const spe = (s: DcSet) => (s.mon ? statFull(s.mon.stats.speed, level, s.iv.spe, s.ev.spe, natMul(s.nat, "spe"), false) : 0);
-  // Turn order: move priority first, then Speed.
-  const order = active.filter((i) => sets[i].mon)
-    .map((i) => ({ i, pri: mvs[i].move?.priority ?? 0, spe: spe(sets[i]) }))
-    .sort((x, y) => y.pri - x.pri || y.spe - x.spe);
-  const stepOf = (i: number) => order.findIndex((o) => o.i === i) + 1;
-
-  // Play the turn out in order. HP carries over from hit to hit as a range — `lo` if every roll is high,
-  // `hi` if every roll is low — starting from each Pokémon's current HP. A Pokémon that is KO'd even on
-  // low rolls doesn't get to move, and Focus Sash saves its holder once, from full HP.
-  const hp: Record<number, { lo: number; hi: number; sash: boolean }> = {};
-  for (const i of active) hp[i] = { lo: sets[i].hp, hi: sets[i].hp, sash: false };
-  const standing = (t: number) => hp[t].hi > 0;
-  const steps = order.map(({ i }) => {
-    if (!standing(i)) return { i, skipped: true, atRisk: false, hits: [] as TurnHit[] };
-    const atRisk = hp[i].lo <= 0;
-    const hs: TurnHit[] = hitsFor(i, mvs[i].move, aimOf(i), standing, (t) => hp[t].hi).map((h) => {
-      const x = hp[h.to], d = sets[h.to];
-      if (h.r.te === 0) return { ...h, ko: null, sash: false };
-      const sash = d.item === "Focus Sash" && !x.sash && x.lo >= 100 && h.r.maxPct >= 100;
-      if (sash) { x.sash = true; x.lo = 1; x.hi = Math.max(1, 100 - h.r.minPct); }
-      else { x.lo = Math.max(0, x.lo - h.r.maxPct); x.hi = Math.max(0, x.hi - h.r.minPct); }
-      return { ...h, ko: x.hi <= 0 ? "yes" : x.lo <= 0 ? "maybe" : null, sash };
-    });
-    return { i, skipped: false, atRisk, hits: hs };
+  // The turn itself (order, targeting, HP carried over, KO calls) is lib/calcTurn, shared
+  // with the backend (services/calc_turn.py) so the app shows the same turn.
+  const { active, mateOf, targetsOf, aimOf, kindOf, hitsFor, order, steps, hp } = playTurn({
+    field: { level, doubles, weather, terrain, reflect, lightscreen, crit, burn, friendGuard },
+    slots: sets.map((s, i) => ({ mon: s.mon, set: s, move: mvs[i].move })),
+    aims,
   });
+  const f = active.includes(focus) ? focus : sideOf(focus) === 0 ? 0 : 2;
+  const stepOf = (i: number) => order.findIndex((o) => o.i === i) + 1;
   const hits = steps.flatMap((st) => st.hits);
   // Damage taken over the turn, from the HP it started with.
   const takenBy = (i: number) => {

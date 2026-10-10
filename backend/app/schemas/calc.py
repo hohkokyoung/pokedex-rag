@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.rag.build_suggest import BuildSuggestion, CoachTurn
@@ -64,3 +66,70 @@ class CalcAskRequest(BaseModel):
     focus: int = 0
     hits: list[CalcHitIn] = Field(default_factory=list, max_length=16)
     proposal: CalcProposal | None = None
+
+
+class CalcTurnRequest(BaseModel):
+    """The calculator's state, to play one turn (``POST /api/calc/turn``)."""
+
+    level: int = Field(100, ge=1, le=100)
+    doubles: bool = False
+    field: CalcField = Field(default_factory=CalcField)
+    slots: list[CalcSlot] = Field(default_factory=list, max_length=4)
+
+
+class CalcHitOut(BaseModel):
+    """One hit of the turn: the damage range and how it ended."""
+
+    attacker: int
+    target: int
+    move: str
+    min_pct: float  # % of max HP, lowest roll
+    max_pct: float
+    ko_hits: int  # hits to KO from the target's HP going in (0 = no damage)
+    te: float  # type effectiveness
+    stab: float
+    attack: int  # the attacking and defending stats used
+    defense: int
+    base: int  # base damage before the random roll
+    mod: float  # the other modifiers multiplied
+    ko: Literal["yes", "maybe"] | None  # faints on every roll / on high rolls
+    sash: bool  # Focus Sash left it at 1 HP
+    friendly_fire: bool  # hits its own side
+
+
+class CalcStepOut(BaseModel):
+    slot: int
+    skipped: bool  # fainted before it could move
+    at_risk: bool  # moves only if it survived high rolls
+    hits: list[CalcHitOut]
+
+
+class CalcOrderOut(BaseModel):
+    slot: int
+    priority: int
+    speed: int
+
+
+class CalcHpOut(BaseModel):
+    slot: int
+    lo: float  # HP % left if every roll is high
+    hi: float  # … if every roll is low
+    sash: bool
+
+
+class CalcMoveOut(BaseModel):
+    slot: int
+    name: str
+    type: str
+    damage_class: str
+    power: int
+    target: str | None
+    priority: int
+
+
+class CalcTurnOut(BaseModel):
+    order: list[CalcOrderOut]  # who moves first
+    steps: list[CalcStepOut]  # in that order
+    hp: list[CalcHpOut]  # after the turn, per active slot
+    aims: dict[int, int | None]  # the foe each active slot's single-target move aims at
+    moves: list[CalcMoveOut]  # each slot's move as the server read it

@@ -1,13 +1,15 @@
-/* Reference cases for the damage maths: runs lib/damageCalc's calcHit over hand-picked
-   and seeded-random inputs and writes the results for the backend's port to match.
+/* Reference cases for the damage maths: runs lib/damageCalc's calcHit and lib/calcTurn's
+   playTurn over hand-picked and seeded-random inputs and writes the results for the
+   backend's ports to match.
 
      node --import ./scripts/ts-resolve.mjs scripts/damage-fixtures.ts
      (or: make damage-fixtures)
 
-   Regenerate whenever lib/damageCalc.ts changes. Output is deterministic. */
+   Regenerate whenever lib/damageCalc.ts or lib/calcTurn.ts changes. Output is deterministic. */
 
 import { writeFileSync } from "node:fs";
 import { NAT, calcHit, type CalcMonLite, type CalcMoveIn, type CalcSide, type DcField, type EVs } from "../lib/damageCalc";
+import { playTurn, type TurnField, type TurnMove } from "../lib/calcTurn";
 
 const VERSION = 1;
 const OUT = new URL("../../backend/tests/fixtures/damage_cases.json", import.meta.url);
@@ -163,3 +165,84 @@ const out = cases.map((c) => ({
 }));
 writeFileSync(OUT, JSON.stringify({ version: VERSION, generator: "frontend/scripts/damage-fixtures.ts", cases: out }, null, 1) + "\n");
 console.log(`wrote ${out.length} cases → ${OUT.pathname}`);
+
+// ---- whole turns (lib/calcTurn): order, targeting, HP carried over, Focus Sash ----
+// A move's PokéAPI target and priority, on top of MOVE's maths.
+const TMOVE: Record<string, TurnMove> = {
+  ...Object.fromEntries(Object.entries(MOVE).map(([n, m]) => [n, { ...m, target: "selected-pokemon", priority: 0 }])),
+  Earthquake: { ...MOVE.Earthquake, target: "all-other-pokemon", priority: 0 },
+  "Rock Slide": { ...MOVE["Rock Slide"], target: "all-opponents", priority: 0 },
+  "Heat Wave": { ...MOVE["Heat Wave"], target: "all-opponents", priority: 0 },
+  "Bullet Punch": { ...MOVE["Bullet Punch"], target: "selected-pokemon", priority: 1 },
+  "Mach Punch": { ...MOVE["Mach Punch"], target: "selected-pokemon", priority: 1 },
+  Outrage: { type: "dragon", damage_class: "physical", power: 120, target: "random-opponent", priority: 0 },
+  "Helping Hand": { type: "normal", damage_class: "status", power: 0, target: "ally", priority: 5 },
+  Protect: { type: "normal", damage_class: "status", power: 0, target: "user", priority: 4 },
+};
+const TF: TurnField = { level: 100, doubles: false, weather: "None", terrain: "None", reflect: false, lightscreen: false, crit: false, burn: false, friendGuard: false };
+type TS = { mon: string; move?: string; set?: Partial<CalcSide> } | null;
+type TurnCase = { id: string; field: TurnField; slots: TS[]; aims: number[] };
+const turns: TurnCase[] = [];
+const turn = (id: string, slots: TS[], f: Partial<TurnField> = {}, aims = [2, 3, 0, 1]) =>
+  turns.push({ id, field: { ...TF, ...f }, slots, aims });
+const S = (mon: string, move?: string, set: Partial<CalcSide> = {}): TS => ({ mon, move, set });
+
+turn("singles-faster-first", [S("Weavile", "Ice Beam"), null, S("Garchomp", "Earthquake"), null]);
+turn("singles-ko-skips", [S("Weavile", "Ice Beam", { nat: "Modest", ev: { ...ZERO, spa: 252 } }), null, S("Garchomp", "Earthquake", { hp: 20 }), null]);
+turn("singles-priority", [S("Scizor", "Bullet Punch"), null, S("Weavile", "Knock Off"), null]);
+turn("singles-speed-tie", [S("Garchomp", "Dragon Claw"), null, S("Garchomp", "Dragon Claw"), null]);
+turn("singles-sash", [S("Garchomp", "Dragon Claw", { item: "Choice Band", nat: "Adamant", ev: { ...ZERO, atk: 252 } }), null, S("Salamence", "Dragon Claw", { item: "Focus Sash" }), null]);
+turn("singles-sash-not-full", [S("Garchomp", "Dragon Claw", { item: "Choice Band" }), null, S("Salamence", "Dragon Claw", { item: "Focus Sash", hp: 90 }), null]);
+turn("singles-immune", [S("Garchomp", "Earthquake"), null, S("Salamence", "Brave Bird"), null]);
+turn("singles-status-move", [S("Garchomp", "Protect"), null, S("Heatran", "Flamethrower"), null]);
+turn("singles-no-move", [S("Garchomp"), null, S("Heatran", "Flamethrower"), null]);
+turn("singles-empty-foe", [S("Garchomp", "Earthquake"), null, null, null]);
+turn("singles-spread-is-single", [S("Garchomp", "Earthquake"), null, S("Heatran", "Flamethrower"), null]);
+turn("singles-screens-burn", [S("Garchomp", "Earthquake"), null, S("Heatran", "Flamethrower"), null], { reflect: true, lightscreen: true, burn: true });
+turn("singles-lv50-weather", [S("Azumarill", "Hydro Pump"), null, S("Heatran", "Flamethrower"), null], { level: 50, weather: "Rain" });
+turn("doubles-spread-hits-partner", [S("Garchomp", "Earthquake"), S("Heatran", "Flamethrower"), S("Toxapex", "Sludge Bomb"), S("Rotom", "Thunderbolt")], { doubles: true });
+turn("doubles-all-opponents", [S("Tyranitar", "Rock Slide"), S("Clefable", "Moonblast"), S("Volcarona", "Bug Buzz"), S("Dragonite", "Dragon Claw")], { doubles: true });
+turn("doubles-helping-hand", [S("Garchomp", "Dragon Claw"), S("Clefable", "Helping Hand"), S("Salamence", "Dragon Claw"), S("Ferrothorn", "Leaf Blade")], { doubles: true });
+turn("doubles-helping-hand-spread", [S("Heatran", "Heat Wave"), S("Clefable", "Helping Hand"), S("Ferrothorn", "Leaf Blade"), S("Scizor", "Bullet Punch")], { doubles: true });
+turn("doubles-aim-second", [S("Weavile", "Ice Beam"), S("Pikachu", "Thunderbolt"), S("Garchomp", "Earthquake"), S("Salamence", "Dragon Claw")], { doubles: true }, [3, 2, 0, 1]);
+turn("doubles-aim-empty", [S("Weavile", "Ice Beam"), null, S("Garchomp", "Dragon Claw"), null], { doubles: true }, [3, 3, 0, 0]);
+turn("doubles-retarget-fainted", [S("Weavile", "Ice Beam", { nat: "Modest", ev: { ...ZERO, spa: 252 } }), S("Breloom", "Close Combat"), S("Garchomp", "Earthquake", { hp: 15 }), S("Tyranitar", "Stone Edge")], { doubles: true }, [2, 2, 0, 1]);
+turn("doubles-random-foe", [S("Garchomp", "Outrage"), S("Gengar", "Shadow Ball"), S("Clefable", "Moonblast"), S("Heatran", "Flamethrower")], { doubles: true });
+turn("doubles-friend-guard-screens", [S("Garchomp", "Earthquake"), S("Heatran", "Heat Wave"), S("Scizor", "Bullet Punch"), S("Clefable", "Moonblast")], { doubles: true, friendGuard: true, reflect: true, lightscreen: true });
+turn("doubles-sash-spread", [S("Garchomp", "Earthquake", { item: "Choice Band" }), S("Salamence", "Rock Slide"), S("Pikachu", "Thunderbolt", { item: "Focus Sash" }), S("Heatran", "Flamethrower", { item: "Focus Sash" })], { doubles: true });
+turn("doubles-priority-ko", [S("Scizor", "Bullet Punch", { item: "Choice Band", nat: "Adamant", ev: { ...ZERO, atk: 252 } }), S("Breloom", "Mach Punch"), S("Clefable", "Moonblast", { hp: 10 }), S("Weavile", "Ice Beam", { hp: 5 })], { doubles: true });
+turn("doubles-their-side-empty-mate", [S("Garchomp", "Earthquake"), S("Pikachu", "Thunderbolt"), S("Heatran", "Flamethrower"), null], { doubles: true });
+
+let tseed = 20261010;
+const trnd = () => ((tseed = (tseed * 1103515245 + 12345) % 2147483648) / 2147483648);
+const tpick = <T,>(xs: T[]) => xs[Math.floor(trnd() * xs.length)];
+const tev = (): EVs => {
+  const out = { ...ZERO };
+  for (const k of Object.keys(out) as (keyof EVs)[]) out[k] = trnd() < 0.5 ? 0 : Math.floor(trnd() * 64) * 4;
+  return out;
+};
+const tmoves = Object.keys(TMOVE);
+for (let i = 0; i < 40; i++) {
+  const doubles = trnd() < 0.5;
+  const slot = (attacker: boolean): TS => (trnd() < 0.12 ? null : S(tpick(mons), trnd() < 0.08 ? undefined : tpick(tmoves), {
+    nat: tpick(natures), ev: tev(), item: tpick(ITEMS), abil: tpick(attacker ? ATK_ABIL : DEF_ABIL),
+    hp: trnd() < 0.7 ? 100 : 1 + Math.floor(trnd() * 100),
+  }));
+  turn(`random-turn-${i}`, [slot(true), slot(true), slot(false), slot(false)], {
+    level: trnd() < 0.5 ? 100 : 50, doubles, weather: tpick(WEATHER), terrain: tpick(TERRAIN),
+    reflect: trnd() < 0.15, lightscreen: trnd() < 0.15, crit: trnd() < 0.1, burn: trnd() < 0.15, friendGuard: doubles && trnd() < 0.2,
+  }, [2 + Math.floor(trnd() * 2), 2 + Math.floor(trnd() * 2), Math.floor(trnd() * 2), Math.floor(trnd() * 2)]);
+}
+
+const turnOut = turns.map((c) => {
+  const slots = c.slots.map((s) => (s ? { mon: MON[s.mon], set: side(s.set), move: s.move ? TMOVE[s.move] : null } : { mon: null, set: side(), move: null }));
+  const t = playTurn({ field: c.field, slots, aims: c.aims });
+  return {
+    id: c.id, field: c.field, aims: c.aims,
+    slots: c.slots.map((s, i) => (s ? { name: s.mon, mon: MON[s.mon], set: slots[i].set, move_name: s.move ?? null, move: slots[i].move } : null)),
+    result: { order: t.order, steps: t.steps, hp: t.hp, aim: [0, 1, 2, 3].map((i) => (t.active.includes(i) ? t.aimOf(i) : null)) },
+  };
+});
+const TURNS = new URL("../../backend/tests/fixtures/turn_cases.json", import.meta.url);
+writeFileSync(TURNS, JSON.stringify({ version: VERSION, generator: "frontend/scripts/damage-fixtures.ts", cases: turnOut }, null, 1) + "\n");
+console.log(`wrote ${turnOut.length} turns → ${TURNS.pathname}`);

@@ -10,12 +10,19 @@ The home page's damage calculator runs in the browser; its coach is the
 | Browser | `frontend/lib/damageCalc.ts` | the calculator UI |
 | Backend | `backend/app/services/damage_calc.py` | the coach's `damage_calc` / `survive_threshold` tools |
 
+The **turn** (move order, doubles targeting, HP carried from hit to hit, Focus Sash, KO
+calls) is shared the same way: `frontend/lib/calcTurn.ts` (`playTurn`, used by the
+calculator) and `backend/app/services/calc_turn.py` (`POST /api/calc/turn`, used by the
+mobile app).
+
 They must agree exactly. `make damage-fixtures` runs
 `frontend/scripts/damage-fixtures.ts` under Node type stripping (Node ≥ 22.18) and
-writes `backend/tests/fixtures/damage_cases.json` (~250 hand-picked and seeded cases);
-`tests/test_damage_calc.py` checks the Python port against every one.
+writes `backend/tests/fixtures/damage_cases.json` (~250 hand-picked and seeded hits) and
+`turn_cases.json` (~65 whole turns, singles and doubles);
+`tests/test_damage_calc.py` and `tests/test_calc_turn.py` check the Python ports against
+every one.
 
-**To change the maths:** edit the TS → port the change to Python → `make
+**To change the maths or the turn:** edit the TS → port the change to Python → `make
 damage-fixtures` → `make test`.
 
 Team duels (`services/battle.py`) are a separate engine and stay separate.

@@ -3,13 +3,16 @@ description: The home-page damage calculator (TS) and its Python port behind the
 
 code:
   - frontend/lib/damageCalc.ts
+  - frontend/lib/calcTurn.ts   # the turn; mirrored by services/calc_turn.py
   - frontend/components/calc/
   - frontend/scripts/damage-fixtures.ts
   - backend/app/services/damage_calc.py
+  - backend/app/services/calc_turn.py
   - backend/app/services/calc_state.py
   - backend/app/agent/calc_tools.py
   - backend/app/api/calc.py
   - backend/tests/fixtures/damage_cases.json
+  - backend/tests/fixtures/turn_cases.json
 
 documentation:
   - docs/architecture/damage-calc.md
