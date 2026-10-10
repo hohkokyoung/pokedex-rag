@@ -110,21 +110,11 @@ class _ListScreenState extends ConsumerState<ListScreen> {
             ),
             const SizedBox(height: Space.xs),
             Expanded(
-              // Cards scrolling up fade out under the filters instead of being cut flat.
-              child: ShaderMask(
-                blendMode: BlendMode.dstIn,
-                shaderCallback: (r) => const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x00000000), Color(0xFF000000)],
-                  stops: [0, 1],
-                ).createShader(Rect.fromLTWH(0, 0, r.width, 18)),
-                child: switch (list) {
-                  AsyncData(:final value) => _Results(state: value, query: query),
-                  AsyncError(:final error) => _ErrorState(error: error),
-                  _ => const Center(child: Spinner()),
-                },
-              ),
+              child: switch (list) {
+                AsyncData(:final value) => _Results(state: value, query: query),
+                AsyncError(:final error) => _ErrorState(error: error),
+                _ => const Center(child: Spinner()),
+              },
             ),
           ],
         ),
