@@ -810,6 +810,8 @@ export type MoveResult = {
   short_effect: string | null;
   /** Signature Z-Move: who can use it, holding which crystal, from which move. */
   signature_z?: SignatureZ | null;
+  /** Z-Move / Max Move, as the backend classifies it (services/move_kind.py). */
+  kind: "regular" | "z" | "max";
 };
 export type SignatureZ = {
   crystal: string;

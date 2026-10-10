@@ -29,20 +29,16 @@ const CATS = [
   { value: "status", label: "Status" },
 ];
 const CAT_SHORT: Record<string, string> = { physical: "PHY", special: "SPE", status: "STA" };
-type MoveKind = "regular" | "z" | "max";
+type MoveKind = MoveResult["kind"];
 const KINDS_OF_MOVE: { value: MoveKind; label: string }[] = [
   { value: "regular", label: "Regular" },
   { value: "z", label: "Z-Move" },
   { value: "max", label: "Max Move" },
 ];
-// Z-Moves are the 1-PP moves, bar these three ordinary ones; Max Moves are named "(G-)Max …".
-const ORDINARY_ONE_PP = new Set(["struggle", "sketch", "revival-blessing"]);
-const kindOf = (m: MoveResult): MoveKind =>
-  /^(G-)?Max /.test(m.name) ? "max" : m.pp === 1 && !ORDINARY_ONE_PP.has(m.identifier) ? "z" : "regular";
 
 /** A finder row: the generic Z-Moves are stored twice (a physical and a special copy),
  *  so same-named moves fold into one row carrying every category. */
-type FinderMove = MoveResult & { kind: MoveKind; classes: string[] };
+type FinderMove = MoveResult & { classes: string[] };
 function foldMoves(ms: MoveResult[]): FinderMove[] {
   const byName = new Map<string, FinderMove>();
   for (const m of ms) {
@@ -50,18 +46,12 @@ function foldMoves(ms: MoveResult[]): FinderMove[] {
     if (hit) {
       if (m.damage_class && !hit.classes.includes(m.damage_class)) hit.classes.push(m.damage_class);
     } else {
-      byName.set(m.name, { ...m, kind: kindOf(m), classes: m.damage_class ? [m.damage_class] : [] });
+      byName.set(m.name, { ...m, classes: m.damage_class ? [m.damage_class] : [] });
     }
   }
   return [...byName.values()];
 }
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
-// Nothing "learns" Z-Moves or Max Moves, so the learnset-based game lists miss them:
-// they belong to the games that had the mechanic.
-const KIND_GAMES: Partial<Record<MoveKind, string[]>> = {
-  z: ["sun-moon", "ultra-sun-ultra-moon"],
-  max: ["sword-shield"],
-};
 const ANY_GAME = 0;
 const dash = (v: number | null | undefined) => (v == null ? "—" : String(v));
 
@@ -199,7 +189,8 @@ export default function Finder({
         (!types.length || (m.type != null && types.includes(m.type))) &&
         (!cats.length || m.classes.some((c) => cats.includes(c))) &&
         (!moveKinds.length || moveKinds.includes(m.kind)) &&
-        (!inGame || inGame.ids.has(m.id) || !!KIND_GAMES[m.kind]?.includes(inGame.identifier)),
+        // The server's game lists include the Z-Moves and Max Moves of the games that had them.
+        (!inGame || inGame.ids.has(m.id)),
     );
     const dir = moveOrder === "asc" ? 1 : -1;
     return out.sort(moveSort === "name" ? (a, b) => dir * a.name.localeCompare(b.name) : byField((m) => m[moveSort], dir));

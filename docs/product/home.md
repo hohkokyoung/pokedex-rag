@@ -60,7 +60,9 @@ One search over 3,000+ moves, abilities and items ("Earthquake", "Intimidate",
 - **Ability:** its effect and the species that have it, with a filter.
 - **Item:** its effect, plus Fling power where relevant.
 
-"Advanced search" opens a finder over everything with filters and sorting.
+"Advanced search" opens a finder over everything with filters and sorting. Which moves
+are Z-Moves or Max Moves, and the games they belong to, come from the backend
+(`MoveOut.kind`, `/api/moves/games`; `services/move_kind.py`).
 
 ## Nature helper
 

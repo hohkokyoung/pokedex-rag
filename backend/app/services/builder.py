@@ -39,6 +39,7 @@ from app.schemas.builder import (
     ZUserOut,
 )
 from app.schemas.pokemon import AbilityOut
+from app.services.move_kind import KIND_GAMES, move_kind
 from app.services.pokemon_query import sprite_url
 from app.services.zmoves import SIGNATURE_Z
 
@@ -137,9 +138,14 @@ async def legal_moves_for_form(
 async def move_games(session: AsyncSession) -> list[MoveGameOut]:
     """Every game with learnset data (newest first) and the moves learnable in it.
 
-    "In the game" means some Pokémon or form can learn it there, so moves nothing
-    learns (Z-Moves, Max Moves) aren't listed — the client places those itself.
+    "In the game" means some Pokémon or form can learn it there; moves nothing learns
+    (Z-Moves, Max Moves) are added to the games that had them (``KIND_GAMES``).
     """
+    by_kind: dict[str, set[int]] = {}
+    every = await session.execute(select(Move.id, Move.identifier, Move.name, Move.pp))
+    for mid, ident, name, pp in every.all():
+        by_kind.setdefault(move_kind(ident, name, pp), set()).add(mid)
+    extra = {g: by_kind.get(k, set()) for k, games in KIND_GAMES.items() for g in games}
     rows = (
         await session.execute(
             select(VersionGroup, func.array_agg(func.distinct(PokemonMoveLearn.move_id)))
@@ -154,7 +160,7 @@ async def move_games(session: AsyncSession) -> list[MoveGameOut]:
             identifier=vg.identifier,
             name=vg.name,
             generation=vg.generation,
-            move_ids=sorted(ids),
+            move_ids=sorted(set(ids) | extra.get(vg.identifier, set())),
         )
         for vg, ids in rows
     ]
@@ -274,6 +280,7 @@ async def search_moves(
             accuracy=m.accuracy,
             priority=m.priority,
             short_effect=m.short_effect,
+            kind=move_kind(m.identifier, m.name, m.pp),
         )
         for m in rows
     ]

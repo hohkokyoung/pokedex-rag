@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -53,6 +55,7 @@ class MoveOut(BaseModel):
     priority: int = 0
     short_effect: str | None = None
     signature_z: SignatureZOut | None = None
+    kind: Literal["regular", "z", "max"] = "regular"  # Z-Move / Max Move (services/move_kind.py)
 
 
 class MoveLearnerOut(BaseModel):
@@ -99,7 +102,8 @@ class GameOut(BaseModel):
 
 
 class MoveGameOut(BaseModel):
-    """A game and every move some Pokémon can learn in it (the finder's game filter)."""
+    """A game and its moves (the finder's game filter): every move some Pokémon learns
+    there, plus the Z-Moves or Max Moves of the games that had them."""
 
     id: int
     identifier: str
