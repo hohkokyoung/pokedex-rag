@@ -28,7 +28,8 @@ GoRoute _go(String path, Widget Function(GoRouterState s) build, {List<RouteBase
     GoRoute(path: path, pageBuilder: (_, s) => _page(s, build(s)), routes: routes);
 
 /// Tabs (each keeps its own stack) plus full-screen routes that open over any tab.
-GoRouter buildRouter() => GoRouter(
+GoRouter buildRouter({String? initialLocation}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (_, _, shell) => AppShell(shell: shell),
@@ -97,14 +98,17 @@ class AppShell extends StatelessWidget {
 }
 
 class PokeragApp extends StatefulWidget {
-  const PokeragApp({super.key});
+  const PokeragApp({super.key, this.initialLocation});
+
+  /// Where the app opens (null: the Pokédex).
+  final String? initialLocation;
 
   @override
   State<PokeragApp> createState() => _PokeragAppState();
 }
 
 class _PokeragAppState extends State<PokeragApp> {
-  final _router = buildRouter();
+  late final _router = buildRouter(initialLocation: widget.initialLocation);
 
   @override
   Widget build(BuildContext context) => appFor(_router);

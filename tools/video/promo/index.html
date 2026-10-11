@@ -1,8 +1,9 @@
 <!doctype html>
-<!-- The README promo: a 34 s GSAP timeline over stills from capture.mjs.
+<!-- The README promo: a 38 s GSAP timeline over stills from capture.mjs and capture-app.mjs.
      render.mjs seeks it frame by frame (window.seek / window.TOTAL); open it in a
      browser after `npm run capture` to preview. Scenes: s1 intro · s2 Pokédex ·
-     s3 Garchomp · s4 Ask · s5 Teams · s6 dashboard · s7 outro. -->
+     s3 Garchomp · s4 Ask · s5 Teams · s6 dashboard · s8 the app · s7 outro.
+     The app shots come from capture-app.mjs (the iOS Simulator). -->
 <html><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
@@ -76,6 +77,15 @@ body{font-family:'Space Grotesk',sans-serif;color:var(--ink);
 #s6 .b{left:665px;top:250px;width:589px}
 #s6 .c{left:1282px;top:250px;width:300px}
 #s6 .d{left:1282px;top:719px;width:300px}
+/* S8 the app */
+#s8 .top{position:absolute;left:0;right:0;top:56px;text-align:center}
+#s8 .top .h{font-size:84px}
+#s8 .top .sub{margin-top:20px}
+#s8 .phones{position:absolute;left:0;right:0;top:300px;display:flex;justify-content:center;gap:56px}
+#s8 .phone{width:356px;padding:11px;border-radius:62px;background:#14171d;
+ box-shadow:0 50px 90px -30px rgba(20,23,29,.45),inset 0 0 0 2px #3a3f48}
+#s8 .phone img{display:block;width:100%;border-radius:51px}
+#s8 .phone.mid{margin-top:-20px}
 /* S7 */
 #s7 .wrap{position:absolute;left:0;right:0;top:300px;display:flex;flex-direction:column;align-items:center}
 #s7 .row{display:flex;align-items:center;gap:34px}
@@ -136,9 +146,19 @@ body{font-family:'Space Grotesk',sans-serif;color:var(--ink);
   <div class="card-shot d"><img src="../build/assets/nature.png"></div></div>
 </section>
 
+<section class="scene" id="s8">
+  <div class="top"><div class="h"><span class="mask"><span>In your pocket, too.</span></span></div>
+  <div class="sub">The Flutter app for iOS and Android, on your own pokérag server.</div></div>
+  <div class="phones">
+    <div class="phone"><img src="../build/assets/app-pokedex.png"></div>
+    <div class="phone mid"><img src="../build/assets/app-garchomp.png"></div>
+    <div class="phone"><img src="../build/assets/app-team.png"></div>
+  </div>
+</section>
+
 <section class="scene" id="s7"><div class="wrap">
   <div class="row"><img class="logo" src="../build/assets/logo.svg"><div class="h word">pokérag</div></div>
-  <div class="tags"><span>Grounded answers</span><span>Runs locally</span><span>Works without an LLM key</span></div>
+  <div class="tags"><span>Grounded answers</span><span>Web, iOS and Android</span><span>Runs locally</span><span>Works without an LLM key</span></div>
   <div class="url">github.com/hohkokyoung/pokedex-rag</div>
 </div></section>
 <div id="wipe"></div>
@@ -220,16 +240,24 @@ tl.from('#s6 .mask>span',{yPercent:110,duration:.8},25.7)
   .from('#s6 .card-shot',{y:500,rotation:i=>[-8,4,8,-6][i],opacity:0,duration:1,stagger:.12,ease:'expo.out'},25.8)
   .to('#s6 .top',{y:-60,opacity:0,duration:.5,ease:'power2.in'},27.2)
   .to('#s6 .bento',{scale:1.42,y:-40,duration:2.2,ease:'power2.inOut'},27.2);
+tl.to('#s6',{opacity:0,duration:.4,ease:'power2.in'},29.4);
+hide('#s6',29.8);
+// S8 29.8–34.05: the app on three phones
+show('#s8',29.8);
+tl.from('#s8 .mask>span',{yPercent:110,duration:.8},29.9)
+  .from('#s8 .sub',{y:30,opacity:0,duration:.7},30.2)
+  .from('#s8 .phone',{y:700,rotation:i=>[-6,0,6][i],duration:1.2,stagger:.14,ease:'expo.out'},29.95)
+  .to('#s8 .phones',{y:-24,duration:3.2,ease:'sine.inOut'},30.6);
 // wipe into outro
-tl.to('#wipe',{scaleX:1,duration:.45,ease:'power3.in'},29.6)
-  .set('#wipe',{transformOrigin:'right'},30.05);
-hide('#s6',30.05); show('#s7',30.05);
-tl.to('#wipe',{scaleX:0,duration:.5,ease:'power3.out'},30.05)
-  .from('#s7 .logo',{scale:0,rotation:-90,duration:.8,ease:'back.out(1.6)'},30.25)
-  .from('#s7 .word',{x:-40,opacity:0,duration:.7},30.45)
-  .from('#s7 .tags span',{y:30,opacity:0,duration:.6,stagger:.12},30.9)
-  .from('#s7 .url',{opacity:0,y:20,duration:.6},31.4)
-  .set({},{},34.0);
+tl.to('#wipe',{scaleX:1,duration:.45,ease:'power3.in'},33.6)
+  .set('#wipe',{transformOrigin:'right'},34.05);
+hide('#s8',34.05); show('#s7',34.05);
+tl.to('#wipe',{scaleX:0,duration:.5,ease:'power3.out'},34.05)
+  .from('#s7 .logo',{scale:0,rotation:-90,duration:.8,ease:'back.out(1.6)'},34.25)
+  .from('#s7 .word',{x:-40,opacity:0,duration:.7},34.45)
+  .from('#s7 .tags span',{y:30,opacity:0,duration:.6,stagger:.12},34.9)
+  .from('#s7 .url',{opacity:0,y:20,duration:.6},35.4)
+  .set({},{},38.0);
 window.TOTAL=tl.duration();
 window.seek=t=>{tl.seek(t,false);};
 window.ready=Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode().catch(()=>{}))]);

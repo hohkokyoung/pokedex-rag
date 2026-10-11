@@ -12,13 +12,13 @@ smarter planning, set suggestions and team summaries.
 
 ## Showcase
 
-[![pokérag in 34 seconds: the Pokédex, a Garchomp detail page, Ask answering with citations, team grades and the dashboard calculators](docs/media/pokerag-promo.webp)](docs/media/pokerag-promo.mp4)
+[![pokérag in 38 seconds: the Pokédex, a Garchomp detail page, Ask answering with citations, team grades, the dashboard calculators and the iOS/Android app](docs/media/pokerag-promo.webp)](docs/media/pokerag-promo.mp4)
 
 [Motion video in full quality (MP4, 1440p)](docs/media/pokerag-promo.mp4) ·
 [Two-minute screen tour of every page (MP4, 1080p)](docs/media/pokerag-tour.mp4)
 
-Both are rendered from the running app: `make video-promo` and `make video-tour`
-([how](docs/guides/media.md)).
+Both are rendered from the running app (the promo's phone screens from the iOS
+Simulator): `make video-promo` and `make video-tour` ([how](docs/guides/media.md)).
 
 ## What's in it
 
@@ -33,8 +33,10 @@ Both are rendered from the running app: `make video-promo` and `make video-tour`
 - **Teams** — build teams of six with legal sets, get graded, compare against another
   team, and ask a coach that can propose set changes and drafts (nothing saved until
   you apply). → [docs/product/teams.md](docs/product/teams.md)
-- **Mobile app** — the Pokédex on iOS and Android (Flutter), read from your own
-  pokérag server on the home network. → [docs/product/mobile.md](docs/product/mobile.md)
+- **Mobile app** — the whole site on iOS and Android (Flutter): the Pokédex, Teams
+  with the coach, Ask, and every tool, the damage calculator and its coach included.
+  It reads from your own pokérag server on the home network, in the website's design
+  language with phone-first controls. → [docs/product/mobile.md](docs/product/mobile.md)
 
 ## Quick start
 
@@ -124,6 +126,7 @@ More: [overview](docs/architecture/overview.md) ·
 |---|---|---|
 | Frontend | Next.js 16 · React 19 · TypeScript | App Router pages, typed API client, SSE streaming of plan steps and answers |
 | UI | Tailwind CSS v4 · GSAP · Lenis | design tokens, stat-bar and artwork animation, smooth scroll (all respect reduced motion) |
+| Mobile | Flutter (fvm) · Riverpod · go_router · dio | the iOS/Android app; its API client is generated from the backend's OpenAPI and its tokens from `DESIGN.md` |
 | Backend | Python 3.12 · FastAPI · Pydantic | REST + SSE routes, typed tool arguments and responses |
 | Database | PostgreSQL 17 · SQLAlchemy (async) · Alembic | all Pokémon data, teams, plan traces, migrations |
 | Vectors | pgvector (HNSW) · Postgres full-text search | hybrid lore search and look-alikes |

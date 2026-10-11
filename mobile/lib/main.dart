@@ -19,10 +19,14 @@ Future<void> main() async {
     }
   });
   final prefs = await SharedPreferences.getInstance();
+  final start = prefs.getString('start_route');
+  if (start != null) await prefs.remove('start_route');
   runApp(ProviderScope(
     // A failed request shows the can't-reach state at once; the user retries, not a timer.
     retry: (_, _) => null,
     overrides: [prefsProvider.overrideWithValue(prefs)],
-    child: const PokeragApp(),
+    // A one-shot start page for the README video's capture (tools/video/capture-app.mjs
+    // writes it with `simctl spawn … defaults write`); read once, then cleared.
+    child: PokeragApp(initialLocation: start),
   ));
 }
