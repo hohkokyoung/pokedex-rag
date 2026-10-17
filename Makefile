@@ -103,7 +103,7 @@ VIDEO = cd tools/video && APP_URL=http://localhost:$$(docker compose port fronte
 video-setup:   ## Install the video tools' deps and Playwright's Chromium (once)
 	cd tools/video && npm ci && npx playwright install chromium
 
-video-promo:   ## Re-capture the UI (web + iOS Simulator) and render the promo MP4 + README preview → docs/media/
+video-promo:   ## Re-record the live clips (web + iOS Simulator) and render the promo MP4 + README preview → docs/media/ (~35 min)
 	$(VIDEO) node capture.mjs && node capture-app.mjs && node render.mjs
 
 video-tour:    ## Re-record the two-minute screen tour → docs/media/pokerag-tour.mp4

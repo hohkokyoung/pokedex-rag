@@ -18,8 +18,8 @@ export const API = process.env.API_URL ?? 'http://localhost:8000';
 export function ensureDir(d) { mkdirSync(d, { recursive: true }); return d; }
 
 // Playwright's own Chromium (`npx playwright install chromium`), or any Chrome via CHROME.
-export function launch() {
-  return chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
+export function launch(opts = {}) {
+  return chromium.launch({ ...opts, ...(process.env.CHROME ? { executablePath: process.env.CHROME } : {}) });
 }
 
 // Hides the Next.js dev badge in every page, before the app's own styles load.

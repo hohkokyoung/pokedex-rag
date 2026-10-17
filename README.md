@@ -12,12 +12,12 @@ smarter planning, set suggestions and team summaries.
 
 ## Showcase
 
-[![pokérag in 38 seconds: the Pokédex, a Garchomp detail page, Ask answering with citations, team grades, the dashboard calculators and the iOS/Android app](docs/media/pokerag-promo.webp)](docs/media/pokerag-promo.mp4)
+[![pokérag in 23 seconds: Ask answering with a citation, the Pokédex from Gabite to Mega Garchomp, the damage and type calculators, a team's grade and the iOS app](docs/media/pokerag-promo.webp)](docs/media/pokerag-promo.mp4)
 
 [Motion video in full quality (MP4, 1440p)](docs/media/pokerag-promo.mp4) ·
 [Two-minute screen tour of every page (MP4, 1080p)](docs/media/pokerag-tour.mp4)
 
-Both are rendered from the running app (the promo's phone screens from the iOS
+Both are recorded from the running app (the promo's phone screen from the iOS
 Simulator): `make video-promo` and `make video-tour` ([how](docs/guides/media.md)).
 
 ## What's in it

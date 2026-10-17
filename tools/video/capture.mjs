@@ -1,57 +1,99 @@
-// Captures the promo's stills from the running app at 3× into build/assets/.
-// Asks one question ("Fastest non-legendary Fire types"): uses at most one LLM
-// call when a key is set, none when the answer is cached or keyless.
-import { copyFileSync, writeFileSync } from 'node:fs';
+// Records the promo's live clips into build/clips/ (see slowclock.mjs), and copies the
+// promo's other assets into build/assets/. The iOS app screen comes from capture-app.mjs.
+// Asks one question ("Fastest non-legendary Fire types"): one LLM call at most when a key
+// is set and the answer isn't cached, none keyless.
+//   node capture.mjs            all clips
+//   node capture.mjs ask team   just those
+import { copyFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { APP, ASSETS, HERE, ROOT, HIDE_DEV_BADGE, api, ensureDir, launch, showcaseTeam } from './lib.mjs';
+import { ASSETS, HERE, ROOT, ensureDir, showcaseTeam } from './lib.mjs';
+import { open } from './slowclock.mjs';
 
-ensureDir(ASSETS);
-const out = (n) => join(ASSETS, n);
-const b = await launch();
-const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 3 });
-await ctx.addInitScript(HIDE_DEV_BADGE);
-const p = await ctx.newPage();
-const wait = (ms) => p.waitForTimeout(ms);
+const only = process.argv.slice(2);
+const want = (n) => !only.length || only.includes(n);
+const typeBtn = (c, t) => c.getByRole('button', { name: t, exact: true }).first();
 
-// Fixed chrome (site nav, scroll progress bar, the Pokédex floating bar) would
-// overlap element shots, so each shot hides it first.
-async function shot(selector, name) {
-  await p.addStyleTag({ content: '.site-nav,.scroll-progress,.pk-float{visibility:hidden!important}' });
-  const l = p.locator(selector).first();
-  await l.evaluate((e) => e.scrollIntoView({ block: 'center' }));
-  await wait(1500); // let reveal animations finish
-  await l.screenshot({ path: out(name + '.png') });
-  console.log('captured', name);
+// Ask: type the question, click Ask, let the answer and its ranking land.
+if (want('ask')) {
+  const s = await open(1280, 1000); await s.go('/ask'); await s.wait(300); const { p } = s;
+  s.at = [1100, 760];
+  s.start('ask'); await s.wait(250);
+  await s.clickLoc(p.getByPlaceholder(/Ask anything/), 600, -330, 0); s.mark('focus');
+  await s.moveTo(900, 470, 350);
+  s.mark('type0'); await s.type('Fastest non-legendary Fire types', 40); s.mark('type1');
+  await s.wait(180);
+  await s.clickLoc(p.getByRole('button', { name: 'Ask', exact: true }).last(), 420); s.mark('askclick');
+  await s.moveTo(1180, 960, 900);
+  await s.wait(3200); await s.stop();
 }
 
-// Home dashboard cards.
-await p.goto(APP + '/', { waitUntil: 'networkidle' }); await wait(2000);
-await p.getByRole('button', { name: 'dragon', exact: true }).first().click();
-await p.getByRole('button', { name: 'ground', exact: true }).first().click();
-for (const [s, n] of [['.ga-tc section', 'typecalc'], ['.ga-dc section', 'damage'], ['.ga-cr section', 'catch'], ['.ga-nat section', 'nature']]) await shot(s, n);
+// Pokédex: the Dragon filter swaps the catalog.
+if (want('dex')) {
+  const s = await open(1440, 900); await s.go('/pokedex'); await s.wait(400); const { p } = s;
+  s.at = [1250, 700];
+  s.start('dex'); await s.wait(250);
+  await s.clickLoc(typeBtn(p, 'dragon'), 650); s.mark('dragon');
+  await s.wait(2000); await s.stop();
+}
 
-// Pokédex cards (the first page of the catalog is loaded without scrolling far).
-await p.goto(APP + '/pokedex', { waitUntil: 'networkidle' }); await wait(1500);
-for (const d of [1, 4, 7, 25, 6, 9, 65, 59]) await shot(`a[href="/pokedex/${d}"]`, 'card' + d);
+// Gabite → Garchomp (next), then the Mega form. The form morph is heavy to paint, so this
+// page runs on a slower clock.
+if (want('detail')) {
+  const s = await open(1440, 1350, 0.02); await s.go('/pokedex/444'); await s.wait(500); const { p } = s;
+  s.at = [1250, 300];
+  s.start('detail'); await s.wait(250);
+  await s.clickLoc(p.getByRole('link', { name: /#0445/ }).first(), 550); s.mark('next');
+  await s.wait(1700);
+  await s.clickLoc(p.getByRole('tab', { name: /^Mega/ }).first(), 750); s.mark('mega');
+  await s.moveTo(900, 760, 600);
+  await s.wait(1600); await s.stop();
+}
 
-// Ask: the answer tile and the ranking tile.
-await p.goto(APP + '/ask', { waitUntil: 'networkidle' }); await wait(1000);
-await p.getByPlaceholder(/Ask anything/).fill('Fastest non-legendary Fire types');
-await p.keyboard.press('Enter');
-const tiles = p.locator('main section, main article');
-await tiles.nth(1).waitFor({ timeout: 60_000 }); await wait(2500);
-for (const i of [0, 1]) { await tiles.nth(i).screenshot({ path: out(`asktile${i}.png`) }); console.log('captured asktile' + i); }
+// The fullest team's page, scrolled to its rating (eased, set before every shot).
+if (want('team')) {
+  const team = await showcaseTeam();
+  const s = await open(1440, 900); await s.go(`/teams/${team.id}`); await s.wait(600); const { p } = s;
+  s.at = [1300, 520];
+  const [y0, y1, t0] = await p.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const r = document.querySelector('section.panel.tr').getBoundingClientRect();
+    return [scrollY, scrollY + r.top - 207, performance.now()];
+  });
+  s.start('team'); await s.wait(300); s.mark('scroll');
+  const t1 = t0 + 300;
+  s.beforeShot = () => p.evaluate(([y0, y1, t1]) => {
+    const u = Math.min(1, Math.max(0, (performance.now() - t1) / 1400));
+    window.scrollTo(0, y0 + (y1 - y0) * (1 - Math.pow(1 - u, 4)));
+  }, [y0, y1, t1]);
+  await s.wait(3600); await s.stop();
+}
 
-// Team rating panel and the team's artwork.
-const team = await showcaseTeam();
-await p.goto(`${APP}/teams/${team.id}`, { waitUntil: 'networkidle' }); await wait(1500);
-await shot('section.panel.tr', 'rating');
-for (const [i, src] of team.sprites.slice(0, 6).entries()) writeFileSync(out(`team${i}.png`), Buffer.from(await (await api(src)).arrayBuffer()));
-writeFileSync(out('team.json'), JSON.stringify({ name: team.name, count: Math.min(team.sprites.length, 6) }));
+// Home: the type calculator and the damage calculator, at 1920 wide (narrower layouts
+// truncate the calc's roster names). The nav is hidden so it can't cover the card.
+for (const [name, sel, vh, act] of [
+  ['types', '.ga-tc section', 900, async (s, c) => {
+    await s.clickLoc(typeBtn(c, 'fire'), 600); s.mark('fire'); await s.wait(380);
+    await s.clickLoc(typeBtn(c, 'dragon'), 550); s.mark('dragon'); await s.wait(520);
+    await s.clickLoc(typeBtn(c, 'ground'), 450); s.mark('ground'); await s.wait(1600);
+  }],
+  ['calc', '.ga-dc section', 1100, async (s, c) => {
+    await s.clickLoc(c.getByRole('button', { name: 'Bulky', exact: true }), 650); s.mark('bulky'); await s.wait(1300);
+    await s.clickLoc(c.getByRole('button', { name: 'Offensive', exact: true }), 500); s.mark('offensive'); await s.wait(1300);
+  }],
+]) {
+  if (!want(name)) continue;
+  const s = await open(1920, vh); await s.go('/'); await s.wait(600); const { p } = s;
+  await p.addStyleTag({ content: '.site-nav{visibility:hidden!important} body{padding-bottom:700px!important}' });
+  const c = p.locator(sel).first();
+  await c.evaluate((e, nm) => { const r = e.getBoundingClientRect(); window.scrollTo(0, scrollY + r.top - (nm === 'types' ? 60 : (innerHeight - r.height) / 2)); }, name);
+  await s.wait(900);
+  const r = await c.evaluate(e => { const r = e.getBoundingClientRect(); return [r.x + r.width * .85, r.y + r.height * .9]; });
+  s.at = r;
+  s.start(name); await s.wait(250);
+  await act(s, c);
+  await s.stop();
+}
 
-// Garchomp's artwork and the brand mark come from disk.
-copyFileSync(join(ROOT, 'data/sprites/official-artwork/445.png'), out('art445.png'));
-copyFileSync(join(ROOT, 'frontend/public/brand/pokedex-os-symbol.svg'), out('logo.svg'));
-copyFileSync(join(HERE, 'node_modules/gsap/dist/gsap.min.js'), out('gsap.min.js'));
-console.log(`team: ${team.name} (#${team.id})`);
-await b.close();
+ensureDir(ASSETS);
+copyFileSync(join(ROOT, 'frontend/public/brand/pokedex-os-symbol.svg'), join(ASSETS, 'logo.svg'));
+copyFileSync(join(HERE, 'node_modules/gsap/dist/gsap.min.js'), join(ASSETS, 'gsap.min.js'));

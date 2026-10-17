@@ -20,7 +20,7 @@ from PIL import Image
 frames, out = sys.argv[1], sys.argv[2]
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(
-        ["ffmpeg", "-v", "error", "-framerate", "30", "-i", os.path.join(frames, "f%05d.jpg"),
+        ["ffmpeg", "-v", "error", "-framerate", os.environ.get("FPS", "30"), "-i", os.path.join(frames, "f%05d.jpg"),
          "-vf", "fps=24,scale=960:-1:flags=lanczos", os.path.join(tmp, "%04d.png")],
         check=True,
     )
